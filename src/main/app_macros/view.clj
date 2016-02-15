@@ -167,7 +167,7 @@
          computed           (parse-props-spec (second prop-specs))
          prop-fns           (filter #(props-fn? %) fns)
          component-fns      (remove #(props-fn? %) fns)
-         prop-defns      (prop-defns name prop-fns props computed)
+         prop-defns         (prop-defns name prop-fns props computed)
          component-fn-decls (component-fn-decls component-fns
                                                 props
                                                 computed)
