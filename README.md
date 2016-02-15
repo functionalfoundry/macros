@@ -5,7 +5,7 @@ development.
 
 ## `defview` - Define Om Next components in a compact way
 
-A view is defined using `defview` and takes the following information:
+Views are defined using `defview`, accepting the following information:
 
 * A destructuring form for properties (optional)
 * A destructuring form for computed properties (optional)
