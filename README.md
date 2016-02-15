@@ -1,11 +1,11 @@
 # App Macros
 
+A collection of Clojure and ClojureScript macros for web and mobile
+development.
+
 ```
 [workflo/app-macros "0.1.0-SNAPSHOT"]
 ```
-
-A collection of Clojure and ClojureScript macros for web and mobile
-development.
 
 ## `defview` - Define Om Next components in a compact way
 
@@ -22,6 +22,9 @@ Views are defined using `defview`, accepting the following information:
 Example:
 
 ```
+(ns foo.bar
+  (:require [app-macros.view :refer-macros [defview]]))
+
 (defview User
   [user [name email address]]
   [ui [selected?] select-fn]
