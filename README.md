@@ -1,5 +1,9 @@
 # App Macros
 
+```
+[workflo/app-macros "0.1.0-SNAPSHOT"]
+```
+
 A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
