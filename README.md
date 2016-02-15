@@ -3,7 +3,7 @@
 A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
-```
+```clojure
 [workflo/app-macros "0.1.0-SNAPSHOT"]
 ```
 
@@ -21,7 +21,7 @@ Views are defined using `defview`, accepting the following information:
 
 Example:
 
-```
+```clojure
 (ns foo.bar
   (:require [app-macros.view :refer-macros [defview]]))
 
@@ -41,7 +41,7 @@ Example:
 
 Example usage in Om Next:
 
-```
+```clojure
 (user (om/computed {:user/name "Jeff"
                     :user/email "jeff@jeff.org"
                     :user/address {:street "Elmstreet"
