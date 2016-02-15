@@ -25,7 +25,7 @@
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def version "0.1.0-alpha1-SNAPSHOT")
+(def version "0.1.0-SNAPSHOT")
 
 (bootlaces! version :dont-modify-paths? true)
 
@@ -38,7 +38,7 @@
             :ensure-clean true
             :ensure-tag (last-commit)
             :ensure-version version}
- pom       {:project 'app-macros
+ pom       {:project 'workfloapp/app-macros
             :version version
             :description "Clojure macros for web and mobile development"
             :url "https://github.com/workfloapp/app-macros"
@@ -87,3 +87,10 @@
     (watch)
     (test-cljs)
     (test)))
+
+(deftask install-local
+  []
+  (comp
+    (pom)
+    (jar)
+    (install)))

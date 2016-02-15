@@ -116,7 +116,7 @@
   "Generate a function name from fn-sym prefixed with the
    kebab-cased name of a view."
   [fn-sym view-name]
-  (symbol (str (camel->kebab view-name) "-" fn-sym)))
+  (symbol (str (camel->kebab (name view-name)) "-" fn-sym)))
 
 (defn prefix-fn-name
   "Prefixes the name of the function fn with the name of a view."
@@ -167,7 +167,7 @@
          computed           (parse-props-spec (second prop-specs))
          prop-fns           (filter #(props-fn? %) fns)
          component-fns      (remove #(props-fn? %) fns)
-         prop-defns      (prop-defns name prop-fns props computed)
+         prop-defns         (prop-defns name prop-fns props computed)
          component-fn-decls (component-fn-decls component-fns
                                                 props
                                                 computed)
@@ -176,7 +176,7 @@
         ~@prop-defns
         (om.next/defui ~name
           ~@component-fn-decls)
-        (def ~(symbol (camel->kebab name))
+        (def ~(symbol (camel->kebab (str name)))
           (om.next/factory ~name ~factory-params))))))
 
 (defmacro defview
