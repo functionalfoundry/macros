@@ -5,4 +5,7 @@
   "Converts from camel case (e.g. Foo or FooBar) to kebab case
    (e.g. foo or foo-bar)."
   [s]
-  (str/lower-case (str/replace s #"(.+)([A-Z])" "$1-$2")))
+  (->> s
+       (re-seq #"[A-Z][a-z0-9_-]*")
+       (str/join "-")
+       (str/lower-case)))
