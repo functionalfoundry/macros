@@ -33,7 +33,7 @@
  test-cljs {:js-env :phantom
             :update-fs? true
             :optimizations :none}
- push      {:repo "deploy"
+ push      {:repo "deploy-clojars"
             :ensure-branch "master"
             :ensure-clean true
             :ensure-tag (last-commit)
@@ -94,3 +94,21 @@
     (pom)
     (jar)
     (install)))
+
+(deftask deploy-snapshot
+  []
+  (comp
+    (pom)
+    (jar)
+    (build-jar)
+    (target)
+    (push-snapshot)))
+
+(deftask deploy-release
+  []
+  (comp
+    (pom)
+    (jar)
+    (build-jar)
+    (target)
+    (push-release)))
