@@ -33,12 +33,12 @@
  test-cljs {:js-env :phantom
             :update-fs? true
             :optimizations :none}
- push      {:repo "deploy"
+ push      {:repo "deploy-clojars"
             :ensure-branch "master"
             :ensure-clean true
             :ensure-tag (last-commit)
             :ensure-version version}
- pom       {:project 'workfloapp/app-macros
+ pom       {:project 'workflo/app-macros
             :version version
             :description "Clojure macros for web and mobile development"
             :url "https://github.com/workfloapp/app-macros"
@@ -94,3 +94,21 @@
     (pom)
     (jar)
     (install)))
+
+(deftask deploy-snapshot
+  []
+  (comp
+    (pom)
+    (jar)
+    (build-jar)
+    (target)
+    (push-snapshot)))
+
+(deftask deploy-release
+  []
+  (comp
+    (pom)
+    (jar)
+    (build-jar)
+    (target)
+    (push-release)))
