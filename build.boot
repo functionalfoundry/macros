@@ -38,7 +38,7 @@
             :ensure-clean true
             :ensure-tag (last-commit)
             :ensure-version version}
- pom       {:project 'workfloapp/app-macros
+ pom       {:project 'workflo/app-macros
             :version version
             :description "Clojure macros for web and mobile development"
             :url "https://github.com/workfloapp/app-macros"
