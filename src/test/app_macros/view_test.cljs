@@ -10,40 +10,42 @@
        (is (not (nil? minimal-view)))))
 
 (defview MinimalViewWithKeyfn
-  (keyfn [{:keys [foo]}] (str foo "-baz")))
+  (keyfn (str (:foo props) "-baz")))
 
 (deftest minimal-view-with-key-fn-works
-  (and (is (not (nil? MinimalViewWithKeyfn)))
-       (is (not (nil? minimal-view-with-keyfn)))
-       (is (not (nil? minimal-view-with-keyfn-keyfn)))
-       (is (= "bar-baz" (minimal-view-with-keyfn-keyfn {:foo "bar"})))))
+  (let [view (minimal-view-with-keyfn {:foo "bar"})]
+    (is (= (.-key view) "bar-baz"))))
 
 (defview ViewWithQuery
-  (query [this]
-    [:foo :bar]))
+  (query [:foo :bar]))
 
 (deftest view-with-query-works
   (is (= [:foo :bar] (om/get-query ViewWithQuery))))
 
 (defview ViewWithProps
   [user [name email]]
-  (ident [this props] [:user/by-name name])
-  (get-name [this] name)
-  (get-email [this] email))
+  (ident [:user/by-name name])
+  (get-name name)
+  (get-email email))
 
 (comment
-  (deftest view-with-props-works
-    (let [view (view-with-props {:user/name "Jeff"
-                                 :user/email "jeff@jeff.org"})]
-      (println (.-prototype (type view)))
-      (println (.-om$isComponent view))
-      (and (is (= "Jeff" (.get-name view)))
-           (is (= "jeff@jeff.org" (.get-email view))))))
+ (deftest view-with-props-works
+   (let [view (view-with-props {:user/name "Jeff"
+                                :user/email "jeff@jeff.org"})]
+     (println (.-prototype (type view)))
+     (println (.-om$isComponent view))
+     (and (is (= "Jeff" (.get-name view)))
+          (is (= "jeff@jeff.org" (.get-email view))))))
 
-  (cljs.pprint/pprint
-   (macroexpand-1
-    '(defview ViewWithProps
-       [user [name email]]
-       (ident [this props] [:user/by-name name])
-       (get-name [this] name)
-       (get-email [this] email)))))
+ (deftest foo
+   (cljs.pprint/pprint
+    (macroexpand-1
+     '(defview ViewWithProps
+        [user [name email]]
+        (ident [:user/by-name name])
+        (keyfn name)
+        (validator foo)
+        (query-params {:foo :bar})
+        (query [:foo :bar])
+        (get-name name foo bar)
+        (get-email email))))))
