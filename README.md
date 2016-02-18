@@ -28,11 +28,10 @@ Example:
 (defview User
   [user [name email address]]
   [ui [selected?] select-fn]
-  (keyfn [_] name)
-  (validator [_] (string? name))
-  (ident [this]
-    [:user/by-name name])
-  (render [this]
+  (keyfn name)
+  (validator (string? name))
+  (ident [:user/by-name name])
+  (render
     (dom/div #js {:className (when selected? "selected")
                   :onClick (select-fn (om/get-ident this))}
       (dom/h1 nil "User: " name)
