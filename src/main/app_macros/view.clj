@@ -124,14 +124,16 @@
 
    Takes an optional properties spec, an optional computed properties
    spec and an arbitrary number of Om Next component functions (such
-   as ident, query, query-params, initLocalState render) and
-   JavaScript object methods, without requiring their protocols to
-   be included in the definition.
+   as ident, query, query-params, initLocalState or render) and
+   JavaScript object methods, without requiring their protocols or
+   argument bindings (like [this] or [props]) to be included in the
+   definition.
 
    Based on the properties and computed properties spec, defview
-   will wrap the function bodys of all instance functions (ident,
-   render, lifecycle functions) in a destructuring let that makes
-   the specified properties available inside the function.
+   will wrap the function bodies of all instance functions (ident,
+   render, lifecycle functions, any object methods) in a destructuring
+   let that makes the specified properties available inside these
+   functions.
 
    Usage:
 
@@ -153,10 +155,6 @@
    The above example would define the following:
 
      * An Om Next component called User
-     * A component factory called user
-     * A keyfn function called user-keyfn that is passed
-       to the factory
-     * A validator function called user-validator that is
-       passed to the factory"
+     * A component factory called user, with a :keyfn and a :validator"
   [name & forms]
   (defview* name forms &env))
