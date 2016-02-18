@@ -37,6 +37,12 @@
     keyfn        [:factory  nil                           [props]]
     validator    [:factory  nil                           [props]]})
 
+(def fn-aliases
+  "A few aliases allowing to define view functions with shorter or
+   more logicial names."
+  '{key      keyfn
+    validate validator})
+
 (defn fn-scope
   "Return the scope (:static, :instance, :props) for a view function."
   [[name & args-and-body]]
@@ -54,6 +60,18 @@
   [[name & args-and-body]]
   (let [[_ _ args] (fn-specs name)]
     (or args '[this])))
+
+(defn fn-alias
+  "Return the alias for a view function or the name of the
+   function itself if no alias is defined."
+  [[name & _]]
+  (or (fn-aliases name) name))
+
+(defn resolve-fn-alias
+  "Resolve the function alias for a view function."
+  [[name & body :as f]]
+  (let [alias (fn-alias f)]
+    `(~alias ~@body)))
 
 (defn inject-fn-args
   "Injects a function argument binding vector into f if it doesn't
@@ -99,7 +117,8 @@
          props              (parse-props-spec (first prop-specs))
          computed           (parse-props-spec (second prop-specs))
          fns                (drop-while vector? forms)
-         fns-with-args      (map inject-fn-args fns)
+         fns-aliased        (map resolve-fn-alias fns)
+         fns-with-args      (map inject-fn-args fns-aliased)
          fns-with-props     (map #(inject-props % props computed)
                                  fns-with-args)
          factory-fns        (filter #(= (fn-scope %) :factory)
@@ -140,8 +159,8 @@
       (defview User
         [name email address [street city zipcode]]
         [clicked-fn]
-        (keyfn name)
-        (validator ...)
+        (key name)
+        (validate ...)
         (ident [:user/by-name name])
         (render
           (html
@@ -155,6 +174,7 @@
    The above example would define the following:
 
      * An Om Next component called User
-     * A component factory called user, with a :keyfn and a :validator"
+     * A component factory called user, with a :keyfn, derived from
+       (key ...), and a :validator, derived from (validate ...)."
   [name & forms]
   (defview* name forms &env))

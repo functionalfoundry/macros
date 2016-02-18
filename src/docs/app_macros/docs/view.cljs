@@ -15,7 +15,7 @@
   (defview User
     [user [name email]]
     [clicked-fn]
-    (keyfn name)
+    (key name)
     (ident [:user name])
     (render
       (dom/div nil
@@ -39,7 +39,7 @@
 
 (defview User
   [user [name email]]
-  (keyfn name)
+  (key name)
   (ident [:user name])
   (render
    (dom/div nil
