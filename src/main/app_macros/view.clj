@@ -72,6 +72,19 @@
          (partition-all 2 2)
          (reduce parse-step []))))
 
+;;;; Om Next query generation
+
+(defn generate-query-fn
+  "Generate a (query ...) function from the props spec."
+  [props]
+  (letfn [(generate-read-key [ret {:keys [name join]}]
+            (conj ret
+                  (cond
+                    join  (hash-map (keyword name)
+                                    `(~'om/get-query ~join))
+                    :else (keyword name))))]
+    (list 'query (reduce generate-read-key [] props))))
+
 (def fn-specs
   "Function specifications for all functions that are not Object
    instance functions taking [this] as the sole argument."
@@ -116,6 +129,14 @@
   [[name & body :as f]]
   (let [alias (fn-alias f)]
     `(~alias ~@body)))
+
+(defn maybe-generate-query-fn
+  "If (query ...) is missing from fns, it is generated automatically
+   from the props spec."
+  [fns props]
+  (cond-> fns
+    (not (some '#{query} (map first fns)))
+    (conj (generate-query-fn props))))
 
 (defn inject-fn-args
   "Injects a function argument binding vector into f if it doesn't
@@ -164,7 +185,8 @@
          computed           (parse-props-spec (second prop-specs))
          fns                (drop-while vector? forms)
          fns-aliased        (map resolve-fn-alias fns)
-         fns-with-args      (map inject-fn-args fns-aliased)
+         fns-with-query     (maybe-generate-query-fn fns-aliased props)
+         fns-with-args      (map inject-fn-args fns-with-query)
          fns-with-props     (map #(inject-props % props computed)
                                  fns-with-args)
          factory-fns        (filter #(= (fn-scope %) :factory)
