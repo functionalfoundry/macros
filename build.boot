@@ -80,7 +80,7 @@
   (merge-env! :source-paths #{"src/test"})
   identity)
 
-(deftask autotest
+(deftask test-auto
   []
   (comp
     (testing)

@@ -1,6 +1,7 @@
 (ns app-macros.docs
   (:require [devcards.core :refer-macros [defcard start-devcard-ui!]]
-            [app-macros.docs.util.string]))
+            [app-macros.docs.util.string]
+            [app-macros.docs.view]))
 
 (enable-console-print!)
 (start-devcard-ui!)
