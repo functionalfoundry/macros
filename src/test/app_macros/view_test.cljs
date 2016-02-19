@@ -41,7 +41,9 @@
     (cljs.pprint/pprint
      (macroexpand-1
       '(defview ViewWithProps
-         [user [name email] {friends ViewWithProps}]
+         [user [name email {friends ViewWithProps}]
+          foo
+          bar [baz]]
          (ident [:user/by-name name])
          (key name)
          (validate foo)

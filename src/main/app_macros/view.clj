@@ -139,7 +139,7 @@
     (conj (generate-query-fn props))))
 
 (defn inject-fn-args
-  "Injects a function argument binding vector into f if it doesn't
+  "Inject a function argument binding vector into f if it doesn't
    already have one."
   [[name & body :as f]]
   (let [args (fn-args f)]
