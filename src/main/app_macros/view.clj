@@ -1,6 +1,34 @@
 (ns app-macros.view
   (:require [app-macros.util.string :refer [camel->kebab]]))
 
+;;;; Property specifications
+
+(defn pad-by
+  "Add pad in between any two consecutive values in coll for which
+   pred returns the same result. As an example, assume the following
+   use:
+
+       (pad-by type :same-type [:foo :bar [1 2] {3 4} {5 6}])
+
+   The result would be
+
+       [:foo :same-type :bar [1 2] {3 4} :same-type {5 6}].
+
+   If called without coll, returns a transducer."
+  ([pred pad]
+   (fn [rf]
+     (let [pv (volatile! nil)]
+       (fn
+         ([] (rf))
+         ([result] (rf result))
+         ([result input]
+          (let [prior @pv]
+            (vreset! pv input)
+            (if (pred prior input)
+              (rf (rf result pad) input)
+              (rf result input))))))))
+  ([pred pad coll] (sequence (pad-by pred pad) coll)))
+
 (defn parse-props-spec
   "Parse a prop spec such as [user [name email]] into symbols
    that can be used for destructuring properties, e.g.
