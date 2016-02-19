@@ -30,31 +30,47 @@
   ([pred pad coll] (sequence (pad-by pred pad) coll)))
 
 (defn parse-props-spec
-  "Parse a prop spec such as [user [name email]] into symbols
-   that can be used for destructuring properties, e.g.
-   [user/name user/email]."
+  "Parse a props spec like [user [name email {friends User}]] into
+   a flat collection with the following structure:
+
+   [{:name user/name :join nil}
+    {:name user/email :join nil}
+    {:name user/friends :join User}].
+
+   From this it is trivial to a) generate keys for destructuring
+   view props and b) generate an Om Next query."
   [spec]
-  (letfn [(parse-step [{:keys [props prev] :as ret} prop]
-            {:pre [(vector? props)
-                   (or (symbol? prop) (vector? prop))
-                   (or (nil? prev) (symbol? prev) (vector? prev))]}
-            (if (vector? prop)
-              (do
-                (assert (symbol? prev)
-                        (str "The vector " prop " may only appear "
-                             "after a symbol, e.g. not after another "
-                             "vector or nil: " prev))
-                (if (symbol? prev)
-                  (let [subprops (map #(symbol (str prev) (str %)) prop)]
-                    (-> ret
-                        (update :props butlast)
-                        (update :props concat subprops)
-                        (update :props vec)
-                        (assoc :prev prop)))))
-              (-> ret
-                  (update :props conj prop)
-                  (assoc :prev prop))))]
-    (:props (reduce parse-step {:props [] :prev nil} spec))))
+  (letfn [(prop-type [p]
+            (cond
+              (or (symbol? p) (map? p)) :prop
+              (vector? p)               :children
+              :else                     :unknown))
+          (prop-name [p]
+            (cond
+              (symbol? p) (name p)
+              (map? p)    (name (ffirst p))
+              :else       nil))
+          (parse-prop [parent p]
+            (cond
+              (symbol? p) {:name (symbol (prop-name parent)
+                                         (prop-name p))
+                           :join nil}
+              (map? p)    {:name (symbol (prop-name parent)
+                                         (prop-name p))
+                           :join (second (first p))}
+              :else       nil))
+          (parse-step [result [p children]]
+            {:pre [(= (prop-type p) :prop)
+                   (or (nil? children)
+                       (= (prop-type children) :children))]}
+            (concat result
+                    (cond
+                      (nil? children)    [(parse-prop nil p)]
+                      (vector? children) (mapv #(parse-prop p %)
+                                               children))))]
+    (->> (pad-by #(= (prop-type %1) (prop-type %2)) nil spec)
+         (partition-all 2 2)
+         (reduce parse-step []))))
 
 (def fn-specs
   "Function specifications for all functions that are not Object
@@ -118,7 +134,9 @@
   [[name args & body :as f] props computed]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
-      (let [this-index      (.indexOf args 'this)
+      (let [prop-names      (map :name props)
+            computed-names  (map :name computed)
+            this-index      (.indexOf args 'this)
             props-index     (.indexOf args 'props)
             actual-props    (if (>= props-index 0)
                               (args props-index)
@@ -127,8 +145,8 @@
                                 nil))
             actual-computed `(~'om/get-computed ~actual-props)]
         `(~name ~args
-          (~'let [{:keys [~@props]} ~actual-props
-                  {:keys [~@computed]} ~actual-computed]
+          (~'let [{:keys [~@prop-names]} ~actual-props
+                  {:keys [~@computed-names]} ~actual-computed]
            ~@body)))
       f)))
 
