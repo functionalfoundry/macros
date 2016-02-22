@@ -1,89 +1,13 @@
 (ns app-macros.view
-  (:require [app-macros.util.string :refer [camel->kebab]]))
-
-;;;; Property specifications
-
-(defn pad-by
-  "Add pad in between any two consecutive values in coll for which
-   pred returns the same result. As an example, assume the following
-   use:
-
-       (pad-by type :same-type [:foo :bar [1 2] {3 4} {5 6}])
-
-   The result would be
-
-       [:foo :same-type :bar [1 2] {3 4} :same-type {5 6}].
-
-   If called without coll, returns a transducer."
-  ([pred pad]
-   (fn [rf]
-     (let [pv (volatile! nil)]
-       (fn
-         ([] (rf))
-         ([result] (rf result))
-         ([result input]
-          (let [prior @pv]
-            (vreset! pv input)
-            (if (pred prior input)
-              (rf (rf result pad) input)
-              (rf result input))))))))
-  ([pred pad coll] (sequence (pad-by pred pad) coll)))
-
-(defn parse-props-spec
-  "Parse a props spec like [user [name email {friends User}]] into
-   a flat collection with the following structure:
-
-   [{:name user/name :join nil}
-    {:name user/email :join nil}
-    {:name user/friends :join User}].
-
-   From this it is trivial to a) generate keys for destructuring
-   view props and b) generate an Om Next query."
-  [spec]
-  (letfn [(prop-type [p]
-            (cond
-              (or (symbol? p) (map? p)) :prop
-              (vector? p)               :children
-              :else                     :unknown))
-          (prop-name [p]
-            (cond
-              (symbol? p) (name p)
-              (map? p)    (name (ffirst p))
-              :else       nil))
-          (parse-prop [parent p]
-            (cond
-              (symbol? p) {:name (symbol (prop-name parent)
-                                         (prop-name p))
-                           :join nil}
-              (map? p)    {:name (symbol (prop-name parent)
-                                         (prop-name p))
-                           :join (second (first p))}
-              :else       nil))
-          (parse-step [result [p children]]
-            {:pre [(= (prop-type p) :prop)
-                   (or (nil? children)
-                       (= (prop-type children) :children))]}
-            (concat result
-                    (cond
-                      (nil? children)    [(parse-prop nil p)]
-                      (vector? children) (mapv #(parse-prop p %)
-                                               children))))]
-    (->> (pad-by #(= (prop-type %1) (prop-type %2)) nil spec)
-         (partition-all 2 2)
-         (reduce parse-step []))))
+  (:require [app-macros.props :as p]
+            [app-macros.util.string :refer [camel->kebab]]))
 
 ;;;; Om Next query generation
 
 (defn generate-query-fn
   "Generate a (query ...) function from the props spec."
   [props]
-  (letfn [(generate-read-key [ret {:keys [name join]}]
-            (conj ret
-                  (cond
-                    join  (hash-map (keyword name)
-                                    `(~'om/get-query ~join))
-                    :else (keyword name))))]
-    (list 'query (reduce generate-read-key [] props))))
+  (list 'query (p/om-query props)))
 
 (def fn-specs
   "Function specifications for all functions that are not Object
@@ -155,8 +79,8 @@
   [[name args & body :as f] props computed]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
-      (let [prop-names      (map :name props)
-            computed-names  (map :name computed)
+      (let [prop-keys       (p/map-keys props)
+            computed-keys   (p/map-keys computed)
             this-index      (.indexOf args 'this)
             props-index     (.indexOf args 'props)
             actual-props    (if (>= props-index 0)
@@ -166,8 +90,8 @@
                                 nil))
             actual-computed `(~'om/get-computed ~actual-props)]
         `(~name ~args
-          (~'let [{:keys [~@prop-names]} ~actual-props
-                  {:keys [~@computed-names]} ~actual-computed]
+          (~'let [{:keys [~@prop-keys]} ~actual-props
+                  {:keys [~@computed-keys]} ~actual-computed]
            ~@body)))
       f)))
 
@@ -181,8 +105,8 @@
    (defview* name forms nil))
   ([name forms env]
    (let [prop-specs         (take-while vector? forms)
-         props              (parse-props-spec (first prop-specs))
-         computed           (parse-props-spec (second prop-specs))
+         props              (p/parse (first prop-specs))
+         computed           (p/parse (second prop-specs))
          fns                (drop-while vector? forms)
          fns-aliased        (map resolve-fn-alias fns)
          fns-with-query     (maybe-generate-query-fn fns-aliased props)
