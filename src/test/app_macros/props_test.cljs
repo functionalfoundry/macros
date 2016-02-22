@@ -138,3 +138,17 @@
               '[[:user :jeff]]))
        (is (= (-> '[user [name [friend 123]]] p/parse p/om-query)
               '[:user/name [:user/friend 123]]))))
+
+;;;; Map destructuring
+
+(deftest map-keys
+  (and (is (= (-> '[foo bar baz] p/parse p/map-keys)
+              '[foo bar baz]))
+       (is (= (-> '[foo [bar baz]] p/parse p/map-keys)
+              '[foo/bar foo/baz]))
+       (is (= (-> '[{foo Foo} {bar Bar}] p/parse p/map-keys)
+              '[foo bar]))
+       (is (= (-> '[[foo _] [bar 123] [baz :baz]] p/parse p/map-keys)
+              '[foo bar baz]))
+       (is (= (-> '[foo [{bar Bar} [baz 123]]] p/parse p/map-keys)
+              '[foo/bar foo/baz]))))

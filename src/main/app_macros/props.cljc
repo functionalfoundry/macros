@@ -124,3 +124,9 @@
   "Generates an Om Next query from a parsed properties specification."
   [props]
   (into [] (map property-query) props))
+
+(defn map-keys
+  "Generates keys for destructuring a map of properties from a parsed
+   properties specification."
+  [props]
+  (into [] (map :name) props))
