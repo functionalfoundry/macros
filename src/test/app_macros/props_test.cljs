@@ -108,3 +108,33 @@
        (is (= (p/parse '[foo [[bar _]] baz [[ruux 15]]])
               '[{:name foo/bar :type :link :target _}
                 {:name baz/ruux :type :link :target 15}]))))
+
+;;;; Om Next query generation
+
+(deftest basic-queries
+  (and (is (= (-> '[foo bar baz] p/parse p/om-query)
+              [:foo :bar :baz]))
+       (is (= (-> '[foo [bar baz] ruux] p/parse p/om-query)
+              [:foo/bar :foo/baz :ruux]))))
+
+(deftest queries-with-joins
+  (and (is (= (-> '[{foo User}] p/parse p/om-query)
+              '[{:foo (om.next/get-query User)}]))
+       (is (= (-> '[{foo ...}] p/parse p/om-query)
+              '[{:foo ...}]))
+       (is (= (-> '[{foo 17}] p/parse p/om-query)
+              '[{:foo 17}]))
+       (is (= (-> '[foo [{bar User}]] p/parse p/om-query)
+              '[{:foo/bar (om.next/get-query User)}]))))
+
+(deftest queries-with-links
+  (and (is (= (-> '[[current-user _]] p/parse p/om-query)
+              '[[:current-user _]]))
+       (is (= (-> '[[user 123]] p/parse p/om-query)
+              '[[:user 123]]))
+       (is (= (-> '[[user "Jeff"]] p/parse p/om-query)
+              '[[:user "Jeff"]]))
+       (is (= (-> '[[user :jeff]] p/parse p/om-query)
+              '[[:user :jeff]]))
+       (is (= (-> '[user [name [friend 123]]] p/parse p/om-query)
+              '[:user/name [:user/friend 123]]))))

@@ -33,24 +33,37 @@
 
 (def property-types
   "Property types supported by the properties parser."
-  [{:type :property
-    :test #(symbol? %)
-    :name #(name %)}
-   {:type :link
-    :test #(and (vector? %)
-                (= 2 (count %))
-                (value? (second %)))
-    :name #(first %)}
-   {:type :join
-    :test #(and (map? %)
-                (= 1 (count %)))
-    :name #(first (keys %))}])
+  [{:type  :property
+    :test  #(symbol? %)
+    :name  #(name %)
+    :query #(keyword (:name %))}
+   {:type  :link
+    :test  #(and (vector? %)
+                 (= 2 (count %))
+                 (value? (second %)))
+    :name  #(first %)
+    :query #(-> [(keyword (:name %)) (:target %)])}
+   {:type  :join
+    :test  #(and (map? %)
+                 (= 1 (count %)))
+    :name  #(first (keys %))
+    :query #(-> {(keyword (:name %))
+                 (let [target (:target %)]
+                   (cond
+                     (= target '...) '...
+                     (number? target) target
+                     :else `(~'om.next/get-query ~target)))})}])
 
 (defn- property-resolve
   "Given a property prop, resolves the field :type or :name into
    the corresponding property type or name."
   [prop field]
-  (let [match (first (filter #((:test %) prop) property-types))]
+  (let [match (first (filter (fn [info]
+                               (or ((:test info) prop)
+                                   (and (map? prop)
+                                        (= (:type info)
+                                           (:type prop)))))
+                             property-types))]
     (if (fn? (get match field))
       ((get match field) prop)
       (get match field))))
@@ -67,6 +80,11 @@
   [parent prop]
   (symbol (some-> parent (property-resolve :name) name)
           (some-> prop (property-resolve :name) name)))
+
+(defn property-query
+  "Returns an Om Next query expression for prop."
+  [prop]
+  (property-resolve prop :query))
 
 (defn parse
   "Parses a properties specification like
@@ -101,3 +119,8 @@
          (partition-all 2 2)
          (reduce parse-step [])
          (into []))))
+
+(defn om-query
+  "Generates an Om Next query from a parsed properties specification."
+  [props]
+  (into [] (map property-query) props))
