@@ -7,7 +7,7 @@
                  [adzerk/boot-reload "0.4.5" :scope "test"]
                  [adzerk/boot-test "1.1.0" :scope "test"]
                  [adzerk/bootlaces "0.1.13" :scope "test"]
-                 [pandeiro/boot-http "0.7.2" :scope "test"] 
+                 [pandeiro/boot-http "0.7.2" :scope "test"]
                  [crisptrutski/boot-cljs-test "0.2.2-SNAPSHOT" :scope "test"]
 
                  ;; Library dependencies
@@ -25,7 +25,7 @@
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def version "0.1.0-SNAPSHOT")
+(def version "0.1.0")
 
 (bootlaces! version :dont-modify-paths? true)
 
