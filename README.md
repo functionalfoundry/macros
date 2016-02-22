@@ -41,13 +41,13 @@ the view definition.
 
 As an example, the properties destructuring form
 
-```
+```clojure
 [user [name email {friends ...}] [current-user _]]
 ```
 
 would destructure the properties as follows:
 
-```
+```clojure
 :user/name    -> name
 :user/email   -> email
 :user/friends -> friends
@@ -62,13 +62,13 @@ supports joins and links but not unions and parameterization.
 
 As an example, the properties destructuring form
 
-```
+```clojure
 [user [name email {friends User}] [current-user _]]
 ```
 
 would generate the following `query` function:
 
-```
+```clojure
 static om.next/IQuery
 (query [this]
   [:user/name
@@ -79,7 +79,7 @@ static om.next/IQuery
 
 This can be overriden simply by implementing your own `query`:
 
-```
+```clojure
 (defview User
   [...]
   (query
@@ -91,7 +91,7 @@ auto-generated queries. On idea is to implicitly bind the
 auto-generated query when overriding `query` and providing
 convenient methods to parameterize sub-queries, e.g.
 
-```
+```clojure
 (query
   (-> auto-query
       (set-param :user/friends :param :value)
@@ -140,7 +140,7 @@ Example usage in Om Next:
 Most of the internals of the `defview` macro are available as
 separate functions for easy reuse:
 
-```
+```clojure
 (require '[app-macros.props :as p]
          '[app-macros.view :as v])
 
