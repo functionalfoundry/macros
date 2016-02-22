@@ -1,0 +1,10 @@
+language: clojure
+jdk:
+  - oraclejdk8
+install:
+  - wget -O boot https://github.com/boot-clj/boot-bin/releases/download/2.5.5/boot.sh
+  - chmod 755 boot
+  - ./boot -V
+env:
+  - BOOT_JVM_OPTIONS="-Xmx1024m -Xms256m -Xss1m"
+script: ./boot test-once
