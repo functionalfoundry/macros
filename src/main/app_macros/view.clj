@@ -1,5 +1,6 @@
 (ns app-macros.view
-  (:require [app-macros.props :as p]
+  (:require [clojure.string :as str]
+            [app-macros.props :as p]
             [app-macros.util.string :refer [camel->kebab]]))
 
 ;;;; Om Next query generation
@@ -62,6 +63,13 @@
     (not (some '#{query} (map first fns)))
     (conj (generate-query-fn props))))
 
+(defn raw-fn?
+  "Returns true if f is a raw function, that is if its name
+   starts with a ., indicating that its function signature
+   should be left alone."
+ [[name & body :as f]]
+ (str/starts-with? (str name) "."))
+
 (defn inject-fn-args
   "Inject a function argument binding vector into f if it doesn't
    already have one."
@@ -70,6 +78,21 @@
     (if args
       `(~name ~args ~@body)
       `(~name [~'this] ~@body))))
+
+(defn maybe-inject-fn-args
+  "Inject a function argument binding vector into f unless it
+   is a raw function that is assumed to define its own arguments."
+  [[name & body :as f]]
+  (cond-> f
+    (not (raw-fn? f))
+    inject-fn-args))
+
+(defn normalize-fn-name
+  "Normalize the function name of of. This removes the leading .
+   from the names of raw functions."
+  [[name args & body :as f]]
+  (let [name (symbol (cond-> (str name) (raw-fn? f) (subs 1)))]
+    `(~name ~args ~@body)))
 
 (defn inject-props
   "Wrap the body of a function of the form (name [args] body)
@@ -110,9 +133,10 @@
          fns                (drop-while vector? forms)
          fns-aliased        (map resolve-fn-alias fns)
          fns-with-query     (maybe-generate-query-fn fns-aliased props)
-         fns-with-args      (map inject-fn-args fns-with-query)
+         fns-with-args      (map maybe-inject-fn-args fns-with-query)
+         fns-with-names     (map normalize-fn-name fns-with-args)
          fns-with-props     (map #(inject-props % props computed)
-                                 fns-with-args)
+                                 fns-with-names)
          factory-fns        (filter #(= (fn-scope %) :factory)
                                     fns-with-props)
          factory-params     (zipmap (map (comp keyword first)
