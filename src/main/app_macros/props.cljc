@@ -42,7 +42,11 @@
                  (= 2 (count %))
                  (value? (second %)))
     :name  #(first %)
-    :query #(-> [(keyword (:name %)) (:target %)])}
+    :query #(-> [(keyword (:name %))
+                 (let [target (:target %)]
+                   (cond
+                     (= target '_) ''_
+                     :else target))])}
    {:type  :join
     :test  #(and (map? %)
                  (= 1 (count %)))
@@ -50,7 +54,7 @@
     :query #(-> {(keyword (:name %))
                  (let [target (:target %)]
                    (cond
-                     (= target '...) '...
+                     (= target '...) ''...
                      (number? target) target
                      :else `(~'om.next/get-query ~target)))})}])
 
