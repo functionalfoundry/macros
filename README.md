@@ -4,7 +4,7 @@ A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
 ```clojure
-[workflo/app-macros "0.1.0"]
+[workflo/app-macros "0.2.0"]
 ```
 
 ## `defview` - Define Om Next components in a compact way
