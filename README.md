@@ -105,6 +105,36 @@ function bodies depending on their signature (e.g. `render`
 only makes `this` available, whereas `ident` pre-binds `this`
 and `props`).
 
+### Custom (raw) functions with their own argument vectors
+
+By default, `defview` implicitly assumes the arguments to custom
+functions, i.e., functions other than Om Next and React lifecycle
+functions, are to be `[this]`. However, when adding JS object functions
+to a view, you'll often want additional arguments. Here is an example
+highlighting the problem:
+
+```clojure
+(defview UserList
+  [users]
+  (select ;; implictly adds [this]
+    ;; where should the user ID come from?
+    (om/transact! this `[(users/select {:user ~???})])))
+```
+
+To solve this problem, `defview` supports a `.` syntax for function
+definitions. Any function that starts with a `.` will become a JS
+object function and its arguments will remain untouched:
+
+```clojure
+(defview UserList
+  [users]
+  (.select [this user]
+    (om/transact! this `[(users/select {:user ~user})])))
+```
+
+Inside the view, this function can now be called with
+`(.select this <user id>)`, just like any other JS object function.
+
 ### Example
 
 ```clojure
