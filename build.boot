@@ -13,6 +13,7 @@
                  ;; Library dependencies
                  [org.clojure/clojurescript "1.7.228"]
                  [org.omcljs/om "1.0.0-alpha30"]
+                 [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
                  [devcards "0.2.1-6"]])
