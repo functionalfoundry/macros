@@ -1,3 +1,3 @@
-(ns app-macros.view
+(ns workflo.macros.view
   (:require [om.next]
             [om.dom]))

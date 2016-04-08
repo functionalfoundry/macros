@@ -1,4 +1,4 @@
-(ns app-macros.util.string
+(ns workflo.macros.util.string
   (:require [clojure.string :as str]))
 
 (defn camel->kebab

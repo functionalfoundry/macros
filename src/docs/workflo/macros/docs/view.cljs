@@ -1,9 +1,9 @@
-(ns app-macros.docs.view
+(ns workflo.macros.docs.view
   (:require [cljs.pprint :refer [pprint]]
             [devcards.core :refer-macros [defcard defcard-doc dom-node]]
             [om.next :as om]
             [om.dom :as dom]
-            [app-macros.view :refer-macros [defview]]))
+            [workflo.macros.view :refer-macros [defview]]))
 
 (defcard-doc
   "# `defview` macro")

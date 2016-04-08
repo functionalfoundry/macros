@@ -1,10 +1,10 @@
-# App Macros
+# Workflo Macros
 
 A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
 ```clojure
-[workflo/app-macros "0.2.2"]
+[workflo/macros "0.2.2"]
 ```
 
 ## `defview` - Define Om Next components in a compact way
@@ -139,7 +139,7 @@ Inside the view, this function can now be called with
 
 ```clojure
 (ns foo.bar
-  (:require [app-macros.view :refer-macros [defview]]))
+  (:require [workflo.macros.view :refer-macros [defview]]))
 
 (defview User
   [user [name email address {friends ...}]]
@@ -171,8 +171,8 @@ Most of the internals of the `defview` macro are available as
 separate functions for easy reuse:
 
 ```clojure
-(require '[app-macros.props :as p]
-         '[app-macros.view :as v])
+(require '[workflo.macros.props :as p]
+         '[workflo.macros.view :as v])
 
 ;; Utilities
 
@@ -221,5 +221,5 @@ separate functions for easy reuse:
 
 ## License
 
-App Macros is copyright (C) 2016 Workflo. Licensed under the
+Workflo Macros is copyright (C) 2016 Workflo. Licensed under the
 MIT License. For more information [see the LICENSE file](LICENSE).

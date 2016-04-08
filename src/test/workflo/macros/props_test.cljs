@@ -1,6 +1,6 @@
-(ns app-macros.props-test
+(ns workflo.macros.props-test
   (:require [cljs.test :refer-macros [deftest is]]
-            [app-macros.props :as p]))
+            [workflo.macros.props :as p]))
 
 ;;;; Padding
 
