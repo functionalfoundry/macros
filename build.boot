@@ -39,11 +39,11 @@
             :ensure-clean true
             :ensure-tag (last-commit)
             :ensure-version version}
- pom       {:project 'workflo/app-macros
+ pom       {:project 'workflo/macros
             :version version
             :description "Clojure macros for web and mobile development"
-            :url "https://github.com/workfloapp/app-macros"
-            :scm {:url "https://github.com/workfloapp/app-macros"}
+            :url "https://github.com/workfloapp/macros"
+            :scm {:url "https://github.com/workfloapp/macros"}
             :license {"MIT License"
                       "https://opensource.org/licenses/MIT"}})
 

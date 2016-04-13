@@ -1,7 +1,7 @@
-(ns app-macros.view-test
+(ns workflo.macros.view-test
   (:require [cljs.test :refer-macros [deftest is]]
             [om.next :as om]
-            [app-macros.view :refer-macros [defview]]))
+            [workflo.macros.view :refer-macros [defview]]))
 
 (defview MinimalView)
 

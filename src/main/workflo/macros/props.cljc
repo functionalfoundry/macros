@@ -1,4 +1,4 @@
-(ns app-macros.props)
+(ns workflo.macros.props)
 
 (defn pad-by
   "Add pad in between any two consecutive values in coll for which

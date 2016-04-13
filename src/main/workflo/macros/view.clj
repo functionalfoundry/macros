@@ -1,7 +1,7 @@
-(ns app-macros.view
+(ns workflo.macros.view
   (:require [clojure.string :as str]
-            [app-macros.props :as p]
-            [app-macros.util.string :refer [camel->kebab]]))
+            [workflo.macros.props :as p]
+            [workflo.macros.util.string :refer [camel->kebab]]))
 
 ;;;; Om Next query generation
 

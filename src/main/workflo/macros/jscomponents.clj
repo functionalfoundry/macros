@@ -1,8 +1,8 @@
-(ns app-macros.jscomponents
+(ns workflo.macros.jscomponents
   (:require [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [app-macros.util.string :refer [camel->kebab]]))
+            [workflo.macros.util.string :refer [camel->kebab]]))
 
 (defn defjscomponent*
   [module name]
