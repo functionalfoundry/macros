@@ -5,11 +5,6 @@
 
 ;;;; Om Next query generation
 
-(defn generate-query-fn
-  "Generate a (query ...) function from the props spec."
-  [props]
-  (list 'query (p/om-query props)))
-
 (def fn-specs
   "Function specifications for all functions that are not Object
    instance functions taking [this] as the sole argument."
@@ -55,12 +50,43 @@
   (let [alias (fn-alias f)]
     `(~alias ~@body)))
 
+(defn generate-ident-fn
+  "Generate a (ident ...) function from the props spec."
+  [props]
+  (list 'ident '[:db/id id]))
+
+(defn generate-key-fn
+  "Generate a (key ...) function from the props spec."
+  [props]
+  (list 'key 'id))
+
+(defn generate-query-fn
+  "Generate a (query ...) function from the props spec."
+  [props]
+  (list 'query (p/om-query props)))
+
+(defn maybe-generate-ident-fn
+  "If the props spec includes a :db/id property, an (ident ...)
+   function is automatically generated based on this ID."
+  [props fns]
+  (cond-> fns
+    (some #{'db/id} (map :name props))
+    (conj (generate-ident-fn props))))
+
+(defn maybe-generate-key-fn
+  "If the props spec includes a :db/id property, a (key ...)
+   function is automatically generated based on this ID."
+  [props fns]
+  (cond-> fns
+    (some #{'db/id} (map :name props))
+    (conj (generate-key-fn props))))
+
 (defn maybe-generate-query-fn
   "If (query ...) is missing from fns, it is generated automatically
    from the props spec."
-  [fns props]
+  [props fns]
   (cond-> fns
-    (not (some '#{query} (map first fns)))
+    (not (some #{'query} (map first fns)))
     (conj (generate-query-fn props))))
 
 (defn raw-fn?
@@ -130,13 +156,14 @@
    (let [prop-specs         (take-while vector? forms)
          props              (p/parse (first prop-specs))
          computed           (p/parse (second prop-specs))
-         fns                (drop-while vector? forms)
-         fns-aliased        (map resolve-fn-alias fns)
-         fns-with-query     (maybe-generate-query-fn fns-aliased props)
-         fns-with-args      (map maybe-inject-fn-args fns-with-query)
-         fns-with-names     (map normalize-fn-name fns-with-args)
-         fns-with-props     (map #(inject-props % props computed)
-                                 fns-with-names)
+         fns-with-props     (->> (drop-while vector? forms)
+                                 (maybe-generate-ident-fn props)
+                                 (maybe-generate-key-fn props)
+                                 (maybe-generate-query-fn props)
+                                 (map resolve-fn-alias)
+                                 (map maybe-inject-fn-args)
+                                 (map normalize-fn-name)
+                                 (map #(inject-props % props computed)))
          factory-fns        (filter #(= (fn-scope %) :factory)
                                     fns-with-props)
          factory-params     (zipmap (map (comp keyword first)
