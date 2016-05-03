@@ -216,8 +216,15 @@
 
    The above example would define the following:
 
-     * An Om Next component called User
-     * A component factory called user, with a :keyfn, derived from
-       (key ...), and a :validator, derived from (validate ...)."
+     * an Om Next component called User,
+     * a component factory called user, with a :keyfn, derived from
+       (key ...), and a :validator, derived from (validate ...).
+
+   If the properties spec includes [db [id]], corresponding to
+   the Om Next query attribute :db/id, it is assumed that the
+   view represents data from DataScript or Datomic. In this case,
+   defview will automatically infer (ident ...) and
+   (key ...) functions based on the database ID. This behavior
+   can be overriden by specifically defining both, ident and key."
   [name & forms]
   (defview* name forms &env))
