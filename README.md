@@ -13,7 +13,8 @@ Om Next views are a combination of an Om Next component defined
 with `om.next/defui` and a component factory created with
 `om.next/factory`. The `defview` macro combines these two into
 a single definition and reduces the boilerplate code needed to
-define properties, queries and component functions.
+define properties, idents, React keys, queries and component
+functions.
 
 ### Defining views
 
@@ -96,6 +97,34 @@ convenient methods to parameterize sub-queries, e.g.
   (-> auto-query
       (set-param :user/friends :param :value)
       (set-param :current-user :id [:user 15])))
+```
+
+### Automatic inference of `ident` and `:keyfn`
+
+If the properties spec includes `[db [id]]`, corresponding to
+the Om Next query attribute `:db/id`, it is assumed that the
+view represents data from DataScript or Datomic. In this case,
+`defview` will automatically infer `(ident ...)` and
+`(key ...)` / `:keyfn` functions based on the database ID. This
+behavior can be overriden by specifically defining both ident
+and key."
+
+As an example:
+
+```
+(defview User
+  [db [id] user [name]])
+```
+
+will result in the equivalent of:
+
+```
+(defui User
+  static om/Ident
+  (ident [this {:keys [db/id]}]
+    [:db/id id]))
+
+(def user (om/factory User {:keyfn :db/id}))
 ```
 
 ### Implicit binding of `this` and `props` in functions

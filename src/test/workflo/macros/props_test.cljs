@@ -121,7 +121,7 @@
   (and (is (= (-> '[{foo User}] p/parse p/om-query)
               '[{:foo (om.next/get-query User)}]))
        (is (= (-> '[{foo ...}] p/parse p/om-query)
-              '[{:foo ...}]))
+              '[{:foo '...}]))
        (is (= (-> '[{foo 17}] p/parse p/om-query)
               '[{:foo 17}]))
        (is (= (-> '[foo [{bar User}]] p/parse p/om-query)
@@ -129,7 +129,7 @@
 
 (deftest queries-with-links
   (and (is (= (-> '[[current-user _]] p/parse p/om-query)
-              '[[:current-user _]]))
+              '[[:current-user '_]]))
        (is (= (-> '[[user 123]] p/parse p/om-query)
               '[[:user 123]]))
        (is (= (-> '[[user "Jeff"]] p/parse p/om-query)
