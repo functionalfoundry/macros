@@ -88,7 +88,8 @@
    from the props spec."
   [props fns]
   (cond-> fns
-    (not (some #{'query} (map first fns)))
+    (and (not (empty? props))
+         (not (some #{'query} (map first fns))))
     (conj (generate-query-fn props))))
 
 (defn raw-fn?
