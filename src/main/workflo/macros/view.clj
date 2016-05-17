@@ -70,7 +70,8 @@
    function is automatically generated based on this ID."
   [props fns]
   (cond-> fns
-    (some #{'db/id} (map :name props))
+    (and (some #{'db/id} (map :name props))
+         (not (some #{'ident} (map first fns))))
     (conj (generate-ident-fn props))))
 
 (defn maybe-generate-key-fn
@@ -78,7 +79,8 @@
    function is automatically generated based on this ID."
   [props fns]
   (cond-> fns
-    (some #{'db/id} (map :name props))
+    (and (some #{'db/id} (map :name props))
+         (not (some #{'keyfn 'key} (map first fns))))
     (conj (generate-key-fn props))))
 
 (defn maybe-generate-query-fn
