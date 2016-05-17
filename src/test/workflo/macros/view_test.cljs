@@ -3,54 +3,127 @@
             [om.next :as om]
             [workflo.macros.view :refer-macros [defview]]))
 
-(defview MinimalView)
+(deftest minimal-view-definition
+  (is (= (macroexpand-1
+          '(defview MinimalView))
+         '(do
+            (om.next/defui MinimalView)
+            (def minimal-view
+              (om.next/factory MinimalView {}))))))
 
-(deftest minimal-view-works
-  (and (is (not (nil? MinimalView)))
-       (is (not (nil? minimal-view)))))
+(deftest view-definition-with-props
+  (is (= (macroexpand-1
+          '(defview View
+             [user [name email]]
+             (key name)))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:user/name :user/email]))
+            (def view
+              (om.next/factory View
+                {:keyfn (fn [props]
+                          (let [{:keys [user/name
+                                        user/email]} props]
+                            name))}))))))
 
-(defview MinimalViewWithKey
-  (key (str (:foo props) "-baz")))
+(deftest view-definition-with-computed-props
+  (is (= (macroexpand-1
+          '(defview View
+             [user [name email]]
+             [on-click]
+             (key name)))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:user/name :user/email]))
+            (def view
+              (om.next/factory View
+                {:keyfn
+                 (fn [props]
+                   (let [{:keys [user/name user/email]} props
+                         {:keys [on-click]} (om/get-computed props)]
+                     name))}))))))
 
-(deftest minimal-view-with-key-fn-works
-  (let [view (minimal-view-with-key {:foo "bar"})]
-    (is (= (.-key view) "bar-baz"))))
+(deftest view-definition-with-implicit-ident-and-keyfn-via-db-id
+  (is (= (macroexpand-1
+          '(defview View
+             [db [id]]))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:db/id])
+              static om.next/Ident
+              (ident [this props]
+                (let [{:keys [db/id]} props]
+                  [:db/id id])))
+            (def view
+              (om.next/factory View
+                {:keyfn (fn [props]
+                          (let [{:keys [db/id]} props]
+                            id))}))))))
 
-(defview ViewWithQuery
-  (query [:foo :bar]))
+(deftest view-definition-with-simple-keyfn-is-correct
+  (is (= (macroexpand-1
+          '(defview View
+             (key :foo)))
+         '(do
+            (om.next/defui View)
+            (def view
+              (om.next/factory View
+                {:keyfn (fn [props] :foo)}))))))
 
-(deftest view-with-query-works
-  (is (= [:foo :bar] (om/get-query ViewWithQuery))))
+(deftest view-definition-with-overriden-query-and-keyfn
+  (is (= (macroexpand-1
+          '(defview View
+             (query [:custom :query])
+             (key :custom)))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:custom :query]))
+            (def view
+              (om.next/factory View
+                {:keyfn (fn [props] :custom)}))))))
 
-(defview ViewWithProps
-  [user [name email]]
-  (ident [:user/by-name name])
-  (get-name name)
-  (get-email email))
+(deftest view-definition-with-overriden-ident
+  (is (= (macroexpand-1
+          '(defview View
+             [db [id] user [name]]
+             (ident [:user/by-name name])))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:db/id :user/name])
+              static om.next/Ident
+              (ident [this props]
+                (let [{:keys [db/id user/name]} props]
+                  [:user/by-name name])))
+            (def view
+              (om.next/factory View
+                {:keyfn (fn [props]
+                          (let [{:keys [db/id user/name]} props]
+                            id))}))))))
 
-(comment
-  (deftest view-with-props-works
-    (let [view (view-with-props {:user/name "Jeff"
-                                 :user/email "jeff@jeff.org"})]
-      (println (.-prototype (type view)))
-      (println (.-om$isComponent view))
-      (and (is (= "Jeff" (.get-name view)))
-           (is (= "jeff@jeff.org" (.get-email view))))))
-
-  (deftest foo
-    (cljs.pprint/pprint
-     (macroexpand-1
-      '(defview ViewWithProps
-         [user [name email {friends ...}]
-          foo
-          bar [baz [yeah _]]
-          [foo _]
-          {[ruux _] ...}
-          {[ruux _] User}
-          {[ruux _] 5}]
-         (ident [:user/by-name name])
-         (key name)
-         (validate foo)
-         (query-params {:foo :bar})
-         (get-name name foo bar)
-         (get-email email))))))
+(deftest view-definition-with-raw-function
+  (is (= (macroexpand-1
+          '(defview View
+             [user [name]]
+             (.on-click [this]
+              (js/alert name))))
+         '(do
+            (om.next/defui View
+              static om.next/IQuery
+              (query [this]
+                [:user/name])
+              Object
+              (on-click [this]
+                (let [{:keys [user/name]} (om/props this)]
+                  (js/alert name))))
+            (def view
+              (om.next/factory View {}))))))
