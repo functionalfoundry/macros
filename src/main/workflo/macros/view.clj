@@ -117,7 +117,7 @@
     inject-fn-args))
 
 (defn normalize-fn-name
-  "Normalize the function name of of. This removes the leading .
+  "Normalize the function name of f. This removes the leading .
    from the names of raw functions."
   [[name args & body :as f]]
   (let [name (symbol (cond-> (str name) (raw-fn? f) (subs 1)))]
@@ -131,20 +131,29 @@
   [[name args & body :as f] props computed]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
-      (let [prop-keys       (p/map-keys props)
-            computed-keys   (p/map-keys computed)
-            this-index      (.indexOf args 'this)
-            props-index     (.indexOf args 'props)
-            actual-props    (if (>= props-index 0)
-                              (args props-index)
-                              (if (not= scope :static)
-                                `(~'om/props ~(args this-index))
-                                nil))
-            actual-computed `(~'om/get-computed ~actual-props)]
-        `(~name ~args
-          (~'let [{:keys [~@prop-keys]} ~actual-props
-                  {:keys [~@computed-keys]} ~actual-computed]
-           ~@body)))
+      (let [prop-keys         (p/map-keys props)
+            computed-keys     (p/map-keys computed)
+            this-index        (.indexOf args 'this)
+            props-index       (.indexOf args 'props)
+            actual-props      (if (>= props-index 0)
+                                (args props-index)
+                                (if (not= scope :static)
+                                  `(~'om/props ~(args this-index))
+                                  nil))
+            actual-computed   `(~'om/get-computed ~actual-props)
+            prop-bindings     (when-not (empty? prop-keys)
+                                `[{:keys [~@prop-keys]}
+                                  ~actual-props])
+            computed-bindings (when-not (empty? computed-keys)
+                                `[{:keys [~@computed-keys]}
+                                  ~actual-computed])]
+        (if (or prop-bindings computed-bindings)
+          `(~name ~args
+            (~'let [~@prop-bindings
+                    ~@computed-bindings]
+             ~@body))
+          `(~name ~args
+             ~@body)))
       f)))
 
 (defn anonymous-fn
