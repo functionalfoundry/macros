@@ -34,3 +34,17 @@
     (do (js/console.warning "No wrapper view defined for defview.")
         om.dom/div)
     (get-config :wrapper-view)))
+
+(defn factory
+  "A wrapper factory around om.next/factory that makes the nil
+   argument for properties optional."
+  [& args]
+  (let [om-factory (apply om.next/factory args)]
+    (fn [& children]
+      (if (or (map? (first children))
+              (object? (first children))
+              (nil? (first children)))
+        (apply (partial om-factory (first children))
+               (rest children))
+        (apply (partial om-factory {})
+               children)))))

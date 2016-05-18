@@ -8,7 +8,7 @@
          '(do
             (om.next/defui MinimalView)
             (def minimal-view
-              (om.next/factory MinimalView {}))))))
+              (workflo.macros.view/factory MinimalView {}))))))
 
 (deftest view-definition-with-props
   (is (= (macroexpand-1
@@ -21,7 +21,7 @@
               (query [this]
                 [:user/name :user/email]))
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn (fn [props]
                           (let [{:keys [user/name
                                         user/email]} props]
@@ -39,7 +39,7 @@
               (query [this]
                 [:user/name :user/email]))
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn
                  (fn [props]
                    (let [{:keys [user/name user/email]} props
@@ -60,7 +60,7 @@
                 (let [{:keys [db/id]} props]
                   [:db/id id])))
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn (fn [props]
                           (let [{:keys [db/id]} props]
                             id))}))))))
@@ -72,7 +72,7 @@
          '(do
             (om.next/defui View)
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn (fn [props] :foo)}))))))
 
 (deftest view-definition-with-overriden-query-and-keyfn
@@ -86,7 +86,7 @@
               (query [this]
                 [:custom :query]))
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn (fn [props] :custom)}))))))
 
 (deftest view-definition-with-overriden-ident
@@ -104,7 +104,7 @@
                 (let [{:keys [db/id user/name]} props]
                   [:user/by-name name])))
             (def view
-              (om.next/factory View
+              (workflo.macros.view/factory View
                 {:keyfn (fn [props]
                           (let [{:keys [db/id user/name]} props]
                             id))}))))))
@@ -125,7 +125,7 @@
                 (let [{:keys [user/name]} (om/props this)]
                   (js/alert name))))
             (def view
-              (om.next/factory View {}))))))
+              (workflo.macros.view/factory View {}))))))
 
 (defview Wrapper
   (render
@@ -148,4 +148,4 @@
                   (foo)
                   (bar))))
             (def view
-              (om.next/factory View {}))))))
+              (workflo.macros.view/factory View {}))))))
