@@ -123,6 +123,25 @@
   (let [name (symbol (cond-> (str name) (raw-fn? f) (subs 1)))]
     `(~name ~args ~@body)))
 
+(defn wrap-render
+  "Wraps the body of the function f in a wrapper view according to
+   the :wrapper-view option set via workflo.macros.view/configure!."
+  [[name args & body :as f]]
+  `(~name ~args ((workflo.macros.view/wrapper)
+                  (~'om.next/props ~'this)
+                  ~@body)))
+
+(defn maybe-wrap-render
+  "If f is the render function, checks whether it has more than one
+   child expression. If so, wraps these children in a wrapper view
+   according to the :wrapper-view option set via
+   workflo.macros.view/configure!."
+  [[name args & body :as f]]
+  (cond-> f
+    (and (= name 'render)
+         (> (count body) 1))
+    wrap-render))
+
 (defn inject-props
   "Wrap the body of a function of the form (name [args] body)
    in a let that destructures props and computed props
@@ -175,6 +194,7 @@
                                  (map resolve-fn-alias)
                                  (map maybe-inject-fn-args)
                                  (map normalize-fn-name)
+                                 (map maybe-wrap-render)
                                  (map #(inject-props % props computed)))
          factory-fns        (filter #(= (fn-scope %) :factory)
                                     fns-with-props)

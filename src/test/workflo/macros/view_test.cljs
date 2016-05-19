@@ -1,7 +1,6 @@
 (ns workflo.macros.view-test
   (:require [cljs.test :refer-macros [deftest is]]
-            [om.next :as om]
-            [workflo.macros.view :refer-macros [defview]]))
+            [workflo.macros.view :as view :refer-macros [defview]]))
 
 (deftest minimal-view-definition
   (is (= (macroexpand-1
@@ -125,5 +124,28 @@
               (on-click [this]
                 (let [{:keys [user/name]} (om/props this)]
                   (js/alert name))))
+            (def view
+              (om.next/factory View {}))))))
+
+(defview Wrapper
+  (render
+    (om.dom/div nil
+      (om.next/children this))))
+
+(deftest view-definition-with-wrapper-and-multiple-render-children
+  (view/configure! {:wrapper-view wrapper})
+  (is (= (macroexpand-1
+          '(defview View
+             (render
+               (foo)
+               (bar))))
+         '(do
+            (om.next/defui View
+              Object
+              (render [this]
+                ((workflo.macros.view/wrapper)
+                  (om.next/props this)
+                  (foo)
+                  (bar))))
             (def view
               (om.next/factory View {}))))))
