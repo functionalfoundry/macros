@@ -211,7 +211,7 @@
         (om.next/defui ~name
           ~@flat-view-fns)
         (def ~(symbol (camel->kebab (str name)))
-          (om.next/factory ~name ~factory-params))))))
+          (workflo.macros.view/factory ~name ~factory-params))))))
 
 (defmacro defview
   "Create a new view with the given name.
