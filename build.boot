@@ -3,20 +3,20 @@
 (set-env!
  :resource-paths #{"resources" "src/main" "src/docs"}
  :dependencies '[;; Boot setup
-                 [adzerk/boot-cljs "1.7.228-1" :scope "test"]
-                 [adzerk/boot-reload "0.4.5" :scope "test"]
-                 [adzerk/boot-test "1.1.0" :scope "test"]
-                 [adzerk/bootlaces "0.1.13" :scope "test"]
-                 [pandeiro/boot-http "0.7.2" :scope "test"]
-                 [crisptrutski/boot-cljs-test "0.2.2-SNAPSHOT" :scope "test"]
+                 [adzerk/boot-cljs "1.7.228-1"]
+                 [adzerk/boot-reload "0.4.8"]
+                 [adzerk/boot-test "1.1.1"]
+                 [adzerk/bootlaces "0.1.13"]
+                 [pandeiro/boot-http "0.7.3"]
+                 [crisptrutski/boot-cljs-test "0.2.1"]
 
                  ;; Library dependencies
-                 [org.clojure/clojurescript "1.7.228"]
-                 [org.omcljs/om "1.0.0-alpha30"]
+                 [org.clojure/clojurescript "1.9.14"]
+                 [org.omcljs/om "1.0.0-alpha36"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
-                 [devcards "0.2.1-6"]])
+                 [devcards "0.2.1-7"]])
 
 (require '[adzerk.boot-cljs :refer [cljs]]
          '[adzerk.boot-reload :refer [reload]]
