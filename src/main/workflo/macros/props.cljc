@@ -77,6 +77,42 @@
   (s/and vector?
          (s/+ ::prop-with-or-without-children)))
 
+;;;; Specs for parsed properties specifications
+
+(s/def ::parsed-prop-type
+  #{:property :join :link})
+
+(s/def ::parsed-prop-name
+  symbol?)
+
+(s/def ::parsed-prop-join-target
+  (s/or :model capitalized-symbol?
+        :recursion (s/alt :self #(= '... %)
+                          :limit pos?)))
+
+(s/def ::parsed-prop-link-target
+  (s/or :global #(= % '_)
+        :arbitrary ::s/any))
+
+(defmulti  parsed-prop-spec :type)
+(defmethod parsed-prop-spec :property [_]
+  (s/keys :req [::parsed-prop-type
+                ::parsed-prop-name]))
+(defmethod parsed-prop-spec :join [_]
+  (s/keys :req [::parsed-prop-type
+                ::parsed-prop-name
+                ::parsed-prop-join-target]))
+(defmethod parsed-prop-spec :link [_]
+  (s/keys :req [::parsed-prop-type
+                ::parsed-prop-name
+                ::parsed-prop-link-target]))
+
+(s/def ::parsed-prop
+  (s/multi-spec parsed-prop-spec :type))
+
+(s/def ::parsed-props
+  (s/and vector? (s/+ ::parsed-prop)))
+
 ;;;; Implementation
 
 (defn pad-by
