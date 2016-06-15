@@ -1,5 +1,6 @@
 (ns workflo.macros.props-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
+               :clj  [clojure.test :refer [deftest is]])
             [workflo.macros.props :as p]))
 
 ;;;; Padding
