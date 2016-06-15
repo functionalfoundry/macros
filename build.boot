@@ -11,7 +11,8 @@
                  [crisptrutski/boot-cljs-test "0.2.1"]
 
                  ;; Library dependencies
-                 [org.clojure/clojurescript "1.9.14"]
+                 [org.clojure/clojure "1.9.0-alpha7"]
+                 [org.clojure/clojurescript "1.9.76"]
                  [org.omcljs/om "1.0.0-alpha36"]
                  [org.clojure/data.json "0.2.6"]
 
