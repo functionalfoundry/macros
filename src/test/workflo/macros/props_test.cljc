@@ -3,34 +3,6 @@
                :clj  [clojure.test :refer [deftest is]])
             [workflo.macros.props :as p]))
 
-;;;; Padding
-
-(deftest pad-by-equality
-  (is (= (into [] (p/pad-by = nil [1 1 2 3 4 4 5]))
-         [1 nil 1 2 3 4 nil 4 5])))
-
-;;;; Value testing
-
-(deftest values
-  (and (is (p/value? 5))
-       (is (p/value? 10))
-       (is (p/value? "Hello"))
-       (is (p/value? "World"))
-       (is (p/value? :foo))
-       (is (p/value? :bar))
-       (is (p/value? '_))))
-
-;;;; Property types
-
-(deftest property-types
-  (and (is (= :property (p/property-type 'foo)))
-       (is (= :property (p/property-type 'bar)))
-       (is (= :link     (p/property-type '[foo 5])))
-       (is (= :link     (p/property-type '[bar "Hello"])))
-       (is (= :link     (p/property-type '[baz :hello])))
-       (is (= :join     (p/property-type '{foo ...})))
-       (is (= :join     (p/property-type '{bar Hello})))))
-
 ;;;; Parsing
 
 (deftest parse-one-prop
@@ -44,32 +16,32 @@
 
 (deftest parse-one-ident
   (and (is (= (p/parse '[[user 5]])
-              '[{:name user :type :link :target 5}]))
+              '[{:name user :type :link :link-id 5}]))
        (is (= (p/parse '[[user "foo"]])
-              '[{:name user :type :link :target "foo"}]))
+              '[{:name user :type :link :link-id "foo"}]))
        (is (= (p/parse '[[user :foo]])
-              '[{:name user :type :link :target :foo}]))))
+              '[{:name user :type :link :link-id :foo}]))))
 
 (deftest parse-two-idents
   (and (is (= (p/parse '[[user 5] [post 10]])
-              '[{:name user :type :link :target 5}
-                {:name post :type :link :target 10}]))))
+              '[{:name user :type :link :link-id 5}
+                {:name post :type :link :link-id 10}]))))
 
 (deftest parse-one-join
   (and (is (= (p/parse '[{foo ...}])
-              '[{:name foo :type :join :target ...}]))
+              '[{:name foo :type :join :join-target ...}]))
        (is (= (p/parse '[{bar User}])
-              '[{:name bar :type :join :target User}]))
+              '[{:name bar :type :join :join-target User}]))
        (is (= (p/parse '[{baz 5}])
-              '[{:name baz :type :join :target 5}]))))
+              '[{:name baz :type :join :join-target 5}]))))
 
 (deftest parse-three-joins
   (and (is (= (p/parse '[{foo ...}
                          {bar User}
                          {baz 5}])
-              '[{:name foo :type :join :target ...}
-                {:name bar :type :join :target User}
-                {:name baz :type :join :target 5}]))))
+              '[{:name foo :type :join :join-target ...}
+                {:name bar :type :join :join-target User}
+                {:name baz :type :join :join-target 5}]))))
 
 (deftest parse-basic-child-props
   (and (is (= (p/parse '[foo [bar]])
@@ -87,30 +59,30 @@
 
 (deftest parse-join-child-props
   (and (is (= (p/parse '[foo [{bar Baz}]])
-              '[{:name foo/bar :type :join :target Baz}]))
+              '[{:name foo/bar :type :join :join-target Baz}]))
        (is    (= (p/parse '[foo [{bar Baz} {baz Ruux}]])
-                 '[{:name foo/bar :type :join :target Baz}
-                   {:name foo/baz :type :join :target Ruux}]))
+                 '[{:name foo/bar :type :join :join-target Baz}
+                   {:name foo/baz :type :join :join-target Ruux}]))
        (is (= (p/parse '[foo [{bar ...}]])
-              '[{:name foo/bar :type :join :target ...}]))
+              '[{:name foo/bar :type :join :join-target ...}]))
        (is (= (p/parse '[foo [{bar 5}]])
-              '[{:name foo/bar :type :join :target 5}]))))
+              '[{:name foo/bar :type :join :join-target 5}]))))
 
 (deftest parse-link-child-props
   (and (is (= (p/parse '[foo [[bar _]]])
-              '[{:name foo/bar :type :link :target _}]))
+              '[{:name foo/bar :type :link :link-id _}]))
        (is (= (p/parse '[foo [[bar 15]]])
-              '[{:name foo/bar :type :link :target 15}]))
+              '[{:name foo/bar :type :link :link-id 15}]))
        (is (= (p/parse '[foo [[bar :baz]]])
-              '[{:name foo/bar :type :link :target :baz}]))
+              '[{:name foo/bar :type :link :link-id :baz}]))
        (is (= (p/parse '[foo [[bar _] [baz 5]]])
-              '[{:name foo/bar :type :link :target _}
-                {:name foo/baz :type :link :target 5}]))
+              '[{:name foo/bar :type :link :link-id _}
+                {:name foo/baz :type :link :link-id 5}]))
        (is (= (p/parse '[foo [[bar _]] baz [[ruux 15]]])
-              '[{:name foo/bar :type :link :target _}
-                {:name baz/ruux :type :link :target 15}]))))
+              '[{:name foo/bar :type :link :link-id _}
+                {:name baz/ruux :type :link :link-id 15}]))))
 
-;;;; Om Next query generation
+;;;;;; Om Next query generation
 
 (deftest basic-queries
   (and (is (= (-> '[foo bar baz] p/parse p/om-query)
@@ -142,14 +114,19 @@
 
 ;;;; Map destructuring
 
-(deftest map-keys
-  (and (is (= (-> '[foo bar baz] p/parse p/map-keys)
+(deftest map-destructuring-keys
+  (and (is (= (-> '[foo bar baz]
+                  p/parse p/map-destructuring-keys)
               '[foo bar baz]))
-       (is (= (-> '[foo [bar baz]] p/parse p/map-keys)
+       (is (= (-> '[foo [bar baz]]
+                  p/parse p/map-destructuring-keys)
               '[foo/bar foo/baz]))
-       (is (= (-> '[{foo Foo} {bar Bar}] p/parse p/map-keys)
+       (is (= (-> '[{foo Foo} {bar Bar}]
+                  p/parse p/map-destructuring-keys)
               '[foo bar]))
-       (is (= (-> '[[foo _] [bar 123] [baz :baz]] p/parse p/map-keys)
+       (is (= (-> '[[foo _] [bar 123] [baz :baz]]
+                  p/parse p/map-destructuring-keys)
               '[foo bar baz]))
-       (is (= (-> '[foo [{bar Bar} [baz 123]]] p/parse p/map-keys)
+       (is (= (-> '[foo [{bar Bar} [baz 123]]]
+                  p/parse p/map-destructuring-keys)
               '[foo/bar foo/baz]))))
