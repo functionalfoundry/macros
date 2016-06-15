@@ -1,7 +1,16 @@
 (ns workflo.macros.view
-  (:require [clojure.string :as str]
+  (:require [clojure.spec :as s]
+            [clojure.string :as str]
             [workflo.macros.props :as p]
             [workflo.macros.util.string :refer [camel->kebab]]))
+
+;;;; Specs
+
+(s/def ::view-name
+  p/capitalized-symbol?)
+
+(s/def ::view-form
+  seq?)
 
 ;;;; Om Next query generation
 
@@ -260,3 +269,28 @@
    can be overriden by specifically defining both, ident and key."
   [name & forms]
   (defview* name forms &env))
+
+(s/fdef defview
+  :args
+  (s/alt
+   :name           (s/cat
+                    :name ::view-name)
+   :props          (s/cat
+                    :name ::view-name
+                    :props :workflo.macros.props/props-spec)
+   :computed       (s/cat
+                    :name ::view-name
+                    :props :workflo.macros.props/props-spec
+                    :computed :workflo.macros.props/props-spec)
+   :forms          (s/cat
+                    :name ::view-name
+                    :forms (s/* ::view-form))
+   :props-forms    (s/cat
+                    :name ::view-name
+                    :props :workflo.macros.props/props-spec
+                    :forms (s/* ::view-form))
+   :computed-forms (s/cat
+                    :name ::view-name
+                    :props :workflo.macros.props/props-spec
+                    :computed :workflo.macros.props/props-spec
+                    :forms (s/* ::view-form))))

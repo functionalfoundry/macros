@@ -1,4 +1,62 @@
-(ns workflo.macros.props)
+(ns workflo.macros.props
+  (:require #?(:cljs [cljs.spec :as s]
+               :clj  [clojure.spec :as s])
+            [clojure.string :refer [capitalize]]
+            [workflo.macros.specs]))
+
+;;;; Specs
+
+(defn capitalized-name
+  [x]
+  (apply str
+         (capitalize (first (name x)))
+         (rest (name x))))
+
+(defn capitalized-symbol?
+  "Returns true if x is a symbol that starts with a capital letter."
+  [x]
+  (and symbol? x
+       (= (name x)
+          (capitalized-name x))))
+
+(s/def ::join-prop
+  symbol?)
+
+(s/def ::join-target-model
+  capitalized-symbol?)
+
+(s/def ::join-target-recursion
+  (s/or :underscore #(= '_ %)
+        :number pos?))
+
+(s/def ::join
+  (s/and (s/map-of ::join-prop
+                   (s/or :model ::join-target-model
+                         :recursion ::join-target-recursion
+                         :props ::props))
+         (fn [join]
+           (= 1 (count join)))))
+
+(s/def ::prop
+  (s/alt :name symbol?
+         :join ::join))
+
+(s/def ::props
+  (s/and vector? (s/* ::prop)))
+
+(s/def ::prop-with-children
+  (s/cat :prop ::prop
+         :children ::props))
+
+(s/def ::prop-with-or-without-children
+  (s/alt :prop ::prop
+         :props ::prop-with-children))
+
+(s/def ::props-spec
+  (s/and vector?
+         (s/+ ::prop-with-or-without-children)))
+
+;;;; Implementation
 
 (defn pad-by
   "Add pad in between any two consecutive values in coll for which
@@ -124,13 +182,25 @@
          (reduce parse-step [])
          (into []))))
 
+(s/fdef parse
+        :args (s/cat :props :workflo.macros.props/props-spec)
+        :ret ::s/any)
+
 (defn om-query
   "Generates an Om Next query from a parsed properties specification."
   [props]
   (into [] (map property-query) props))
+
+(s/fdef om-query
+        :args (s/cat :props :workflo.macros.props/props-spec)
+        :ret vector?)
 
 (defn map-keys
   "Generates keys for destructuring a map of properties from a parsed
    properties specification."
   [props]
   (into [] (map :name) props))
+
+(s/fdef map-keys
+        :args (s/cat :props :workflo.macros.props/props-spec)
+        :ret vector?)
