@@ -1,8 +1,7 @@
 (ns workflo.macros.props
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
-            [clojure.string :refer [capitalize]]
-            [workflo.macros.specs]))
+            [clojure.string :refer [capitalize]]))
 
 ;;;; Specs for properties specifications
 
