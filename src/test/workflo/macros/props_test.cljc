@@ -1,6 +1,13 @@
 (ns workflo.macros.props-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
+               :clj  [clojure.test :refer [deftest is]])
+            #?(:cljs [cljs.spec.test :as spec-test]
+               :clj  [clojure.spec.test :as spec-test])
             [workflo.macros.props :as p]))
+
+;;;; Run random tests for all prop spec parsing functions
+
+(spec-test/run-tests 'workflo.macros.props)
 
 ;;;; Padding
 
