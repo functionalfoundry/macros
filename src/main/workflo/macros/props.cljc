@@ -4,7 +4,7 @@
             [clojure.string :refer [capitalize]]
             [workflo.macros.specs]))
 
-;;;; Specs
+;;;; Specs for properties specifications
 
 (defn capitalized-name
   [x]
@@ -12,12 +12,33 @@
          (capitalize (first (name x)))
          (rest (name x))))
 
+(s/fdef capitalized-name
+  :args (s/cat :x (s/and symbol?
+                         #(not (nil? (name %)))))
+  :ret string?
+  :fn (s/and #(= (first (:ret %))
+                 (first (capitalize (name (:x (:args %))))))
+             #(= (rest (:ret %))
+                 (rest (name (:x (:args %)))))))
+
 (defn capitalized-symbol?
   "Returns true if x is a symbol that starts with a capital letter."
   [x]
-  (and symbol? x
+  (and (symbol? x)
        (= (name x)
           (capitalized-name x))))
+
+(s/fdef capitalized-symbol?
+  :args (s/cat :x ::s/any)
+  :ret boolean?
+  :fn (s/or
+       :capitalized-symbol
+       (s/and #(symbol? (:x (:args %)))
+              #(= (first (name (:x (:args %))))
+                  (first (capitalize (first (name (:x (:args %)))))))
+              #(true? (:ret %)))
+       :other
+       #(false? (:ret %))))
 
 (s/def ::join-prop
   symbol?)
