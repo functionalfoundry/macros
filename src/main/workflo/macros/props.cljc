@@ -35,7 +35,7 @@
 
 (s/def ::properties-join
   (s/with-gen
-    (s/and (s/map-of ::name ::properties-spec) ;; ::properties-spec
+    (s/and (s/map-of ::name ::properties-spec)
            #(= 1 (count %)))
     #(gen/map (s/gen ::name)
               (s/gen ::properties-spec)
