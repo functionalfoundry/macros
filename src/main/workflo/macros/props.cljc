@@ -1,208 +1,185 @@
 (ns workflo.macros.props
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
-            [clojure.string :refer [capitalize]]))
+            [clojure.spec.gen :as gen]
+            [clojure.test.check.generators :as tc-gen]
+            [workflo.macros.props.util :as util]))
 
 ;;;; Specs for properties specifications
 
-(defn capitalized-name
-  [x]
-  (apply str
-         (capitalize (first (name x)))
-         (rest (name x))))
-
-(s/fdef capitalized-name
-  :args (s/cat :x (s/and symbol?
-                         #(not (nil? (name %)))))
-  :ret string?
-  :fn (s/and #(= (first (:ret %))
-                 (first (capitalize (name (:x (:args %))))))
-             #(= (rest (:ret %))
-                 (rest (name (:x (:args %)))))))
-
-(defn capitalized-symbol?
-  "Returns true if x is a symbol that starts with a capital letter."
-  [x]
-  (and (symbol? x)
-       (= (name x)
-          (capitalized-name x))))
-
-(s/fdef capitalized-symbol?
-  :args (s/cat :x ::s/any)
-  :ret boolean?
-  :fn (s/or
-       :capitalized-symbol
-       (s/and #(symbol? (:x (:args %)))
-              #(= (first (name (:x (:args %))))
-                  (first (capitalize (first (name (:x (:args %)))))))
-              #(true? (:ret %)))
-       :other
-       #(false? (:ret %))))
-
-(s/def ::join-prop
-  symbol?)
-
 (s/def ::join-target-model
-  capitalized-symbol?)
+  (s/with-gen
+    (s/and util/capitalized-symbol?
+           #(not= '... %))
+    #(s/gen '#{Foo Bar Baz})))
 
 (s/def ::join-target-recursion
-  (s/or :underscore #(= '_ %)
-        :number pos?))
+  (s/or :self #{'...}
+        :limit (s/and integer? pos?)))
+
+(s/def ::model-join
+  (s/with-gen
+    (s/and (s/map-of ::name ::join-target-model)
+           #(= 1 (count %)))
+    #(gen/map (s/gen ::name)
+              (s/gen ::join-target-model)
+              {:num-elements 1})))
+
+(s/def ::recursive-join
+  (s/with-gen
+    (s/and (s/map-of ::name ::join-target-recursion)
+           #(= 1 (count %)))
+    #(gen/map (s/gen ::name)
+              (s/gen ::join-target-recursion)
+              {:num-elements 1})))
+
+(s/def ::properties-join
+  (s/with-gen
+    (s/and (s/map-of ::name ::properties-spec) ;; ::properties-spec
+           #(= 1 (count %)))
+    #(gen/map (s/gen ::name)
+              (s/gen ::properties-spec)
+              {:num-elements 1})))
 
 (s/def ::join
-  (s/and (s/map-of ::join-prop
-                   (s/or :model ::join-target-model
-                         :recursion ::join-target-recursion
-                         :props ::props))
-         (fn [join]
-           (= 1 (count join)))))
+  (s/or :model-join ::model-join
+        :recursive-join ::recursive-join
+        :properties-join ::properties-join))
 
-(s/def ::prop
-  (s/alt :name symbol?
-         :join ::join))
+(s/def ::link
+  (s/with-gen
+    (s/and vector?
+           (s/cat :name ::name
+                  :id ::s/any))
+    #(gen/tuple (s/gen ::name)
+                (s/gen ::s/any))))
 
-(s/def ::props
-  (s/and vector? (s/* ::prop)))
+(s/def ::property
+  (s/or :name symbol?
+        :link ::link
+        :join ::join))
 
-(s/def ::prop-with-children
-  (s/cat :prop ::prop
-         :children ::props))
+(s/def ::properties
+  (s/with-gen
+    (s/and vector? (s/+ ::property))
+    #(gen/vector (s/gen ::property))))
 
-(s/def ::prop-with-or-without-children
-  (s/alt :prop ::prop
-         :props ::prop-with-children))
+(s/def ::properties-group
+  (s/cat :base ::name
+         :children ::properties))
 
-(s/def ::props-spec
+(s/def ::property-or-properties-group
+  (s/alt :property ::property
+         :properties ::properties-group))
+
+(s/def ::properties-spec
+  (s/with-gen
+    (s/and vector?
+           (s/+ ::property-or-properties-group))
+    #(gen/fmap util/combine-properties-and-groups
+               (gen/vector (tc-gen/frequency
+                            [[10 (s/gen ::property)]
+                             [ 1 (s/gen ::properties-group)]])
+                           1 5))))
+
+;;;; Specs for conformed properties specifications
+
+(s/def ::conforming-property
   (s/and vector?
-         (s/+ ::prop-with-or-without-children)))
+         (s/cat :type #{:property}
+                :data (s/and vector?
+                             (s/cat :type #{:name}
+                                    :name symbol?)))))
+
+(s/def ::conforming-properties-group
+  (s/and vector?))
+
+(s/def ::conforming-property-or-properties-group
+  (s/alt :property ::conforming-property
+         :properties ::conforming-properties-group))
 
 ;;;; Specs for parsed properties specifications
 
-(s/def ::parsed-prop-type
+(s/def ::type
   #{:property :join :link})
 
-(s/def ::parsed-prop-name
+(s/def ::name
   symbol?)
 
-(s/def ::parsed-prop-join-target
-  (s/or :model capitalized-symbol?
-        :recursion (s/alt :self #(= '... %)
-                          :limit pos?)))
+(s/def ::join-target
+  (s/or :model util/capitalized-symbol?
+        :recursion-self #{'...}
+        :recursion-limit (s/and number? pos?)
+        :properties ::parsed-properties))
 
-(s/def ::parsed-prop-link-target
+(s/def ::link-id
   (s/or :global #(= % '_)
         :arbitrary ::s/any))
 
-(defmulti  parsed-prop-spec :type)
-(defmethod parsed-prop-spec :property [_]
-  (s/keys :req [::parsed-prop-type
-                ::parsed-prop-name]))
-(defmethod parsed-prop-spec :join [_]
-  (s/keys :req [::parsed-prop-type
-                ::parsed-prop-name
-                ::parsed-prop-join-target]))
-(defmethod parsed-prop-spec :link [_]
-  (s/keys :req [::parsed-prop-type
-                ::parsed-prop-name
-                ::parsed-prop-link-target]))
+(defmulti  parsed-property-spec :type)
+(defmethod parsed-property-spec :property [_]
+  (s/keys :req-un [::type ::name]))
+(defmethod parsed-property-spec :join [_]
+  (s/keys :req-un [::type ::name ::join-target]))
+(defmethod parsed-property-spec :link [_]
+  (s/keys :req-un [::type ::name ::link-id]))
 
-(s/def ::parsed-prop
-  (s/multi-spec parsed-prop-spec :type))
+(s/def ::parsed-property
+  (s/multi-spec parsed-property-spec :type))
 
-(s/def ::parsed-props
-  (s/and vector? (s/+ ::parsed-prop)))
+(s/def ::parsed-properties
+  (s/and vector? (s/+ ::parsed-property)))
 
-;;;; Implementation
+;;;; Properties specification parsing
 
-(defn pad-by
-  "Add pad in between any two consecutive values in coll for which
-   pred returns the same result. As an example, assume the following
-   use:
+(declare parse)
 
-       (pad-by type :same-type [:foo :bar [1 2] {3 4} {5 6}])
+(s/fdef parse-prop
+  :args (s/cat :prop ::conforming-property-or-properties-group)
+  :ret  ::parsed-properties)
 
-   The result would be
+(defn parse-prop
+  "Takes a conforming prop from a properties specification and
+   returns a vector of parsed properties, each in one of the following
+   forms:
 
-       [:foo :same-type :bar [1 2] {3 4} :same-type {5 6}].
+    {:name user/name :type :property}
+    {:name user/email :type :property}
+    {:name user/friends :type :join :join-target User}
+    {:name user/friends :type :join
+     :join-target [{:name user/name :type :property}]}
+    {:name current-user :type :link :link-id _}."
+  [[type data]]
+  (case type
+    :name       [{:name data :type :property}]
+    :property   (parse-prop data)
+    :properties (let [{:keys [base children]} data
+                      child-properties        (->> children
+                                                   (map parse-prop)
+                                                   (apply concat)
+                                                   (into []))]
+                  (->> child-properties
+                       (map (fn [child-property]
+                              (update child-property :name
+                                      (fn [sym]
+                                        (symbol (name base)
+                                                (name sym))))))
+                       (into [])))
+    :join       (let [[join-type join] data
+                      [name target]    (first join)]
+                  (case join-type
+                    :model-join      [{:name name :type :join
+                                       :join-target target}]
+                    :recursive-join  [{:name name :type :join
+                                       :join-target target}]
+                    :properties-join [{:name name :type :join
+                                       :join-target (parse target)}]))
+    :link       (let [{:keys [name id]} data]
+                  [{:name name :type :link :link-id id}])))
 
-   If called without coll, returns a transducer."
-  ([pred pad]
-   (fn [rf]
-     (let [pv (volatile! nil)]
-       (fn
-         ([] (rf))
-         ([result] (rf result))
-         ([result input]
-          (let [prior @pv]
-            (vreset! pv input)
-            (if (pred prior input)
-              (rf (rf result pad) input)
-              (rf result input))))))))
-  ([pred pad coll] (sequence (pad-by pred pad) coll)))
-
-(defn value?
-  "Returns true if x is considered a basic EDN value."
-  [x]
-  (or (number? x) (string? x) (keyword? x) (= x '_)))
-
-(def property-types
-  "Property types supported by the properties parser."
-  [{:type  :property
-    :test  #(symbol? %)
-    :name  #(name %)
-    :query #(keyword (:name %))}
-   {:type  :link
-    :test  #(and (vector? %)
-                 (= 2 (count %))
-                 (value? (second %)))
-    :name  #(first %)
-    :query #(-> [(keyword (:name %))
-                 (let [target (:target %)]
-                   (cond
-                     (= target '_) ''_
-                     :else target))])}
-   {:type  :join
-    :test  #(and (map? %)
-                 (= 1 (count %)))
-    :name  #(first (keys %))
-    :query #(-> {(keyword (:name %))
-                 (let [target (:target %)]
-                   (cond
-                     (= target '...) ''...
-                     (number? target) target
-                     :else `(~'om.next/get-query ~target)))})}])
-
-(defn- property-resolve
-  "Given a property prop, resolves the field :type or :name into
-   the corresponding property type or name."
-  [prop field]
-  (let [match (first (filter (fn [info]
-                               (or ((:test info) prop)
-                                   (and (map? prop)
-                                        (= (:type info)
-                                           (:type prop)))))
-                             property-types))]
-    (if (fn? (get match field))
-      ((get match field) prop)
-      (get match field))))
-
-(defn property-type
-  "Returns the property type for prop."
-  [prop]
-  (property-resolve prop :type))
-
-(defn property-name
-  "Returns a property name for prop. If passed a parent != nil,
-   the property name is namespaced according to the parent property
-   name."
-  [parent prop]
-  (symbol (some-> parent (property-resolve :name) name)
-          (some-> prop (property-resolve :name) name)))
-
-(defn property-query
-  "Returns an Om Next query expression for prop."
-  [prop]
-  (property-resolve prop :query))
+(s/fdef parse
+  :args (s/cat :props ::properties-spec)
+  :ret ::parsed-properties)
 
 (defn parse
   "Parses a properties specification like
@@ -211,45 +188,27 @@
 
    [{:name user/name :type :property}
     {:name user/email :type :property}
-    {:name user/friends :type :join :target User}
-    {:name current-user :type :link :target _}].
+    {:name user/friends :type :join :join-target User}
+    {:name current-user :type :link :link-id _}].
 
    From this it is trivial to generate keys for destructuring
    view props and an Om Next query."
   [spec]
-  (letfn [(parse-prop [parent p]
-            (let [name (property-name parent p)
-                  type (property-type p)]
-              (case type
-                :property {:name name :type type}
-                :link     {:name name :type type
-                           :target (second p)}
-                :join     {:name name :type type
-                           :target (first (vals p))}
-                :else     nil)))
-          (parse-step [result [p children]]
-            (concat result
-                    (cond
-                      (nil? children)    [(parse-prop nil p)]
-                      (vector? children) (mapv #(parse-prop p %)
-                                               children))))]
-    (->> (pad-by #(= (property-type %1) (property-type %2)) nil spec)
-         (partition-all 2 2)
-         (reduce parse-step [])
-         (into []))))
+  (let [conforming-spec (s/conform ::properties-spec spec)
+        parsed-props    (->> conforming-spec
+                             (map parse-prop)
+                             (apply concat)
+                             (into []))]
+    parsed-props))
 
-(s/fdef parse
-        :args (s/cat :props :workflo.macros.props/props-spec)
-        :ret ::s/any)
+(defn property-query
+  [prop])
 
 (defn om-query
   "Generates an Om Next query from a parsed properties specification."
   [props]
   (into [] (map property-query) props))
 
-(s/fdef om-query
-        :args (s/cat :props :workflo.macros.props/props-spec)
-        :ret vector?)
 
 (defn map-keys
   "Generates keys for destructuring a map of properties from a parsed
