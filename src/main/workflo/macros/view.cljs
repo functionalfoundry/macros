@@ -2,10 +2,9 @@
   (:require [om.next]
             [om.dom]))
 
-;;;; Configuration
+;;;; Configuration options for the defview macro
 
-(def +configuration+
-  "Configuration options for the defview macro."
+(defonce +configuration+
   (atom {:wrapper-view nil}))
 
 (defn configure!
