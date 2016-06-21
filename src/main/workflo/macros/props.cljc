@@ -38,7 +38,7 @@
     (s/and (s/map-of ::name ::properties-spec)
            #(= 1 (count %)))
     #(gen/map (s/gen ::name)
-              (s/gen ::properties-spec)
+              (s/gen '#{[foo] [foo [bar baz]]})
               {:num-elements 1})))
 
 (s/def ::join
@@ -50,7 +50,7 @@
   (s/with-gen
     (s/and vector?
            (s/cat :name ::name
-                  :id ::s/any))
+                  :link-id ::s/any))
     #(gen/tuple (s/gen ::name)
                 (s/gen ::s/any))))
 
@@ -77,26 +77,60 @@
     (s/and vector?
            (s/+ ::property-or-properties-group))
     #(gen/fmap util/combine-properties-and-groups
-               (gen/vector (tc-gen/frequency
-                            [[10 (s/gen ::property)]
-                             [ 1 (s/gen ::properties-group)]])
-                           1 5))))
+               (gen/vector (gen/one-of
+                            [(s/gen ::property)
+                             (s/gen ::properties-group)])
+                           0 5))))
 
 ;;;; Specs for conformed properties specifications
+
+(s/def ::conforming-name
+  (s/and vector?
+         (s/cat :type #{:name}
+                :name ::name)))
+
+(s/def ::conforming-model-join
+  (s/and vector?
+         (s/cat :type #{:model-join}
+                :join map?)))
+
+(s/def ::conforming-recursive-join
+  (s/and vector?
+         (s/cat :type #{:recursive-join}
+                :join map?)))
+
+(s/def ::conforming-properties-join
+  (s/and vector?
+         (s/cat :type #{:properties-join}
+                :join map?)))
+
+(s/def ::conforming-join
+  (s/and vector?
+         (s/cat :type #{:join}
+                :data (s/or :model ::conforming-model-join
+                            :recursive ::conforming-recursive-join
+                            :properties ::conforming-properties-join))))
+
+(s/def ::conforming-link
+  (s/and vector?
+         (s/cat :type #{:link}
+                :link (s/keys :req-un [::name ::link-id]))))
 
 (s/def ::conforming-property
   (s/and vector?
          (s/cat :type #{:property}
-                :data (s/and vector?
-                             (s/cat :type #{:name}
-                                    :name symbol?)))))
+                :data (s/or :name ::conforming-name
+                            :join ::conforming-join
+                            :link ::conforming-link))))
 
 (s/def ::conforming-properties-group
-  (s/and vector?))
+  (s/and vector?
+         (s/cat :type #{:properties}
+                :data (s/keys :req-un [::base ::children]))))
 
 (s/def ::conforming-property-or-properties-group
-  (s/alt :property ::conforming-property
-         :properties ::conforming-properties-group))
+  (s/or :property ::conforming-property
+        :properties ::conforming-properties-group))
 
 ;;;; Specs for parsed properties specifications
 
@@ -105,6 +139,18 @@
 
 (s/def ::name
   symbol?)
+
+(s/def ::link-id
+  ::s/any)
+
+(s/def ::base
+  ::name)
+
+(s/def ::children
+  (s/and vector?
+         (s/+ (s/or :name ::conforming-name
+                    :join ::conforming-join
+                    :link ::conforming-link))))
 
 (s/def ::join-target
   (s/or :model util/capitalized-symbol?
@@ -151,8 +197,8 @@
     {:name current-user :type :link :link-id _}."
   [[type data]]
   (case type
-    :name       [{:name data :type :property}]
     :property   (parse-prop data)
+    :name       [{:name data :type :property}]
     :properties (let [{:keys [base children]} data
                       child-properties        (->> children
                                                    (map parse-prop)
@@ -174,8 +220,8 @@
                                        :join-target target}]
                     :properties-join [{:name name :type :join
                                        :join-target (parse target)}]))
-    :link       (let [{:keys [name id]} data]
-                  [{:name name :type :link :link-id id}])))
+    :link       (let [{:keys [name link-id]} data]
+                  [{:name name :type :link :link-id link-id}])))
 
 (s/fdef parse
   :args (s/cat :props ::properties-spec)
