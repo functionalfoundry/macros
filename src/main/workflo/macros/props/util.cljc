@@ -1,9 +1,13 @@
 (ns workflo.macros.props.util
-  (:require #?(:cljs [cljs.spec :as s]
+  (:require #?(:cljs [cljs.pprint :refer [pprint]]
+               :clj  [clojure.pprint :refer [pprint]])
+            #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
+            #?(:cljs [cljs.spec.impl.gen :as gen]
+               :clj  [clojure.spec.gen :as gen])
             [clojure.string :refer [capitalize]]))
 
-(s/fdef combine-properties-and-property-groups
+(s/fdef combine-properties-and-groups
   :args (s/cat :props-and-groups vector?)
   :ret  vector?)
 
@@ -56,3 +60,13 @@
   (and (symbol? x)
        (= (name x)
           (capitalized-name x))))
+
+(defn print-spec-gen
+  "Takes a spec (e.g. as a keyword or symbol) and pretty-prints
+   10 random values generated for this spec."
+  [spec]
+  (println "Values generated from spec" (name spec))
+  (try
+    (pprint (gen/sample (s/gen spec) 10))
+    (catch #?(:cljs js/Object :clj Exception) e
+      (println "Error: Spec not found" e))))
