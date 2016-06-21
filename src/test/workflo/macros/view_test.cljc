@@ -1,5 +1,6 @@
 (ns workflo.macros.view-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
+               :clj  [clojure.test :refer [deftest is]])
             [workflo.macros.view :as view :refer-macros [defview]]))
 
 (deftest minimal-view-definition
