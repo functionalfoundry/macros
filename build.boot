@@ -14,8 +14,8 @@
                  [org.clojure/test.check "0.9.0" :scope "test"]
 
                  ;; Library dependencies
-                 [org.clojure/clojure "1.9.0-alpha6"]
-                 [org.clojure/clojurescript "1.9.36"]
+                 [org.clojure/clojure "1.9.0-alpha7"]
+                 [org.clojure/clojurescript "1.9.76"]
                  [org.omcljs/om "1.0.0-alpha36"]
                  [org.clojure/data.json "0.2.6"]
 
