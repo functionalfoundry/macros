@@ -7,6 +7,8 @@ development.
 [workflo/macros "0.2.5"]
 ```
 
+[CHANGELOG](CHANGELOG.md)
+
 ## `defview` - Define Om Next components in a compact way
 
 Om Next views are a combination of an Om Next component defined
