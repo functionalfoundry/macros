@@ -7,6 +7,8 @@ development.
 [workflo/macros "0.2.5"]
 ```
 
+[CHANGELOG](CHANGELOG.md)
+
 ## `defview` - Define Om Next components in a compact way
 
 Om Next views are a combination of an Om Next component defined
@@ -200,37 +202,46 @@ Most of the internals of the `defview` macro are available as
 separate functions for easy reuse:
 
 ```clojure
-(require '[workflo.macros.props :as p]
+(require '[workflo.macros.props.util :as u]
+         '[workflo.macros.props :as p]
          '[workflo.macros.view :as v])
 
 ;; Utilities
 
-(p/pad-by = nil [0 1 1 1 2 3])    -> [0 1 nil 1 nil 1 2 3]
-(p/property-type 'foo)            -> :property
-(p/property-type '{foo Bar})      -> :join
-(p/property-type '[foo 13])       -> :link
-(p/property-name 'foo '{bar Baz}) -> foo/bar
+(u/combine-properties-and-groups '[foo [bar [baz ruux]]])
+-> [foo bar [baz ruux]]
+
+(u/capitalized-name 'user)  -> User
+(u/capitalized-name 'User)  -> User
+(u/capitalized-name :user)  -> User
+(u/capitalized-name "user") -> User
+
+(u/capitalized-symbol? 'user)     -> false
+(u/capitalized-symbol? 'userName) -> false
+(u/capitalized-symbol? '_)        -> false
+(u/capitalized-symbol? 'User)     -> true
+(u/capitalized-symbol? 'UserName) -> true
 
 ;; Parser for properties destructuring forms
 
 (p/parse '[user [name email {friend ...}] [current-user _]])
 -> [{:name user/name :type :property}
     {:name user/email :type :property}
-    {:name user/friend :type :join :target ...}
-    {:name current-user :type :link :target _}]
+    {:name user/friend :type :join :join-target ...}
+    {:name current-user :type :link :link-id _}]
 
 ;; Property queries based on parsed property forms
 
 (p/property-query '{:name foo :type :property})
 -> :foo
 
-(p/property-query '{:name foo/bar :type :join :target Foo})
+(p/property-query '{:name foo/bar :type :join :join-target Foo})
 -> {:foo/bar (om/get-query Foo)}
 
-(p/property-query '{:name bar :type :join :target ...})
+(p/property-query '{:name bar :type :join :join-target ...})
 -> {:bar ...}
 
-(p/property-query '{:name bar :type :join :target 5})
+(p/property-query '{:name bar :type :join :join-target 5})
 -> {:bar 5}
 
 (p/property-query '[current-user _])
@@ -240,8 +251,8 @@ separate functions for easy reuse:
 
 (p/om-query '[{:name user/name :type :property}
               {:name user/email :type :property}
-              {:name user/friend :type :join :target ...}
-              {:name current-user :type :link :target _}])
+              {:name user/friend :type :join :join-target ...}
+              {:name current-user :type :link :link-id _}])
 -> [:user/name
     :user/email
     {:user/friend ...}
