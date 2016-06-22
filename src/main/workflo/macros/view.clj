@@ -1,7 +1,19 @@
 (ns workflo.macros.view
-  (:require [clojure.string :as str]
+  (:require [clojure.spec :as s]
+            [clojure.string :as str]
+            [workflo.macros.props.util :refer [capitalized-symbol?]]
             [workflo.macros.props :as p]
             [workflo.macros.util.string :refer [camel->kebab]]))
+
+;;;; Specs
+
+(s/def ::view-name
+  (s/with-gen
+    capitalized-symbol?
+    #(s/gen '#{Foo Bar FooBar})))
+
+(s/def ::view-form
+  seq?)
 
 ;;;; Om Next query generation
 
@@ -150,8 +162,8 @@
   [[name args & body :as f] props computed]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
-      (let [prop-keys         (p/map-keys props)
-            computed-keys     (p/map-keys computed)
+      (let [prop-keys         (p/map-destructuring-keys props)
+            computed-keys     (p/map-destructuring-keys computed)
             this-index        (.indexOf args 'this)
             props-index       (.indexOf args 'props)
             actual-props      (if (>= props-index 0)
@@ -185,8 +197,8 @@
    (defview* name forms nil))
   ([name forms env]
    (let [prop-specs         (take-while vector? forms)
-         props              (p/parse (first prop-specs))
-         computed           (p/parse (second prop-specs))
+         props              (or (some-> (first prop-specs) p/parse) [])
+         computed           (or (some-> (second prop-specs) p/parse) [])
          fns-with-props     (->> (drop-while vector? forms)
                                  (maybe-generate-ident-fn props)
                                  (maybe-generate-key-fn props)
@@ -212,6 +224,13 @@
           ~@flat-view-fns)
         (def ~(symbol (camel->kebab (str name)))
           (workflo.macros.view/factory ~name ~factory-params))))))
+
+(s/fdef defview
+  :args (s/cat :name ::view-name
+               :props (s/? :workflo.macros.props/properties-spec)
+               :computed (s/? :workflo.macros.props/properties-spec)
+               :forms (s/* ::view-form))
+  :ret  ::s/any)
 
 (defmacro defview
   "Create a new view with the given name.

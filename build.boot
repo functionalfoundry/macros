@@ -10,8 +10,12 @@
                  [pandeiro/boot-http "0.7.3"]
                  [crisptrutski/boot-cljs-test "0.2.1"]
 
+                 ;; Testing
+                 [org.clojure/test.check "0.9.0" :scope "test"]
+
                  ;; Library dependencies
-                 [org.clojure/clojurescript "1.9.14"]
+                 [org.clojure/clojure "1.9.0-alpha7"]
+                 [org.clojure/clojurescript "1.9.76"]
                  [org.omcljs/om "1.0.0-alpha36"]
                  [org.clojure/data.json "0.2.6"]
 
@@ -80,6 +84,14 @@
   []
   (merge-env! :source-paths #{"src/test"})
   identity)
+
+(deftask test-once
+  []
+  (comp
+    (testing)
+    (test-cljs)
+    (test)
+    (exit!)))
 
 (deftask test-auto
   []
