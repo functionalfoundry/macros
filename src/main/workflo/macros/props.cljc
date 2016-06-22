@@ -21,11 +21,11 @@
 (s/def ::join-target-model
   (s/with-gen
     (s/and util/capitalized-symbol?
-           #(not= '... %))
+           #(not (some #{%} #{'... ''...})))
     #(s/gen '#{Foo Bar Baz})))
 
 (s/def ::unlimited-join-recursion
-  '#{...})
+  #{'... ''...})
 
 (s/def ::limited-join-recursion
   (s/and integer? pos?))
@@ -363,11 +363,14 @@
   (let [kw-name (keyword (:name prop))]
     (case (:type prop)
       :property kw-name
-      :link     [kw-name (:link-id prop)]
+      :link     [kw-name (if (= '_ (:link-id prop))
+                           ''_
+                           (:link-id prop))]
       :join     (let [target (:join-target prop)]
                   {kw-name
                    (cond
-                     (or (number? target) (= '... target)) target
+                     (some #{target} #{'... ''...}) ''...
+                     (number? target) target
                      (vector? target) (into []
                                             (map property-query)
                                             target)
