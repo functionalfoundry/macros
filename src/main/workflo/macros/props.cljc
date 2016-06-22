@@ -11,7 +11,9 @@
   symbol?)
 
 (s/def ::link-id
-  ::s/any)
+  (s/with-gen
+    ::s/any
+    gen/simple-type))
 
 (s/def ::base
   ::name)
@@ -77,7 +79,7 @@
 (s/def ::properties
   (s/with-gen
     (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property))))
+    #(gen/vector (s/gen ::property) 0 5)))
 
 (s/def ::properties-group
   (s/cat :base ::name
