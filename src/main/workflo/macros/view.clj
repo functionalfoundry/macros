@@ -8,7 +8,9 @@
 ;;;; Specs
 
 (s/def ::view-name
-  capitalized-symbol?)
+  (s/with-gen
+    capitalized-symbol?
+    #(s/gen '#{Foo Bar FooBar})))
 
 (s/def ::view-form
   seq?)
