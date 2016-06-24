@@ -1,7 +1,7 @@
 (ns workflo.macros.command.util
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.spec.gen :as gen]
+            #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.string :as string]))
 
@@ -23,3 +23,16 @@
     (if x-ns
       (symbol (str x-ns "-" x-name))
       (symbol x-name))))
+
+
+(s/fdef prefix-form-name
+  :args (s/cat :form-name ::unqualified-symbol
+               :prefix ::unqualified-symbol)
+  :ret  symbol?
+  :fn   #(= (-> % :ret)
+            (symbol (str (-> % :args :prefix) "-"
+                         (-> % :args :form-name)))))
+
+(defn prefix-form-name
+  [form-name prefix]
+  (symbol (str prefix "-" form-name)))
