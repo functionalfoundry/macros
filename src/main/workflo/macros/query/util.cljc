@@ -1,4 +1,4 @@
-(ns workflo.macros.props.util
+(ns workflo.macros.query.util
   (:require #?(:cljs [cljs.pprint :refer [pprint]]
                :clj  [clojure.pprint :refer [pprint]])
             #?(:cljs [cljs.spec :as s]
@@ -6,6 +6,18 @@
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.string :refer [capitalize]]))
+
+(s/fdef one-item?
+        :args (s/cat :coll coll?)
+        :ret  boolean?
+        :fn   (s/or :true  (s/and #(= 1 (count (:coll (:args %))))
+                                  #(true? (:ret %)))
+                    :false (s/and #(not= 1 (count (:coll (:args %))))
+                                  #(false? (:ret %)))))
+
+(defn one-item?
+  [coll]
+  (= 1 (count coll)))
 
 (s/fdef combine-properties-and-groups
   :args (s/cat :props-and-groups vector?)

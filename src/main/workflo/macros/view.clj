@@ -1,8 +1,10 @@
 (ns workflo.macros.view
   (:require [clojure.spec :as s]
             [clojure.string :as str]
-            [workflo.macros.props.util :refer [capitalized-symbol?]]
-            [workflo.macros.props :as p]
+            [workflo.macros.query.util :refer [capitalized-symbol?]]
+            [workflo.macros.query :as q]
+            [workflo.macros.query.om-next :as om-query]
+            [workflo.macros.specs.query]
             [workflo.macros.util.string :refer [camel->kebab]]))
 
 ;;;; Specs
@@ -75,7 +77,7 @@
 (defn generate-query-fn
   "Generate a (query ...) function from the props spec."
   [props]
-  (list 'query (p/om-query props)))
+  (list 'query (om-query/query props)))
 
 (defn maybe-generate-ident-fn
   "If the props spec includes a :db/id property, an (ident ...)
@@ -162,8 +164,8 @@
   [[name args & body :as f] props computed]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
-      (let [prop-keys         (p/map-destructuring-keys props)
-            computed-keys     (p/map-destructuring-keys computed)
+      (let [prop-keys         (q/map-destructuring-keys props)
+            computed-keys     (q/map-destructuring-keys computed)
             this-index        (.indexOf args 'this)
             props-index       (.indexOf args 'props)
             actual-props      (if (>= props-index 0)
@@ -196,9 +198,11 @@
   ([name forms]
    (defview* name forms nil))
   ([name forms env]
-   (let [prop-specs         (take-while vector? forms)
-         props              (or (some-> (first prop-specs) p/parse) [])
-         computed           (or (some-> (second prop-specs) p/parse) [])
+   (let [prop-queries       (take-while vector? forms)
+         props              (or (some-> (first prop-queries) q/parse)
+                                [])
+         computed           (or (some-> (second prop-queries) q/parse)
+                                [])
          fns-with-props     (->> (drop-while vector? forms)
                                  (maybe-generate-ident-fn props)
                                  (maybe-generate-key-fn props)
@@ -227,8 +231,8 @@
 
 (s/fdef defview
   :args (s/cat :name ::view-name
-               :props (s/? :workflo.macros.props/properties-spec)
-               :computed (s/? :workflo.macros.props/properties-spec)
+               :props (s/? :workflo.macros.specs.query/query)
+               :computed (s/? :workflo.macros.specs.query/query)
                :forms (s/* ::view-form))
   :ret  ::s/any)
 
