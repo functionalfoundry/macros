@@ -3,7 +3,7 @@
                :clj  [clojure.spec :as s])
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
-            [workflo.macros.props.util :as util]))
+            [workflo.macros.query.util :as util]))
 
 ;;;; Basics
 

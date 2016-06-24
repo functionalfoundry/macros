@@ -1,10 +1,10 @@
-(ns workflo.macros.props
+(ns workflo.macros.query
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.walk :refer [keywordize-keys]]
-            [workflo.macros.props.util :as util]
+            [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]
             [workflo.macros.specs.om-query]
             [workflo.macros.specs.parsed-query]

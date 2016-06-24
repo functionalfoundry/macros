@@ -1,4 +1,4 @@
-(ns workflo.macros.props.util
+(ns workflo.macros.query.util
   (:require #?(:cljs [cljs.pprint :refer [pprint]]
                :clj  [clojure.pprint :refer [pprint]])
             #?(:cljs [cljs.spec :as s]
