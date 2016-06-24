@@ -1,12 +1,8 @@
 (ns workflo.macros.query
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.spec.impl.gen :as gen]
-               :clj  [clojure.spec.gen :as gen])
-            [clojure.walk :refer [keywordize-keys]]
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]
-            [workflo.macros.specs.om-query]
             [workflo.macros.specs.parsed-query]
             [workflo.macros.specs.query]))
 
@@ -104,68 +100,6 @@
        (map parse-subquery)
        (apply concat)
        (into [])))
-
-(s/def ::om-property-query-from-parsed-property
-  (s/and
-   (s/or :keyword
-         (s/and #(= :property (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/keyword
-                            (:ret %)))
-         :link
-         (s/and #(= :link (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/link
-                            (:ret %)))
-         :join
-         (s/and #(= :join (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/join
-                            (:ret %))))
-   (s/or :regular
-         #(not (contains? (-> % :args :prop) :parameters))
-         :parameterized
-         (s/and #(contains? (-> % :args :prop) :parameters)
-                #(list? (:ret %))
-                #(= 2 (count (:ret %)))
-                #(map? (second (:ret %)))
-                #(= (keywordize-keys (-> % :args :prop :parameters))
-                    (second (:ret %)))))))
-
-(s/fdef om-property-query
-  :args (s/cat :prop :workflo.macros.specs.parsed-query/property)
-  :ret  :workflo.macros.specs.om-query/property
-  :fn   ::om-property-query-from-parsed-property)
-
-(defn om-property-query
-  "Generates an Om Next query for a parsed property specification."
-  [prop]
-  (let [kw-name (keyword (:name prop))
-        params  (when-not (empty? (:parameters prop))
-                  (->> (:parameters prop)
-                       (map (fn [[k v]] [(keyword k) v]))
-                       (into {})))]
-    (-> (case (:type prop)
-          :property kw-name
-          :link     [kw-name (if (= '_ (:link-id prop))
-                               ''_
-                               (:link-id prop))]
-          :join     (let [target (:join-target prop)]
-                      {kw-name
-                       (cond
-                         (some #{target} #{'... ''...}) ''...
-                         (number? target) target
-                         (vector? target) (into []
-                                                (map om-property-query)
-                                                target)
-                         :else `(~'om.next/get-query ~target))}))
-        (cond-> params (list params)))))
-
-(s/fdef om-query
-  :args (s/cat :query :workflo.macros.specs.parsed-query/query)
-  :ret  :workflo.macros.specs.om-query/query)
-
-(defn om-query
-  "Generates an Om Next query from a parsed query."
-  [query]
-  (into [] (map om-property-query) query))
 
 (s/fdef map-destructuring-keys
   :args (s/cat :props :workflo.macros.specs.parsed-query/query)

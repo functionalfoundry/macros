@@ -22,9 +22,9 @@
     - `workflo.macros.query/conform`
     - `workflo.macros.query/parse-subquery`
     - `workflo.macros.query/parse`
-    - `workflo.macros.query/om-property-query`
-    - `workflo.macros.query/om-query`
     - `workflo.macros.query/map-destructuring-keys`
+    - `workflo.macros.query.om-next/property-query`
+    - `workflo.macros.query.om-next/query`
     - `workflo.macros.view/defview`
 * Helper functions for properties spec parsing:
     - `workflo.macros.query.util/combine-properties-and-groups`
@@ -36,7 +36,7 @@
   generating keys for destructuring properties from properties
   specs, replacing `map-keys`.
 * New `workflo.macros.query/om-property-query` function to replace
-  `workflo.macros.query/property-query`.
+  `workflo.macros.query.om-next/property-query`.
 * New boot task `test-once` for running the test suites once.
 
 ## Changed

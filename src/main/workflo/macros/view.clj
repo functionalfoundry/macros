@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [workflo.macros.query.util :refer [capitalized-symbol?]]
             [workflo.macros.query :as q]
+            [workflo.macros.query.om-next :as om-query]
             [workflo.macros.specs.query]
             [workflo.macros.util.string :refer [camel->kebab]]))
 
@@ -76,7 +77,7 @@
 (defn generate-query-fn
   "Generate a (query ...) function from the props spec."
   [props]
-  (list 'query (q/om-query props)))
+  (list 'query (om-query/query props)))
 
 (defn maybe-generate-ident-fn
   "If the props spec includes a :db/id property, an (ident ...)

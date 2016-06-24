@@ -1,7 +1,8 @@
 (ns workflo.macros.query-test
   (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
                :clj  [clojure.test :refer [deftest is]])
-            [workflo.macros.query :as q]))
+            [workflo.macros.query :as q]
+            [workflo.macros.query.om-next :as om]))
 
 ;;;; Parsing
 
@@ -85,31 +86,31 @@
 ;;;;;; Om Next query generation
 
 (deftest basic-queries
-  (and (is (= (-> '[foo bar baz] q/parse q/om-query)
+  (and (is (= (-> '[foo bar baz] q/parse om/query)
               [:foo :bar :baz]))
-       (is (= (-> '[foo [bar baz] ruux] q/parse q/om-query)
+       (is (= (-> '[foo [bar baz] ruux] q/parse om/query)
               [:foo/bar :foo/baz :ruux]))))
 
 (deftest queries-with-joins
-  (and (is (= (-> '[{foo User}] q/parse q/om-query)
+  (and (is (= (-> '[{foo User}] q/parse om/query)
               '[{:foo (om.next/get-query User)}]))
-       (is (= (-> '[{foo ...}] q/parse q/om-query)
+       (is (= (-> '[{foo ...}] q/parse om/query)
               '[{:foo '...}]))
-       (is (= (-> '[{foo 17}] q/parse q/om-query)
+       (is (= (-> '[{foo 17}] q/parse om/query)
               '[{:foo 17}]))
-       (is (= (-> '[foo [{bar User}]] q/parse q/om-query)
+       (is (= (-> '[foo [{bar User}]] q/parse om/query)
               '[{:foo/bar (om.next/get-query User)}]))))
 
 (deftest queries-with-links
-  (and (is (= (-> '[[current-user _]] q/parse q/om-query)
+  (and (is (= (-> '[[current-user _]] q/parse om/query)
               '[[:current-user '_]]))
-       (is (= (-> '[[user 123]] q/parse q/om-query)
+       (is (= (-> '[[user 123]] q/parse om/query)
               '[[:user 123]]))
-       (is (= (-> '[[user "Jeff"]] q/parse q/om-query)
+       (is (= (-> '[[user "Jeff"]] q/parse om/query)
               '[[:user "Jeff"]]))
-       (is (= (-> '[[user :jeff]] q/parse q/om-query)
+       (is (= (-> '[[user :jeff]] q/parse om/query)
               '[[:user :jeff]]))
-       (is (= (-> '[user [name [friend 123]]] q/parse q/om-query)
+       (is (= (-> '[user [name [friend 123]]] q/parse om/query)
               '[:user/name [:user/friend 123]]))))
 
 ;;;; Map destructuring
