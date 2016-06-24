@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [workflo.macros.props.util :refer [capitalized-symbol?]]
             [workflo.macros.props :as p]
+            [workflo.macros.specs.query]
             [workflo.macros.util.string :refer [camel->kebab]]))
 
 ;;;; Specs
@@ -227,8 +228,8 @@
 
 (s/fdef defview
   :args (s/cat :name ::view-name
-               :props (s/? :workflo.macros.props/properties-spec)
-               :computed (s/? :workflo.macros.props/properties-spec)
+               :props (s/? :workflo.macros.specs.query/query)
+               :computed (s/? :workflo.macros.specs.query/query)
                :forms (s/* ::view-form))
   :ret  ::s/any)
 
