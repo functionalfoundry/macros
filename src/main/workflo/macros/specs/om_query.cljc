@@ -21,8 +21,7 @@
         :component ::component-query))
 
 (s/def ::join
-  (s/and (s/map-of ::keyword ::join-target)
-         util/one-item?))
+  (s/map-of ::keyword ::join-target :min-count 1))
 
 (s/def ::regular-property
   (s/or :keyword ::keyword
@@ -42,6 +41,6 @@
         :parameterized ::parameterized-property))
 
 (s/def ::query
-  (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property) 1 10)))
+  (s/coll-of ::property :kind vector?
+             :min-count 1
+             :gen-max 10))

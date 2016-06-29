@@ -31,12 +31,7 @@
     #(s/gen '#{User UserList Feature})))
 
 (s/def ::model-join
-  (s/with-gen
-    (s/and (s/map-of ::property-name ::model-name)
-           util/one-item?)
-    #(gen/map (s/gen ::property-name)
-              (s/gen ::model-name)
-              {:num-elements 1})))
+  (s/map-of ::property-name ::model-name :count 1))
 
 (s/def ::unlimited-recursion
   #{'... ''...})
@@ -49,17 +44,11 @@
         :limited ::limited-recursion))
 
 (s/def ::recursive-join
-  (s/with-gen
-    (s/and (s/map-of ::property-name ::recursion)
-           util/one-item?)
-    #(gen/map (s/gen ::property-name)
-              (s/gen ::recursion)
-              {:num-elements 1})))
+  (s/map-of ::property-name ::recursion :count 1))
 
 (s/def ::properties-join
   (s/with-gen
-    (s/and (s/map-of ::property-name ::query)
-           util/one-item?)
+    (s/map-of ::property-name ::query :count 1)
     #(gen/map (s/gen ::property-name)
               (s/gen '#{[user] [user [id name email]]})
               {:num-elements 1})))
@@ -77,9 +66,9 @@
         :join ::join))
 
 (s/def ::property-group
-  (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property) 1 5)))
+  (s/coll-of ::property :kind vector?
+             :min-count 1
+             :gen-max 5))
 
 (s/def ::nested-properties
   (s/cat :base ::property-name
@@ -98,11 +87,8 @@
     gen/simple-type))
 
 (s/def ::parameters
-  (s/with-gen
-    (s/map-of ::parameter-name ::parameter-value)
-    #(gen/map (s/gen ::parameter-name)
-              (s/gen ::parameter-value)
-              {:max-elements 5})))
+  (s/map-of ::parameter-name ::parameter-value
+            :gen-max 5))
 
 (s/def ::parameterized-query
   (s/with-gen

@@ -54,10 +54,9 @@
   :workflo.macros.specs.query/property-name)
 
 (s/def ::children
-  (s/with-gen
-    (s/and vector? (s/+ ::property-value))
-    #(gen/vector (s/gen ::property-value)
-                 1 10)))
+  (s/coll-of ::property-value :kind vector?
+             :min-count 1
+             :gen-max 10))
 
 (s/def ::nested-properties-value
   (s/keys :req-un [::base ::children]))
