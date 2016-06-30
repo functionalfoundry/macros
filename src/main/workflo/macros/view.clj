@@ -199,9 +199,11 @@
    (defview* name forms nil))
   ([name forms env]
    (let [prop-queries       (take-while vector? forms)
-         props              (or (some-> (first prop-queries) q/parse)
+         props              (or (some-> (first prop-queries)
+                                        q/conform-and-parse)
                                 [])
-         computed           (or (some-> (second prop-queries) q/parse)
+         computed           (or (some-> (second prop-queries)
+                                        q/conform-and-parse)
                                 [])
          fns-with-props     (->> (drop-while vector? forms)
                                  (maybe-generate-ident-fn props)
