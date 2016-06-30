@@ -76,11 +76,23 @@
                              :join-target (parse target)}])))
 
 (s/fdef parse
+  :args (s/cat :conforming-query
+               :workflo.macros.specs.conforming-query/query)
+  :ret  :workflo.macros.specs.parsed-query/query)
+
+(defn parse
+  [conforming-query]
+  (->> conforming-query
+       (map parse-subquery)
+       (apply concat)
+       (into [])))
+
+(s/fdef conform-and-parse
   :args (s/cat :props :workflo.macros.specs.query/query)
   :ret :workflo.macros.specs.parsed-query/query)
 
-(defn parse
-  "Parses a query expression like
+(defn conform-and-parse
+  "Conforms and parses a query expression like
 
        [user [name email {friends User}] [current-user _]]
 
@@ -96,10 +108,7 @@
    frameworks (e.g. Om Next) as well as keys for destructuring
    the results."
   [query]
-  (->> (conform query)
-       (map parse-subquery)
-       (apply concat)
-       (into [])))
+  (parse (conform query)))
 
 (s/fdef map-destructuring-keys
   :args (s/cat :props :workflo.macros.specs.parsed-query/query)

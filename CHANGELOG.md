@@ -20,6 +20,7 @@
     - `workflo.macros.query.util/capitalized-symbol?`
     - `workflo.macros.query.util/one-item?`
     - `workflo.macros.query/conform`
+    - `workflo.macros.query/conform-and-parse`
     - `workflo.macros.query/parse-subquery`
     - `workflo.macros.query/parse`
     - `workflo.macros.query/map-destructuring-keys`
