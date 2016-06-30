@@ -70,7 +70,7 @@
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target target}])
+                             :join-target (second target)}])
     :properties-join     (let [[name target] (first query)]
                            [{:name name :type :join
                              :join-target (parse target)}])))
