@@ -16,9 +16,8 @@
 
 (s/def ::command-data-spec
   (s/with-gen
-    s/spec?
-    #(s/gen #{(s/spec symbol?)
-              (s/spec map?)})))
+    ::s/any
+    #(s/gen #{symbol? map? vector?})))
 
 (s/def ::command-inputs
   (s/spec (s/cat :command-query (s/? ::command-query)
