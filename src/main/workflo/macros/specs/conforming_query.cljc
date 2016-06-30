@@ -28,9 +28,15 @@
   (s/tuple #{:recursive-join}
            :workflo.macros.specs.query/recursive-join))
 
+(s/def ::properties-join-value
+  (s/map-of :workflo.macros.specs.query/property-name
+            ::query
+            :count 1
+            :gen-max 10))
+
 (s/def ::properties-join
   (s/tuple #{:properties-join}
-           :workflo.macros.specs.query/properties-join))
+           ::properties-join-value))
 
 (s/def ::join
   (s/tuple #{:join}
