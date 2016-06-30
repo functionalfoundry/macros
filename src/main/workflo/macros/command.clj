@@ -1,66 +1,107 @@
 (ns workflo.macros.command
   (:require [clojure.spec :as s]
-            [clojure.spec.gen :as gen]
-            [workflo.macros.specs.query]
-            [workflo.macros.command.util :as util]))
+            [workflo.macros.command.util :as util]
+            [workflo.macros.specs.command]
+            [workflo.macros.query :as q]))
 
-(s/def ::command-name
-  symbol?)
+;;;; Command registry
 
-(s/def ::command-description
-  string?)
+(defonce ^:private command-registry (atom {}))
 
-(s/def ::command-query
-  :workflo.macros.specs.query/query)
+(defn register-command!
+  [cmd-name]
+  (let [cmd-sym        (util/unqualify cmd-name)
+        definition-sym (prefix-form-name 'definition cmd-sym)
+        definition     (resolve definition-sym)]
+    (swap! command-registry assoc name definition)))
 
-(s/def ::command-data-spec
-  (s/with-gen
-    s/spec?
-    #(s/gen #{(s/spec symbol?)
-              (s/spec map?)})))
+(defn resolve-command
+  [cmd-name]
+  (get @command-registry cmd-name))
 
-(s/def ::command-inputs
-  (s/tuple (s/? ::command-query) ::command-data-spec))
+;;;; Utilities
 
-(s/def ::command-form
-  seq?)
+(s/fdef prefix-form-name
+  :args (s/cat :form-name :workflo.macros.command.util/unqualified-symbol
+               :prefix :workflo.macros.command.util/unqualified-symbol)
+  :ret  symbol?
+  :fn   #(= (-> % :ret)
+            (symbol (str (-> % :args :prefix) "-"
+                         (-> % :args :form-name)))))
 
-(s/def ::command-implementation
-  seq?)
+(defn prefix-form-name
+  [form-name prefix]
+  (symbol (str prefix "-" form-name)))
 
-(s/def ::defcommand-args
-  (s/cat :name ::command-name
-         :forms
-         (s/spec (s/cat :description (s/? ::command-description)
-                        :inputs ::command-inputs
-                        :forms (s/* ::command-form)
-                        :implementation ::command-implementation))))
+(s/fdef bind-query-keys
+  :args (s/cat :form-body :workflo.macros.specs.command/command-form-body
+               :query-keys (s/and vector? (s/+ symbol?)))
+  :ret  :workflo.macros.specs.command/command-form-body)
+
+(defn bind-query-keys
+  [form-body query-keys]
+  `((~'let [{:keys ~query-keys} ~'query-result]
+     ~@form-body)))
+
+(s/fdef form->defn
+  :args (s/cat :form :workfo.macros.specs.command/command-form)
+  :ret  (s/cat :defn #{'defn}
+               :name :workflo.macros.command.util/unqualified-symbol
+               :body (s/* ::s/any)))
+
+(defn form->defn
+  [form]
+  `(~'defn ~(:form-name form)
+    [~'query-result ~'data]
+    ~@(:form-body form)))
+
+;;;; The defcommand macro
 
 (s/fdef defcommand*
-  :args ::defcommand-args
+  :args :workflo.macros.specs.command/defcommand-args
   :ret  ::s/any)
 
 (defn defcommand*
   ([name forms]
    (defcommand* name forms nil))
   ([name forms env]
-   (let [args        (s/conform ::defcommand-args [name forms])
+   (let [args        (s/conform
+                      :workflo.macros.specs.command/defcommand-args
+                      [name forms])
          description (:description (:forms args))
          inputs      (:inputs (:forms args))
-         cmd-forms   (:forms (:forms args))
-         cmd-impl    (:implementation (:forms args))
-         cache-query (when #(= 2 (count inputs))
-                       (first inputs))
-         data-spec   (last inputs)
-         name-sym    (util/unqualify name)]
-     (println "NAME" name name-sym)
-     (println "DESCRIPTION" description)
-     (println "CACHE-QUERY" cache-query)
-     (println "DATA-SPEC" data-spec)
-     (println "CMD-FORMS" cmd-forms)
-     (println "CMD-IMPL" cmd-impl))))
+         forms       (:forms (:forms args))
+         impl        (:implementation (:forms args))
+         cache-query (when (= 2 (count inputs))
+                       (q/parse (second (first inputs))))
+         query-keys  (some-> cache-query q/map-destructuring-keys)
+         data-spec   (second (last inputs))
+         name-sym    (util/unqualify name)
+         all-forms   (conj forms {:form-name 'implementation
+                                  :form-body impl})
+         form-fns    (->> all-forms
+                          (map #(update % :form-name prefix-form-name
+                                        name-sym))
+                          (map #(cond-> %
+                                  query-keys (update :form-body
+                                                     bind-query-keys
+                                                     query-keys)))
+                          (map form->defn))
+         fns-map     (zipmap (map (comp keyword :form-name) all-forms)
+                             (map (fn [form]
+                                    (symbol (str (ns-name *ns*))
+                                            (str (prefix-form-name
+                                                  (:form-name form)
+                                                  name-sym))))
+                                  all-forms))
+         definition  `(~'def ~(prefix-form-name 'definition name-sym)
+                       ~fns-map)]
+     `(do
+        ~@form-fns
+        ~definition))))
 
 (defmacro defcommand
-  [name]
-  (println "NAME" name)
-  #_(defcommand* name forms &env))
+  [name & forms]
+  (let [cmd-expr (defcommand* name forms &env)]
+    (register-command! name)
+    cmd-expr))
