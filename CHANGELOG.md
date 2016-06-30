@@ -5,6 +5,8 @@
 ## Added
 
 * Data format specs:
+    - `:workflo.macros.command.util/unqualified-symbol` - spec
+      for a symbol without a namespace component.
     - `:workflo.macros.specs.query/query` - the data format for
       queries as used in the `defview` macro.
     - `:workflo.macros.specs.conforming-query/query` - the data
