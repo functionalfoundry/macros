@@ -4,6 +4,7 @@
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.string :as string]
+            [workflo.macros.query]
             [workflo.macros.specs.command]))
 
 (s/def ::unqualified-symbol
@@ -44,7 +45,8 @@
   :args (s/cat :form-body
                (s/and seq?
                       :workflo.macros.specs.command/command-form-body)
-               :query-keys (s/coll-of symbol? :kind vector?))
+               :query-keys
+               :workflo.macros.query/map-destructuring-keys)
   :ret  :workflo.macros.specs.command/command-form-body)
 
 (defn bind-query-keys
