@@ -8,6 +8,7 @@
 
 ;;;; Properties specification parsing
 
+(declare conform-and-parse)
 (declare parse)
 
 (s/fdef conform
@@ -81,11 +82,14 @@
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target #?(:cljs target
-                                             :clj  (second target))}])
+                             :join-target
+                             #?(:cljs target
+                                :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target (parse target)}])))
+                             :join-target
+                             #?(:cljs (conform-and-parse target)
+                                :clj  (parse target))}])))
 
 (s/fdef parse
   :args (s/cat :conforming-query
