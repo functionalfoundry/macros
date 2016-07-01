@@ -81,7 +81,8 @@
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target (second target)}])
+                             :join-target #?(:cljs target
+                                             :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
                            [{:name name :type :join
                              :join-target (parse target)}])))
