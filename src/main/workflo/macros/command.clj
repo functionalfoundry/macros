@@ -19,33 +19,6 @@
   [cmd-name]
   (get @command-registry cmd-name))
 
-;;;; Utilities
-
-(s/fdef bind-query-keys
-  :args (s/cat :form-body
-               (s/and seq?
-                      :workflo.macros.specs.command/command-form-body)
-               :query-keys (s/coll-of symbol? :kind vector?))
-  :ret  :workflo.macros.specs.command/command-form-body)
-
-(defn bind-query-keys
-  [form-body query-keys]
-  `((~'let [{:keys ~query-keys} ~'query-result]
-     ~@form-body)))
-
-(s/fdef form->defn
-  :args (s/cat :form
-               :workflo.macros.specs.command/conforming-command-form)
-  :ret  (s/cat :defn #{'defn}
-               :name :workflo.macros.command.util/unqualified-symbol
-               :body (s/* ::s/any)))
-
-(defn form->defn
-  [form]
-  `(~'defn ~(:form-name form)
-    [~'query-result ~'data]
-    ~@(:form-body form)))
-
 ;;;; The defcommand macro
 
 (s/fdef defcommand*
@@ -76,9 +49,9 @@
                                         name-sym))
                           (map #(cond-> %
                                   query-keys (update :form-body
-                                                     bind-query-keys
+                                                     util/bind-query-keys
                                                      query-keys)))
-                          (map form->defn))
+                          (map util/form->defn))
          fns-map     (zipmap (map (comp keyword :form-name) all-forms)
                              (map (fn [form]
                                     (symbol (str (ns-name *ns*))
