@@ -23,7 +23,18 @@
   (s/or :regular-query
         :workflo.macros.specs.conforming-query/regular-query
         :parameterized-query
-        :workflo.macros.specs.conforming-query/parameterized-query))
+        :workflo.macros.specs.conforming-query/parameterized-query
+        :nested-properties
+        :workflo.macros.specs.conforming-query/nested-properties
+        :property :workflo.macros.specs.conforming-query/property
+        :simple :workflo.macros.specs.conforming-query/simple-property
+        :link :workflo.macros.specs.conforming-query/link
+        :join :workflo.macros.specs.conforming-query/join
+        :model-join :workflo.macros.specs.conforming-query/model-join
+        :recursive-join
+        :workflo.macros.specs.conforming-query/recursive-join
+        :properties-join
+        :workflo.macros.specs.conforming-query/properties-join))
 
 (s/fdef parse-subquery
   :args (s/cat :query ::subquery)
