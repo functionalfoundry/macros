@@ -4,6 +4,9 @@
 
 ## Added
 
+* A new defcommand macro for defining commands (e.g. handlers for
+  Om Next mutations or other CQRS-style commands) with a store
+  query, a command data spec and an implementation function.
 * Data format specs:
     - `:workflo.macros.command.util/unqualified-symbol` - spec
       for a symbol without a namespace component.
@@ -29,12 +32,23 @@
     - `workflo.macros.query.om-next/property-query`
     - `workflo.macros.query.om-next/query`
     - `workflo.macros.view/defview*`
+    - `workflo.macros.command.util/bind-query-keys`
+    - `workflo.macros.command.util/unqualify`
+    - `workflo.macros.command.util/prefix-form-name`
+    - `workflo.macros.command/defcommand*`
+    - `workflo.macros.command.util/form->defn`
 * Helper functions for query parsing:
     - `workflo.macros.query.util/combine-properties-and-groups`
     - `workflo.macros.query.util/capitalized-name`
     - `workflo.macros.query.util/capitalized-symbol?`
     - `workflo.macros.query.util/print-spec-gen`
     - `workflo.macros.query/parse-prop`
+* Helper functions for defcommand:
+    - `workflo.macros.command.util/bind-query-keys`
+    - `workflo.macros.command.util/unqualify`
+    - `workflo.macros.command.util/prefix-form-name`
+    - `workflo.macros.command/defcommand*`
+    - `workflo.macros.command.util/form->defn`
 * New `workflo.macros.query/map-destructuring-keys` function for
   generating keys for destructuring properties from queries,
   replacing `map-keys`.
@@ -47,6 +61,9 @@
 * Only define `defview` configuration atom once at load time.
 * Properties specifications are now called queries everywhere.
 * `workflo.macros.props` namespace renamed to `workflo.macros.query`
+* Improved test suite capable of exercising most things in both,
+  Clojure and ClojureScript.
+* Random function tests based on clojure.spec generators.
 
 ## Removed
 
