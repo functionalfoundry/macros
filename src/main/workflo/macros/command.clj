@@ -52,18 +52,26 @@
                                                      util/bind-query-keys
                                                      query-keys)))
                           (map util/form->defn))
-         fns-map     (zipmap (map (comp keyword :form-name) all-forms)
+         all-forms   (cond-> all-forms
+                       cache-query (conj {:form-name 'cache-query
+                                          :form-body '()}))
+         forms-map   (zipmap (map (comp keyword :form-name) all-forms)
                              (map (fn [form]
                                     (symbol (str (ns-name *ns*))
                                             (str (util/prefix-form-name
                                                   (:form-name form)
                                                   name-sym))))
                                   all-forms))
+         query-form  (when cache-query
+                       `((~'def ~(util/prefix-form-name 'cache-query
+                                                        name-sym)
+                          ~cache-query)))
          definition  `(~'def ~(util/prefix-form-name 'definition
                                                      name-sym)
-                       ~fns-map)]
+                       ~forms-map)]
      `(do
         ~@form-fns
+        ~@query-form
         ~definition))))
 
 (defmacro defcommand
