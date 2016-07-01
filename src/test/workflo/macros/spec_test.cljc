@@ -14,7 +14,7 @@
 #?(:cljs (deftest test-specs
            (doseq [v (s/speced-vars)]
              (println "  Testing" v)
-             (let [result (st/check-var var)]
+             (let [result (st/check-var v :num-tests 10 :max-size 10)]
                (println "  >" result)
                (and (is (map? result))
                     (is (true? (:result result))))))))
