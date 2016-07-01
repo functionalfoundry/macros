@@ -19,8 +19,12 @@
               [query-result data]
               (let [{:keys [user/name user/email]} query-result]
                 {:some :data}))
+            (def user-update-cache-query
+              [{:name user/name :type :property}
+               {:name user/email :type :property}])
             (def user-update-definition
-              {:implementation pod/user-update-implementation}))
+              {:cache-query pod/user-update-cache-query
+               :implementation pod/user-update-implementation}))
          (macroexpand-1 `(defcommand user/update [~'[user [name email]]
                                                   vector?]
                            ({:some :data}))))))
@@ -37,9 +41,9 @@
               [query-result data]
               {:implementation :result})
             (def user-update-definition
-              {:implementation pod/user-update-implementation
+              {:workflows pod/user-update-workflows
                :lifecycles pod/user-update-lifecycles
-               :workflows pod/user-update-workflows}))
+               :implementation pod/user-update-implementation}))
          (macroexpand-1 `(defcommand user/update [vector?]
                            (~'workflows [:foo])
                            (~'lifecycles [:bar])
@@ -59,10 +63,13 @@
               [query-result data]
               (let [{:keys [db/id]} query-result]
                 :result))
+            (def user-create-cache-query
+              [{:name db/id :type :property}])
             (def user-create-definition
-              {:implementation pod/user-create-implementation
+              {:workflows pod/user-create-workflows
                :lifecycles pod/user-create-lifecycles
-               :workflows pod/user-create-workflows}))
+               :implementation pod/user-create-implementation
+               :cache-query pod/user-create-cache-query}))
          (macroexpand-1 `(defcommand user/create [~'[db [id]] map?]
                            (~'workflows [:foo])
                            (~'lifecycles [:bar])
