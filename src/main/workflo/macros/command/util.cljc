@@ -21,7 +21,7 @@
    it by replacing slashes (/) with dashes (-)."
   [x]
   (let [x-ns   (namespace x)
-        x-name (name x)]
+        x-name (string/replace (name x) "/" "")]
     (if x-ns
       (symbol (str x-ns "-" x-name))
       (symbol x-name))))
