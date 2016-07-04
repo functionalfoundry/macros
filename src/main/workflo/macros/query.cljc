@@ -89,7 +89,8 @@
                            [{:name name :type :join
                              :join-target
                              #?(:cljs (conform-and-parse target)
-                                :clj  (parse target))}])))
+                                :clj  (parse target))}])
+    (parse-subquery type)))
 
 (s/fdef parse
   :args (s/cat :conforming-query
