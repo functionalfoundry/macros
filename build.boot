@@ -14,8 +14,8 @@
                  [org.clojure/test.check "0.9.0" :scope "test"]
 
                  ;; Library dependencies
-                 [org.clojure/clojure "1.9.0-alpha7"]
-                 [org.clojure/clojurescript "1.9.76"]
+                 [org.clojure/clojure "1.9.0-alpha8"]
+                 [org.clojure/clojurescript "1.9.93"]
                  [org.omcljs/om "1.0.0-alpha36"]
                  [org.clojure/data.json "0.2.6"]
 
@@ -30,7 +30,7 @@
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def version "0.2.5")
+(def version "0.2.6-SNAPSHOT")
 
 (bootlaces! version :dont-modify-paths? true)
 

@@ -8,6 +8,7 @@
 
 ;;;; Properties specification parsing
 
+(declare conform-and-parse)
 (declare parse)
 
 (s/fdef conform
@@ -23,7 +24,18 @@
   (s/or :regular-query
         :workflo.macros.specs.conforming-query/regular-query
         :parameterized-query
-        :workflo.macros.specs.conforming-query/parameterized-query))
+        :workflo.macros.specs.conforming-query/parameterized-query
+        :nested-properties
+        :workflo.macros.specs.conforming-query/nested-properties
+        :property :workflo.macros.specs.conforming-query/property
+        :simple :workflo.macros.specs.conforming-query/simple-property
+        :link :workflo.macros.specs.conforming-query/link
+        :join :workflo.macros.specs.conforming-query/join
+        :model-join :workflo.macros.specs.conforming-query/model-join
+        :recursive-join
+        :workflo.macros.specs.conforming-query/recursive-join
+        :properties-join
+        :workflo.macros.specs.conforming-query/properties-join))
 
 (s/fdef parse-subquery
   :args (s/cat :query ::subquery)
@@ -70,17 +82,34 @@
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target target}])
+                             :join-target
+                             #?(:cljs target
+                                :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
                            [{:name name :type :join
-                             :join-target (parse target)}])))
+                             :join-target
+                             #?(:cljs (conform-and-parse target)
+                                :clj  (parse target))}])
+    (parse-subquery type)))
 
 (s/fdef parse
+  :args (s/cat :conforming-query
+               :workflo.macros.specs.conforming-query/query)
+  :ret  :workflo.macros.specs.parsed-query/query)
+
+(defn parse
+  [conforming-query]
+  (->> conforming-query
+       (map parse-subquery)
+       (apply concat)
+       (into [])))
+
+(s/fdef conform-and-parse
   :args (s/cat :props :workflo.macros.specs.query/query)
   :ret :workflo.macros.specs.parsed-query/query)
 
-(defn parse
-  "Parses a query expression like
+(defn conform-and-parse
+  "Conforms and parses a query expression like
 
        [user [name email {friends User}] [current-user _]]
 
@@ -96,14 +125,15 @@
    frameworks (e.g. Om Next) as well as keys for destructuring
    the results."
   [query]
-  (->> (conform query)
-       (map parse-subquery)
-       (apply concat)
-       (into [])))
+  (parse (conform query)))
+
+(s/def ::map-destructuring-keys
+  #?(:cljs (s/and vector? (s/* symbol?))
+     :clj  (s/coll-of symbol? :kind vector?)))
 
 (s/fdef map-destructuring-keys
   :args (s/cat :props :workflo.macros.specs.parsed-query/query)
-  :ret  (s/and vector? (s/+ symbol?))
+  :ret  ::map-destructuring-keys
   :fn   (s/and #(= (into #{} (:ret %))
                    (into #{} (map :name) (:props (:args %))))))
 

@@ -5,17 +5,8 @@
             [workflo.macros.query :as q]
             [workflo.macros.query.om-next :as om-query]
             [workflo.macros.specs.query]
+            [workflo.macros.specs.view]
             [workflo.macros.util.string :refer [camel->kebab]]))
-
-;;;; Specs
-
-(s/def ::view-name
-  (s/with-gen
-    capitalized-symbol?
-    #(s/gen '#{Foo Bar FooBar})))
-
-(s/def ::view-form
-  seq?)
 
 ;;;; Om Next query generation
 
@@ -194,14 +185,20 @@
   [f]
   (cons 'fn (rest f)))
 
+(s/fdef defview*
+  :args :workflo.macros.specs.view/defview-args
+  :ret  ::s/any)
+
 (defn defview*
   ([name forms]
    (defview* name forms nil))
   ([name forms env]
    (let [prop-queries       (take-while vector? forms)
-         props              (or (some-> (first prop-queries) q/parse)
+         props              (or (some-> (first prop-queries)
+                                        q/conform-and-parse)
                                 [])
-         computed           (or (some-> (second prop-queries) q/parse)
+         computed           (or (some-> (second prop-queries)
+                                        q/conform-and-parse)
                                 [])
          fns-with-props     (->> (drop-while vector? forms)
                                  (maybe-generate-ident-fn props)
@@ -228,13 +225,6 @@
           ~@flat-view-fns)
         (def ~(symbol (camel->kebab (str name)))
           (workflo.macros.view/factory ~name ~factory-params))))))
-
-(s/fdef defview
-  :args (s/cat :name ::view-name
-               :props (s/? :workflo.macros.specs.query/query)
-               :computed (s/? :workflo.macros.specs.query/query)
-               :forms (s/* ::view-form))
-  :ret  ::s/any)
 
 (defmacro defview
   "Create a new view with the given name.

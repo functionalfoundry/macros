@@ -24,13 +24,45 @@
   (s/tuple #{:model-join}
            :workflo.macros.specs.query/model-join))
 
+(s/def ::limited-recursion
+  #?(:cljs :workflo.macros.specs.query/limited-recursion
+     :clj  (s/tuple #{:limited}
+                    :workflo.macros.specs.query/limited-recursion)))
+
+(s/def ::unlimited-recursion
+  #?(:cljs :workflo.macros.specs.query/unlimited-recursion
+     :clj  (s/tuple #{:unlimited}
+                    :workflo.macros.specs.query/unlimited-recursion)))
+
+(s/def ::recursion
+  (s/or :limited ::limited-recursion
+        :unlimited ::unlimited-recursion))
+
+(s/def ::recursive-join-value
+  (s/with-gen
+    (s/and (s/map-of :workflo.macros.specs.query/property-name
+                     ::recursion)
+           util/one-item?)
+    #(gen/map (s/gen :workflo.macros.specs.query/property-name)
+              (s/gen ::recursion)
+              {:num-elements 1})))
+
 (s/def ::recursive-join
-  (s/tuple #{:recursive-join}
-           :workflo.macros.specs.query/recursive-join))
+  (s/tuple #{:recursive-join} ::recursive-join-value))
+
+(s/def ::properties-join-value
+  (s/with-gen
+    (s/and (s/map-of :workflo.macros.specs.query/property-name
+                     #?(:cljs :workflo.macros.specs.query/query
+                        :clj  ::query))
+           util/one-item?)
+    #(gen/map (s/gen :workflo.macros.specs.query/property-name)
+              (s/gen #{[[:regular-query [:property [:simple 'foo]]]]})
+              {:num-elements 1})))
 
 (s/def ::properties-join
   (s/tuple #{:properties-join}
-           :workflo.macros.specs.query/properties-join))
+           ::properties-join-value))
 
 (s/def ::join
   (s/tuple #{:join}
