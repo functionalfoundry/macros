@@ -34,18 +34,45 @@
 
 ;;;; Command registry
 
-(defonce ^:private command-registry (atom {}))
+(defonce ^:private +registry+ (atom {}))
 
 (defn register-command!
-  [cmd-name]
+  [cmd-name env]
   (let [cmd-sym        (util/unqualify cmd-name)
         definition-sym (util/prefix-form-name 'definition cmd-sym)
-        definition     (resolve definition-sym)]
-    (swap! command-registry assoc name definition)))
+        definition     (symbol (str (ns-name *ns*))
+                               (str definition-sym))]
+    (swap! +registry+ assoc cmd-name definition)))
+
+(defn registered-commands
+  []
+  @+registry+)
 
 (defn resolve-command
   [cmd-name]
-  (get @command-registry cmd-name))
+  (let [cmd (get @+registry+ cmd-name)]
+    (when (nil? cmd)
+      (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
+        (throw (Exception. err-msg))))
+    cmd))
+
+(defn run-command
+  [cmd-name data]
+  (let [definition-sym (resolve-command cmd-name)
+        definition     @(resolve definition-sym)]
+    (when (:data-spec definition)
+      (assert (s/valid? (:data-spec definition) data)
+              (str "Command data is invalid:"
+                   (s/explain-str (:data-spec definition) data))))
+    (let [cache-query    (some-> definition :cache-query)
+          query-result   (some-> (get-config :query)
+                                 (apply [cache-query]))
+          command-result ((:implementation definition)
+                          query-result data)]
+      (if (get-config :process-result)
+        (-> (get-config :process-result)
+            (apply [command-result]))
+        command-result))))
 
 ;;;; The defcommand macro
 
@@ -81,8 +108,8 @@
                                                      query-keys)))
                           (map util/form->defn))
          all-forms   (cond-> all-forms
-                       cache-query (conj {:form-name 'cache-query
-                                          :form-body '()}))
+                       cache-query (conj {:form-name 'cache-query})
+                       data-spec   (conj {:form-name 'data-spec}))
          forms-map   (zipmap (map (comp keyword :form-name) all-forms)
                              (map (fn [form]
                                     (symbol (str (ns-name *ns*))
@@ -93,17 +120,21 @@
          query-form  (when cache-query
                        `((~'def ~(util/prefix-form-name 'cache-query
                                                         name-sym)
-                          ~cache-query)))
+                          '~cache-query)))
+         spec-form   (when data-spec
+                       `((~'def ~(util/prefix-form-name 'data-spec
+                                                        name-sym)
+                          ~data-spec)))
          definition  `(~'def ~(util/prefix-form-name 'definition
                                                      name-sym)
                        ~forms-map)]
      `(do
         ~@form-fns
         ~@query-form
+        ~@spec-form
         ~definition))))
 
 (defmacro defcommand
   [name & forms]
-  (let [cmd-expr (defcommand* name forms &env)]
-    (register-command! name)
-    cmd-expr))
+  (register-command! name &env)
+  (defcommand* name forms &env))
