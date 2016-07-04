@@ -14,7 +14,8 @@
 #?(:cljs (deftest test-specs
            (doseq [v (s/speced-vars)]
              (println "  Testing" v)
-             (when-not (= #'workflo.macros.query/parse-subquery v)
+             (when-not (some #{v} [#'workflo.macros.query/parse-subquery
+                                   #'workflo.macros.query/parse])
                (let [result (st/check-var v :num-tests 10 :max-size 10)]
                  (println "  >" result)
                  (and (is (map? result))
