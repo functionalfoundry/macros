@@ -1,8 +1,15 @@
 # CHANGELOG workflo/macros
 
+## Unreleased
+
+### Added
+
+* Function to bind query parameters using a parameter/value
+  map: `workflo.macros.query/bind-query-parameters`.
+
 ## 0.2.7
 
-## Changed
+### Changed
 
 * Change notation for defcommand implementation forms by no
   longe requiring a sequence/list expression.

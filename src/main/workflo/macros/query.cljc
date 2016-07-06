@@ -142,3 +142,44 @@
    properties specification."
   [props]
   (into [] (map :name) props))
+
+(s/fdef bind-query-parameters
+  :args (s/cat :query :workflo.macros.specs.parsed-query/query
+               :params map?)
+  :ret  :workflo.macros.specs.parsed-query/query)
+
+(defn bind-query-parameters
+  "Takes a parsed query and a map of named parameters and their
+   values. Binds the unbound parameters in the query (that is,
+   those where the value is a symbol beginning with a ?) to
+   values of the corresponding parameters in the parameter map
+   and returns the result.
+
+   As an example, the :db/id parameter in the query
+
+     [{:name user :type :join
+       :join-target [{:name name :type :property}]
+       :parameters {:db/id ?foo}}]
+
+   would be bound to the value 10 if the parameter map was
+   {:foo 10}."
+  [query params]
+  (letfn [(bind-param [[k v]]
+            (let [vname (when (symbol? v) (str v))]
+              [k (if (= \? (first vname))
+                   (params (keyword (subs vname 1)))
+                   v)]))
+          (bind-params [unbound-params]
+            (into {} (map bind-param) unbound-params))
+          (bind-query-params [subquery]
+            (if (contains? subquery :parameters)
+              (update subquery :parameters bind-params)
+              subquery))
+          (follow-and-bind-joins [subquery]
+            (if (contains? subquery :join-target)
+              (update subquery :join-target
+                      (partial mapv bind-query-params))
+              subquery))]
+    (mapv (comp follow-and-bind-joins
+                bind-query-params)
+          query)))
