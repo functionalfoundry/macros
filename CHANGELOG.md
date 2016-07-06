@@ -1,8 +1,15 @@
 # CHANGELOG workflo/macros
 
-## Unreleased
+## 0.2.7
 
-## Added
+## Changed
+
+* Change notation for defcommand implementation forms by no
+  longe requiring a sequence/list expression.
+
+## 0.2.6
+
+### Added
 
 * A new defcommand macro for defining commands (e.g. handlers for
   Om Next mutations or other CQRS-style commands) with a store
@@ -56,7 +63,7 @@
   replace `workflo.macros.query/om-property-query`.
 * New boot task `test-once` for running the test suites once.
 
-## Changed
+### Changed
 
 * Only define `defview` configuration atom once at load time.
 * Properties specifications are now called queries everywhere.
@@ -65,7 +72,7 @@
   Clojure and ClojureScript.
 * Random function tests based on clojure.spec generators.
 
-## Removed
+### Removed
 
 * `workflo.macros.props/map-keys` (replaced with
   `workflo.macros.query/map-destructuring-keys`)
@@ -76,7 +83,7 @@
   `workflo.macros.query.om-next/property-query`)
 * `workflo.macros.props/value?`
 
-# Notes
+## Notes
 
 This changelog loosely follows the guidelines discussed on
 [Keep a CHANGELOG](http://keepachangelog.com/).
