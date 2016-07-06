@@ -171,8 +171,15 @@
                    v)]))
           (bind-params [unbound-params]
             (into {} (map bind-param) unbound-params))
-          (bind-query-parameters* [subquery]
+          (bind-query-params [subquery]
             (if (contains? subquery :parameters)
               (update subquery :parameters bind-params)
+              subquery))
+          (follow-and-bind-joins [subquery]
+            (if (contains? subquery :join-target)
+              (update subquery :join-target
+                      (partial mapv bind-query-params))
               subquery))]
-    (mapv bind-query-parameters* query)))
+    (mapv (comp follow-and-bind-joins
+                bind-query-params)
+          query)))
