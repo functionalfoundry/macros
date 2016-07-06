@@ -97,7 +97,7 @@
          data-spec   (second (last inputs))
          name-sym    (util/unqualify name)
          all-forms   (conj forms {:form-name 'implementation
-                                  :form-body impl})
+                                  :form-body (list impl)})
          form-fns    (->> all-forms
                           (map #(update % :form-name
                                         util/prefix-form-name

@@ -37,7 +37,7 @@
                  :form-body ::command-form-body)))
 
 (s/def ::command-implementation
-  seq?)
+  ::s/any)
 
 (s/def ::defcommand-args
   (s/cat :name ::command-name
