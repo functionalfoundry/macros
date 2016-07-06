@@ -64,7 +64,8 @@
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"
                    (s/explain-str (:data-spec definition) data))))
-    (let [cache-query    (some-> definition :cache-query)
+    (let [cache-query    (some-> definition :cache-query
+                                 (q/bind-query-parameters data))
           query-result   (some-> (get-config :query)
                                  (apply [cache-query]))
           command-result ((:implementation definition)
