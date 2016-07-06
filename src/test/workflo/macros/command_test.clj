@@ -7,7 +7,7 @@
   (is (= '(do
             (defn user-create-implementation
               [query-result data]
-              :foo :bar)
+              (:foo :bar))
             (def user-create-data-spec
               vector?)
             (def user-create-definition
@@ -33,7 +33,7 @@
                :implementation pod/user-update-implementation}))
          (macroexpand-1 `(defcommand user/update [~'[user [name email]]
                                                   ~'vector?]
-                           ({:some :data}))))))
+                           {:some :data})))))
 
 (deftest defcommand-with-forms
   (is (= '(do
@@ -51,7 +51,7 @@
                :data-spec pod/user-update-data-spec}))
          (macroexpand-1 `(defcommand user/update [~'vector?]
                            (~'foo [:bar])
-                           ({:implementation :result}))))))
+                           {:implementation :result})))))
 
 (deftest defcommand-with-cache-query-and-forms
   (is (= '(do
@@ -74,7 +74,7 @@
                :data-spec pod/user-create-data-spec}))
          (macroexpand-1 `(defcommand user/create [~'[db [id]] ~'map?]
                            (~'foo [:bar])
-                           (:result))))))
+                           :result)))))
 
 ;;;; Exercise run-command
 
@@ -97,7 +97,7 @@
 
 (defcommand user/create
   [[db [id]] ::user-create-data]
-  ({:cache {:db-id id}}))
+  {:cache {:db-id id}})
 
 (c/configure! {:query example-query
                :process-result example-process-result})
