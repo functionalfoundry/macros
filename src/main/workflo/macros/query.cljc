@@ -151,18 +151,20 @@
 (defn bind-query-parameters
   "Takes a parsed query and a map of named parameters and their
    values. Binds the unbound parameters in the query (that is,
-   those where the value is a symbol beginning with a ?) to
-   values of the corresponding parameters in the parameter map
-   and returns the result.
+   those where the value is either a symbol beginning with a ?
+   or a vector of such symbols) to values of the corresponding
+   parameters in the parameter map and returns the result.
 
    As an example, the :db/id parameter in the query
 
      [{:name user :type :join
        :join-target [{:name name :type :property}]
-       :parameters {:db/id ?foo}}]
+       :parameters {:db/id ?foo
+                    :user/friend [?bar ?baz]}}]
 
    would be bound to the value 10 if the parameter map was
-   {:foo 10}."
+   {:foo 10 :bar {:baz :ruux}} and the :user/friend parameter
+   would be bound to the value :ruux."
   [query params]
   (letfn [(var? [x]
             (and (symbol? x)
