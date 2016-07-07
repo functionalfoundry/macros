@@ -172,12 +172,22 @@
           (path? [x]
             (and (vector? x)
                  (every? var? x)))
+          (denamespace-keys [m]
+            (if (map? m)
+              (zipmap (map (comp keyword name) (keys m))
+                      (vals m))
+              m))
+          (resolve-var [vname params]
+            (let [kw (keyword vname)]
+              (or (get params kw)
+                  (when (nil? (namespace kw))
+                    (get (denamespace-keys params) kw)))))
           (bind-path [path params]
             (loop [path path params params]
               (let [[var & remainder] path
                     vname (when (var? var)
                             (subs (str var) 1))]
-                (let [val (get params (keyword vname))]
+                (let [val (resolve-var vname params)]
                   (if (empty? remainder)
                     val
                     (recur remainder val))))))
