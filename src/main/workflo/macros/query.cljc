@@ -151,28 +151,53 @@
 (defn bind-query-parameters
   "Takes a parsed query and a map of named parameters and their
    values. Binds the unbound parameters in the query (that is,
-   those where the value is a symbol beginning with a ?) to
-   values of the corresponding parameters in the parameter map
-   and returns the result.
+   those where the value is either a symbol beginning with a ?
+   or a vector of such symbols) to values of the corresponding
+   parameters in the parameter map and returns the result.
 
    As an example, the :db/id parameter in the query
 
      [{:name user :type :join
        :join-target [{:name name :type :property}]
-       :parameters {:db/id ?foo}}]
+       :parameters {:db/id ?foo
+                    :user/friend [?bar ?baz]}}]
 
    would be bound to the value 10 if the parameter map was
-   {:foo 10}."
+   {:foo 10 :bar {:baz :ruux}} and the :user/friend parameter
+   would be bound to the value :ruux."
   [query params]
-  (letfn [(bind-param [[k v]]
-            (let [vname (when (symbol? v) (str v))]
-              [k (if (= \? (first vname))
-                   (params (keyword (subs vname 1)))
-                   v)]))
+  (letfn [(var? [x]
+            (and (symbol? x)
+                 (= \? (first (str x)))))
+          (path? [x]
+            (and (vector? x)
+                 (every? var? x)))
+          (bind-path [path params]
+            (loop [path path params params]
+              (let [[var & remainder] path
+                    vname (when (var? var)
+                            (subs (str var) 1))]
+                (let [val (get params (keyword vname))]
+                  (if (empty? remainder)
+                    val
+                    (recur remainder val))))))
+          (bind-param [[k v]]
+            [k (if (or (var? v) (path? v))
+                 (bind-path (cond-> v
+                                  (not (vector? v)) vector)
+                                params)
+                 v)])
           (bind-params [unbound-params]
             (into {} (map bind-param) unbound-params))
-          (bind-query-parameters* [subquery]
+          (bind-query-params [subquery]
             (if (contains? subquery :parameters)
               (update subquery :parameters bind-params)
+              subquery))
+          (follow-and-bind-joins [subquery]
+            (if (contains? subquery :join-target)
+              (update subquery :join-target
+                      (partial mapv bind-query-params))
               subquery))]
-    (mapv bind-query-parameters* query)))
+    (mapv (comp follow-and-bind-joins
+                bind-query-params)
+          query)))
