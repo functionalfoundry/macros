@@ -164,11 +164,27 @@
    would be bound to the value 10 if the parameter map was
    {:foo 10}."
   [query params]
-  (letfn [(bind-param [[k v]]
-            (let [vname (when (symbol? v) (str v))]
-              [k (if (= \? (first vname))
-                   (params (keyword (subs vname 1)))
-                   v)]))
+  (letfn [(var? [x]
+            (and (symbol? x)
+                 (= \? (first (str x)))))
+          (path? [x]
+            (and (vector? x)
+                 (every? var? x)))
+          (bind-path [path params]
+            (loop [path path params params]
+              (let [[var & remainder] path
+                    vname (when (var? var)
+                            (subs (str var) 1))]
+                (let [val (get params (keyword vname))]
+                  (if (empty? remainder)
+                    val
+                    (recur remainder val))))))
+          (bind-param [[k v]]
+            [k (if (or (var? v) (path? v))
+                 (bind-path (cond-> v
+                                  (not (vector? v)) vector)
+                                params)
+                 v)])
           (bind-params [unbound-params]
             (into {} (map bind-param) unbound-params))
           (bind-query-params [subquery]
