@@ -6,6 +6,9 @@
 
 * Function to bind query parameters using a parameter/value
   map: `workflo.macros.query/bind-query-parameters`.
+* A new syntax for binding query parameters to deeply
+  nested values in the parameter map:
+  `{param/name} [?foo ?bar]}`
 
 ## 0.2.7
 
