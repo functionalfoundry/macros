@@ -45,7 +45,8 @@
          (s/spec (s/cat :description (s/? ::command-description)
                         :inputs ::command-inputs
                         :forms (s/* ::command-form)
-                        :implementation ::command-implementation))))
+                        :implementation ::command-implementation))
+         :env (s/? ::s/any)))
 
 (s/def ::form-name
   ::command-form-name)

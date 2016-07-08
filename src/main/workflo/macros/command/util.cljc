@@ -43,8 +43,7 @@
 
 (s/fdef bind-query-keys
   :args (s/cat :form-body
-               (s/and seq?
-                      :workflo.macros.specs.command/command-form-body)
+               (s/spec :workflo.macros.specs.command/command-form-body)
                :query-keys
                :workflo.macros.query/map-destructuring-keys)
   :ret  :workflo.macros.specs.command/command-form-body)
