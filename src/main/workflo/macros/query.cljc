@@ -180,7 +180,7 @@
               (update subquery :parameters bind-params)
               subquery))
           (follow-and-bind-joins [subquery]
-            (if (contains? subquery :join-target)
+            (if (vector? (get subquery :join-target))
               (update subquery :join-target
                       (partial mapv bind-query-params))
               subquery))]
