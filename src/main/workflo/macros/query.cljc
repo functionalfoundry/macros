@@ -1,6 +1,7 @@
 (ns workflo.macros.query
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
+            [workflo.macros.query.bind :as bind]
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]
             [workflo.macros.specs.parsed-query]
@@ -143,6 +144,7 @@
   [props]
   (into [] (map :name) props))
 
+
 (s/fdef bind-query-parameters
   :args (s/cat :query :workflo.macros.specs.parsed-query/query
                :params map?)
@@ -166,37 +168,11 @@
    {:foo 10 :bar {:baz :ruux}} and the :user/friend parameter
    would be bound to the value :ruux."
   [query params]
-  (letfn [(var? [x]
-            (and (symbol? x)
-                 (= \? (first (str x)))))
-          (path? [x]
-            (and (vector? x)
-                 (every? var? x)))
-          (denamespace-keys [m]
-            (if (map? m)
-              (zipmap (map (comp keyword name) (keys m))
-                      (vals m))
-              m))
-          (resolve-var [vname params]
-            (let [kw (keyword vname)]
-              (or (get params kw)
-                  (when (nil? (namespace kw))
-                    (get (denamespace-keys params) kw)))))
-          (bind-path [path params]
-            (loop [path path params params]
-              (let [[var & remainder] path
-                    vname (when (var? var)
-                            (subs (str var) 1))]
-                (let [val (resolve-var vname params)]
-                  (if (empty? remainder)
-                    val
-                    (recur remainder val))))))
-          (bind-param [[k v]]
-            [k (if (or (var? v) (path? v))
-                 (bind-path (cond-> v
-                                  (not (vector? v)) vector)
-                                params)
-                 v)])
+  (letfn [(bind-param [[k v]]
+            [k (cond-> v
+                 (or (bind/var? v)
+                     (bind/path? v))
+                 (bind/resolve params))])
           (bind-params [unbound-params]
             (into {} (map bind-param) unbound-params))
           (bind-query-params [subquery]
