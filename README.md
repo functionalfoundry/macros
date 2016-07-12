@@ -4,7 +4,7 @@ A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
 ```clojure
-[workflo/macros "0.2.8"]
+[workflo/macros "0.2.9"]
 ```
 
 [CHANGELOG](CHANGELOG.md)

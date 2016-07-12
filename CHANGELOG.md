@@ -1,5 +1,24 @@
 # CHANGELOG workflo/macros
 
+## 0.2.9
+
+## Added
+
+* New functions to resolve variables and variable paths using
+  potentially deeply nested parameter/value maps:
+    - `workflo.macros.query.bind/var?`
+    - `workflo.macros.query.bind/path?`
+    - `workflo.macros.query.bind/denamespace`
+    - `workflo.macros.query.bind/denamespace-keys`
+    - `workflo.macros.query.bind/resolve-var`
+    - `workflo.macros.query.bind/resolve-path`
+    - `workflo.macros.query.bind/resolve`
+
+## Fixed
+
+* When binding query parameters, only recurse into join targets
+  if they are real subqueries.
+
 ## 0.2.8
 
 ### Added
