@@ -79,15 +79,33 @@
                            [{:name name :type :link :link-id link-id}])
     :join                (parse-subquery query)
     :model-join          (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (cond-> name
+                                            (vector? name)
+                                            (-> vector
+                                                conform-and-parse
+                                                first))
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (cond-> name
+                                            (vector? name)
+                                            (-> vector
+                                                conform-and-parse
+                                                first))
                              :join-target
                              #?(:cljs target
                                 :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (cond-> name
+                                            (vector? name)
+                                            (-> vector
+                                                conform-and-parse
+                                                first))
                              :join-target
                              #?(:cljs (conform-and-parse target)
                                 :clj  (parse target))}])

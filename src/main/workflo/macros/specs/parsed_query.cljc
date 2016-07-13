@@ -15,6 +15,10 @@
 (s/def ::link-id
   :workflo.macros.specs.query/link-id)
 
+(s/def ::join-source
+  (s/or :property ::property
+        :link ::link))
+
 (s/def ::join-target
   (s/with-gen
     (s/or :model :workflo.macros.specs.query/model-name
@@ -33,25 +37,34 @@
 (s/def ::parameters
   :workflo.macros.specs.query/parameters)
 
-(defmulti  typed-property :type)
-
-(defmethod typed-property :property [_]
+(s/def ::property
   (s/keys :req-un [::type ::name]
           :opt-un [::parameters]))
 
-(defmethod typed-property :link [_]
+(s/def ::link
   (s/keys :req-un [::type ::name ::link-id]
           :opt-un [::parameters]))
 
-(defmethod typed-property :join [_]
-  (s/keys :req-un [::type ::name ::join-target]
+(s/def ::join
+  (s/keys :req-un [::type ::name ::join-source ::join-target]
           :opt-un [::parameters]))
 
-(s/def ::property
-  (s/multi-spec typed-property :type))
+(defmulti  typed-property-spec :type)
+
+(defmethod typed-property-spec :property [_]
+  ::property)
+
+(defmethod typed-property-spec :link [_]
+  ::link)
+
+(defmethod typed-property-spec :join [_]
+  ::join)
+
+(s/def ::typed-property
+  (s/multi-spec typed-property-spec :type))
 
 (s/def ::query
   (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property)
+    (s/and vector? (s/+ ::typed-property))
+    #(gen/vector (s/gen ::typed-property)
                  1 10)))

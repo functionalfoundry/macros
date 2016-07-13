@@ -40,10 +40,10 @@
 
 (s/def ::recursive-join-value
   (s/with-gen
-    (s/and (s/map-of :workflo.macros.specs.query/property-name
+    (s/and (s/map-of :workflo.macros.specs.query/join-property
                      ::recursion)
            util/one-item?)
-    #(gen/map (s/gen :workflo.macros.specs.query/property-name)
+    #(gen/map (s/gen :workflo.macros.specs.query/join-property)
               (s/gen ::recursion)
               {:num-elements 1})))
 
@@ -52,11 +52,11 @@
 
 (s/def ::properties-join-value
   (s/with-gen
-    (s/and (s/map-of :workflo.macros.specs.query/property-name
+    (s/and (s/map-of :workflo.macros.specs.query/join-property
                      #?(:cljs :workflo.macros.specs.query/query
                         :clj  ::query))
            util/one-item?)
-    #(gen/map (s/gen :workflo.macros.specs.query/property-name)
+    #(gen/map (s/gen :workflo.macros.specs.query/join-property)
               (s/gen #{[[:regular-query [:property [:simple 'foo]]]]})
               {:num-elements 1})))
 
