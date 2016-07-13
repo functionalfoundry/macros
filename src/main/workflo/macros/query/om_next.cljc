@@ -47,8 +47,9 @@
           :link     [kw-name (if (= '_ (:link-id prop))
                                '_
                                (:link-id prop))]
-          :join     (let [target (:join-target prop)]
-                      {kw-name
+          :join     (let [source (:join-source prop)
+                          target (:join-target prop)]
+                      {(property-query source)
                        (cond
                          (some #{target} #{'... ''...}) ''...
                          (number? target) target
