@@ -89,27 +89,37 @@
                            (->> children
                                 (map parse-subquery)
                                 (apply concat)
-                                (mapv (fn [child]
-                                        (update child :name
-                                                (fn [sym]
-                                                  (symbol
-                                                   (name base)
-                                                   (name sym))))))))
+                                (mapv (partial prefix-child-name base))))
     :property            (parse-subquery query)
     :simple              [{:name query :type :property}]
     :link                (let [[name link-id] query]
                            [{:name name :type :link :link-id link-id}])
     :join                (parse-subquery query)
     :model-join          (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target
                              #?(:cljs target
                                 :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target
                              #?(:cljs (conform-and-parse target)
                                 :clj  (parse target))}])

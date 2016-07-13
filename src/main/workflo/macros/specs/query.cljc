@@ -25,6 +25,10 @@
 
 ;;;; Joins
 
+(s/def ::join-property
+  (s/or :property-name ::property-name
+        :link ::link))
+
 (s/def ::model-name
   (s/with-gen
     util/capitalized-symbol?
@@ -32,9 +36,9 @@
 
 (s/def ::model-join
   (s/with-gen
-    (s/and (s/map-of ::property-name ::model-name)
+    (s/and (s/map-of ::join-property ::model-name)
            util/one-item?)
-    #(gen/map (s/gen ::property-name)
+    #(gen/map (s/gen ::join-property)
               (s/gen ::model-name)
               {:num-elements 1})))
 
@@ -50,17 +54,17 @@
 
 (s/def ::recursive-join
   (s/with-gen
-    (s/and (s/map-of ::property-name ::recursion)
+    (s/and (s/map-of ::join-property ::recursion)
            util/one-item?)
-    #(gen/map (s/gen ::property-name)
+    #(gen/map (s/gen ::join-property)
               (s/gen ::recursion)
               {:num-elements 1})))
 
 (s/def ::properties-join
   (s/with-gen
-    (s/and (s/map-of ::property-name ::query)
+    (s/and (s/map-of ::join-property ::query)
            util/one-item?)
-    #(gen/map (s/gen ::property-name)
+    #(gen/map (s/gen ::join-property)
               (s/gen '#{[user] [user [id name email]]})
               {:num-elements 1})))
 
