@@ -15,13 +15,17 @@
   (s/cat :call '#{om.next/get-query}
          :component symbol?))
 
+(s/def ::join-source
+  (s/or :property ::keyword
+        :link ::link))
+
 (s/def ::join-target
   (s/or :query ::query
         :recursion :workflo.macros.specs.query/recursion
         :component ::component-query))
 
 (s/def ::join
-  (s/and (s/map-of ::keyword ::join-target)
+  (s/and (s/map-of ::join-source ::join-target)
          util/one-item?))
 
 (s/def ::regular-property

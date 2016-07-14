@@ -1,6 +1,7 @@
 (ns workflo.macros.query
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
+            #?(:cljs [cljs.spec.impl.gen :as gen])
             [workflo.macros.query.bind :as bind]
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]
@@ -38,6 +39,28 @@
         :properties-join
         :workflo.macros.specs.conforming-query/properties-join))
 
+(s/fdef prefix-child-name
+  :args (s/cat :base symbol?
+               :child :workflo.macros.specs.parsed-query/typed-property)
+  :ret  :workflo.macros.specs.parsed-query/typed-property
+  :fn   (s/and #(= (-> % :ret :name)
+                   (symbol (name (-> % :args :base))
+                           (name (-> % :args :child :name))))
+               #(if (-> % :args :child :join-source :name)
+                  (= (-> % :ret :join-source :name)
+                     (symbol (name (-> % :args :base))
+                             (name (-> % :args :child
+                                       :join-source :name))))
+                  true)))
+
+(defn prefix-child-name
+  [base child]
+  (letfn [(prefix-sym [sym]
+            (symbol (name base) (name sym)))]
+    (cond-> child
+      (child :join-source) (update-in [:join-source :name] prefix-sym)
+      (child :name)        (update :name prefix-sym))))
+
 (s/fdef parse-subquery
   :args (s/cat :query ::subquery)
   :ret  :workflo.macros.specs.parsed-query/query)
@@ -55,7 +78,7 @@
 
    Each of these may in addition contain an optional :parameters
    key with a {symbol ?variable}-style map."
-  [[type query]]
+  [[type query :as subquery]]
   (case type
     :regular-query       (parse-subquery query)
     :parameterized-query (->> (:regular-query-value query)
@@ -67,31 +90,43 @@
                            (->> children
                                 (map parse-subquery)
                                 (apply concat)
-                                (mapv (fn [child]
-                                        (update child :name
-                                                (fn [sym]
-                                                  (symbol
-                                                   (name base)
-                                                   (name sym))))))))
+                                (mapv (partial prefix-child-name base))))
     :property            (parse-subquery query)
     :simple              [{:name query :type :property}]
     :link                (let [[name link-id] query]
                            [{:name name :type :link :link-id link-id}])
     :join                (parse-subquery query)
     :model-join          (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target target}])
     :recursive-join      (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target
                              #?(:cljs target
                                 :clj  (second target))}])
     :properties-join     (let [[name target] (first query)]
-                           [{:name name :type :join
+                           [{:name (cond-> name (vector? name) first)
+                             :type :join
+                             :join-source (-> name
+                                              vector
+                                              conform-and-parse
+                                              first)
                              :join-target
                              #?(:cljs (conform-and-parse target)
                                 :clj  (parse target))}])
-    (parse-subquery type)))
+    (if (vector? type)
+      (parse subquery)
+      (parse-subquery type))))
 
 (s/fdef parse
   :args (s/cat :conforming-query
@@ -129,7 +164,8 @@
   (parse (conform query)))
 
 (s/def ::map-destructuring-keys
-  #?(:cljs (s/and vector? (s/* symbol?))
+  #?(:cljs (s/with-gen (s/and vector? (s/* symbol?))
+             #(gen/vector (s/gen symbol?)))
      :clj  (s/coll-of symbol? :kind vector?)))
 
 (s/fdef map-destructuring-keys

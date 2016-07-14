@@ -3,17 +3,30 @@
                :clj  [clojure.spec :as s])
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
-            [workflo.macros.query.util :as util]
             [workflo.macros.specs.query]))
 
-(s/def ::type
-  #{:property :link :join})
+(s/def :property/type
+  #{:property})
+
+(s/def :link/type
+  #{:link})
+
+(s/def :join/type
+  #{:join})
 
 (s/def ::name
   :workflo.macros.specs.query/property-name)
 
 (s/def ::link-id
   :workflo.macros.specs.query/link-id)
+
+(s/def ::join-source
+  (s/with-gen
+    (s/or :property ::unparameterized-property
+          :link ::unparameterized-link)
+    #(gen/one-of [(s/gen ::unparameterized-property)
+                  (s/gen '#{{:type :link :name foo :link-id _}
+                            {:type :link :name bar :link-id 5}})])))
 
 (s/def ::join-target
   (s/with-gen
@@ -33,25 +46,40 @@
 (s/def ::parameters
   :workflo.macros.specs.query/parameters)
 
-(defmulti  typed-property :type)
-
-(defmethod typed-property :property [_]
-  (s/keys :req-un [::type ::name]
-          :opt-un [::parameters]))
-
-(defmethod typed-property :link [_]
-  (s/keys :req-un [::type ::name ::link-id]
-          :opt-un [::parameters]))
-
-(defmethod typed-property :join [_]
-  (s/keys :req-un [::type ::name ::join-target]
-          :opt-un [::parameters]))
-
 (s/def ::property
-  (s/multi-spec typed-property :type))
+  (s/keys :req-un [:property/type ::name]
+          :opt-un [::parameters]))
+
+(s/def ::unparameterized-property
+  (s/keys :req-un [:property/type ::name]))
+
+(s/def ::link
+  (s/keys :req-un [:link/type ::name ::link-id]
+          :opt-un [::parameters]))
+
+(s/def ::unparameterized-link
+  (s/keys :req-un [:link/type ::name ::link-id]))
+
+(s/def ::join
+  (s/keys :req-un [:join/type ::name ::join-source ::join-target]
+          :opt-un [::parameters]))
+
+(defmulti  typed-property-spec :type)
+
+(defmethod typed-property-spec :property [_]
+  ::property)
+
+(defmethod typed-property-spec :link [_]
+  ::link)
+
+(defmethod typed-property-spec :join [_]
+  ::join)
+
+(s/def ::typed-property
+  (s/multi-spec typed-property-spec :type))
 
 (s/def ::query
   (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property)
+    (s/and vector? (s/+ ::typed-property))
+    #(gen/vector (s/gen ::typed-property)
                  1 10)))

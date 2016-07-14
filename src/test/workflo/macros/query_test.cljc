@@ -32,19 +32,43 @@
 
 (deftest parse-one-join
   (and (is (= (q/conform-and-parse '[{foo ...}])
-              '[{:name foo :type :join :join-target ...}]))
+              '[{:name foo
+                 :type :join
+                 :join-source {:name foo :type :property}
+                 :join-target ...}]))
        (is (= (q/conform-and-parse '[{bar User}])
-              '[{:name bar :type :join :join-target User}]))
+              '[{:name bar
+                 :type :join
+                 :join-source {:name bar :type :property}
+                 :join-target User}]))
        (is (= (q/conform-and-parse '[{baz 5}])
-              '[{:name baz :type :join :join-target 5}]))))
+              '[{:name baz
+                 :type :join
+                 :join-source {:name baz :type :property}
+                 :join-target 5}]))
+       (is (= (q/conform-and-parse '[{[foo _] [bar baz]}])
+              '[{:name foo
+                 :type :join
+                 :join-source {:name foo :type :link :link-id _}
+                 :join-target [{:name bar :type :property}
+                               {:name baz :type :property}]}]))))
 
 (deftest parse-three-joins
   (and (is (= (q/conform-and-parse '[{foo ...}
                          {bar User}
                          {baz 5}])
-              '[{:name foo :type :join :join-target ...}
-                {:name bar :type :join :join-target User}
-                {:name baz :type :join :join-target 5}]))))
+              '[{:name foo
+                 :type :join
+                 :join-source {:name foo :type :property}
+                 :join-target ...}
+                {:name bar
+                 :type :join
+                 :join-source {:name bar :type :property}
+                 :join-target User}
+                {:name baz
+                 :type :join
+                 :join-source {:name baz :type :property}
+                 :join-target 5}]))))
 
 (deftest parse-basic-child-props
   (and (is (= (q/conform-and-parse '[foo [bar]])
@@ -62,14 +86,29 @@
 
 (deftest parse-join-child-props
   (and (is (= (q/conform-and-parse '[foo [{bar Baz}]])
-              '[{:name foo/bar :type :join :join-target Baz}]))
+              '[{:name foo/bar
+                 :type :join
+                 :join-source {:name foo/bar :type :property}
+                 :join-target Baz}]))
        (is    (= (q/conform-and-parse '[foo [{bar Baz} {baz Ruux}]])
-                 '[{:name foo/bar :type :join :join-target Baz}
-                   {:name foo/baz :type :join :join-target Ruux}]))
+                 '[{:name foo/bar
+                    :type :join
+                    :join-source {:name foo/bar :type :property}
+                    :join-target Baz}
+                   {:name foo/baz
+                    :type :join
+                    :join-source {:name foo/baz :type :property}
+                    :join-target Ruux}]))
        (is (= (q/conform-and-parse '[foo [{bar ...}]])
-              '[{:name foo/bar :type :join :join-target ...}]))
+              '[{:name foo/bar
+                 :type :join
+                 :join-source {:name foo/bar :type :property}
+                 :join-target ...}]))
        (is (= (q/conform-and-parse '[foo [{bar 5}]])
-              '[{:name foo/bar :type :join :join-target 5}]))))
+              '[{:name foo/bar
+                 :type :join
+                 :join-source {:name foo/bar :type :property}
+                 :join-target 5}]))))
 
 (deftest parse-link-child-props
   (and (is (= (q/conform-and-parse '[foo [[bar _]]])
@@ -112,7 +151,7 @@
 (deftest queries-with-links
   (and (is (= (-> '[[current-user _]]
                   q/conform-and-parse om/query)
-              '[[:current-user '_]]))
+              '[[:current-user _]]))
        (is (= (-> '[[user 123]]
                   q/conform-and-parse om/query)
               '[[:user 123]]))

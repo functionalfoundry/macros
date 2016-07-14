@@ -1,5 +1,25 @@
 # CHANGELOG workflo/macros
 
+## Unreleased
+
+## Changed
+
+* Queries now support joins in combination with links, that is,
+  links that are joined with models, properties or recursion, e.g.:
+  `{[current-user _] [db [id] user [name email]]}`.
+* The spec for parsed joins has changed to include an additional
+  `:join-source` key that holds either a regular parsed property
+  or a parsed link property. One example:
+  `{:name current-user :type :join
+    :join-source {:name current-user :type :link :link-id _}
+    :join-target [{:name db/id :type :property}
+                  {:name user/name :type :property}]}`.
+
+## Fixed
+
+* Generate '_ for global links in Om Next queries, not ''_.
+* The CLJS generator for the `::map-destructuring-keys` spec now works.
+
 ## 0.2.9
 
 ## Added
