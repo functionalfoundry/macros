@@ -77,7 +77,7 @@
 
    Each of these may in addition contain an optional :parameters
    key with a {symbol ?variable}-style map."
-  [[type query]]
+  [[type query :as subquery]]
   (case type
     :regular-query       (parse-subquery query)
     :parameterized-query (->> (:regular-query-value query)
@@ -123,7 +123,9 @@
                              :join-target
                              #?(:cljs (conform-and-parse target)
                                 :clj  (parse target))}])
-    (parse-subquery type)))
+    (if (vector? type)
+      (parse subquery)
+      (parse-subquery type))))
 
 (s/fdef parse
   :args (s/cat :conforming-query
