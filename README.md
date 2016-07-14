@@ -31,6 +31,12 @@ inputs passed to the command implementation at run-time.
 
 [Documentation for `defcommand`](docs/defcommand.md)
 
+## `defentity` - Defining entities with authentication and validation
+
+The `defentity` macro allows to describe entities in the system, with
+a schema, validation rules and code for authorization.
+
+[Documentation for `defentity`](docs/defentity.md)
 
 ## License
 
