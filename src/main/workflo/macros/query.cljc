@@ -38,6 +38,28 @@
         :properties-join
         :workflo.macros.specs.conforming-query/properties-join))
 
+(s/fdef prefix-child-name
+  :args (s/cat :base symbol?
+               :child :workflo.macros.specs.parsed-query/typed-property)
+  :ret  :workflo.macros.specs.parsed-query/typed-property
+  :fn   (s/and #(= (-> % :ret :name)
+                   (symbol (name (-> % :args :base))
+                           (name (-> % :args :child :name))))
+               #(if (-> % :args :child :join-source :name)
+                  (= (-> % :ret :join-source :name)
+                     (symbol (name (-> % :args :base))
+                             (name (-> % :args :child
+                                       :join-source :name))))
+                  true)))
+
+(defn prefix-child-name
+  [base child]
+  (letfn [(prefix-sym [sym]
+            (symbol (name base) (name sym)))]
+    (cond-> child
+      (child :join-source) (update-in [:join-source :name] prefix-sym)
+      (child :name)        (update :name prefix-sym))))
+
 (s/fdef parse-subquery
   :args (s/cat :query ::subquery)
   :ret  :workflo.macros.specs.parsed-query/query)
