@@ -82,3 +82,26 @@
     (pprint (gen/sample (s/gen spec) 10))
     (catch #?(:cljs js/Object :clj Exception) e
       (println "Error: Spec not found" e))))
+
+
+(s/fdef prefix-child-name
+  :args (s/cat :base symbol?
+               :child :workflo.macros.specs.parsed-query/typed-property)
+  :ret  :workflo.macros.specs.parsed-query/typed-property
+  :fn   (s/and #(= (-> % :ret :name)
+                   (symbol (name (-> % :args :base))
+                           (name (-> % :args :child :name))))
+               #(if (-> % :args :child :join-source :name)
+                  (= (-> % :ret :join-source :name)
+                     (symbol (name (-> % :args :base))
+                             (name (-> % :args :child
+                                       :join-source :name))))
+                  true)))
+
+(defn prefix-child-name
+  [base child]
+  (letfn [(prefix-sym [sym]
+            (symbol (name base) (name sym)))]
+    (cond-> child
+      (child :join-source) (update-in [:join-source :name] prefix-sym)
+      (child :name)        (update :name prefix-sym))))
