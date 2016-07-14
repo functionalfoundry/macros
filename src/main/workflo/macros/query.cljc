@@ -89,8 +89,7 @@
                            (->> children
                                 (map parse-subquery)
                                 (apply concat)
-                                (mapv (partial util/prefix-child-name
-                                               base))))
+                                (mapv (partial prefix-child-name base))))
     :property            (parse-subquery query)
     :simple              [{:name query :type :property}]
     :link                (let [[name link-id] query]
