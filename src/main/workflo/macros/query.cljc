@@ -1,6 +1,7 @@
 (ns workflo.macros.query
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
+            #?(:cljs [cljs.spec.impl.gen :as gen])
             [workflo.macros.query.bind :as bind]
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]
@@ -163,7 +164,8 @@
   (parse (conform query)))
 
 (s/def ::map-destructuring-keys
-  #?(:cljs (s/and vector? (s/* symbol?))
+  #?(:cljs (s/with-gen (s/and vector? (s/* symbol?))
+             #(gen/vector (s/gen symbol?)))
      :clj  (s/coll-of symbol? :kind vector?)))
 
 (s/fdef map-destructuring-keys
