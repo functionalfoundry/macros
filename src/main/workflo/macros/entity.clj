@@ -109,6 +109,7 @@
          description     (:description (:forms args))
          auth            (:auth (:forms args))
          auth-query      (some-> (:auth-query auth) q/parse)
+         query-keys      (some-> auth-query q/map-destructuring-keys)
          validation      (:validation (:forms args))
          schema          (:schema (:forms args))
          forms           (-> (:forms args)
@@ -124,7 +125,7 @@
          auth-form       (when auth
                            `((~'defn ~(util/prefix-form-name 'auth
                                                              name-sym)
-                              []
+                              [{:keys [~@query-keys]}]
                               ~@(:form-body auth))))
          auth-query-form (when auth-query
                            `((~'def ~(util/prefix-form-name 'auth-query
