@@ -2,6 +2,7 @@
   (:require [clojure.spec :as s]
             [clojure.string :as string]
             [workflo.macros.command.util :as util]
+            [workflo.macros.query :as q]
             [workflo.macros.specs.entity]))
 
 ;;;; Configuration
@@ -107,20 +108,28 @@
                                                   [name forms]))))
          description     (:description (:forms args))
          auth            (:auth (:forms args))
+         auth-query      (some-> (:auth-query auth) q/parse)
          validation      (:validation (:forms args))
          schema          (:schema (:forms args))
          forms           (-> (:forms args)
                              (select-keys [:auth :validation :schema])
                              (vals))
          name-sym        (util/unqualify name)
-         forms-map       (zipmap (map (comp keyword :form-name) forms)
+         all-forms       (cond-> forms
+                           auth-query (conj {:form-name 'auth-query}))
+         forms-map       (zipmap (map (comp keyword :form-name)
+                                      all-forms)
                                  (map #(prefixed-form-name % name-sym)
-                                      forms))
+                                      all-forms))
          auth-form       (when auth
                            `((~'defn ~(util/prefix-form-name 'auth
                                                              name-sym)
                               []
                               ~@(:form-body auth))))
+         auth-query-form (when auth-query
+                           `((~'def ~(util/prefix-form-name 'auth-query
+                                                            name-sym)
+                              '~auth-query)))
          validation-form (when validation
                            `((~'def ~(util/prefix-form-name 'validation
                                                             name-sym)
@@ -134,6 +143,7 @@
                            ~forms-map)]
      `(do
         ~@auth-form
+        ~@auth-query-form
         ~@validation-form
         ~@schema-form
         ~definition))))
