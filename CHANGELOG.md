@@ -2,7 +2,7 @@
 
 ## 0.2.10
 
-## Changed
+### Changed
 
 * Queries now support joins in combination with links, that is,
   links that are joined with models, properties or recursion, e.g.:
@@ -15,14 +15,14 @@
     :join-target [{:name db/id :type :property}
                   {:name user/name :type :property}]}`.
 
-## Fixed
+### Fixed
 
 * Generate '_ for global links in Om Next queries, not ''_.
 * The CLJS generator for the `::map-destructuring-keys` spec now works.
 
 ## 0.2.9
 
-## Added
+### Added
 
 * New functions to resolve variables and variable paths using
   potentially deeply nested parameter/value maps:
@@ -34,7 +34,7 @@
     - `workflo.macros.query.bind/resolve-path`
     - `workflo.macros.query.bind/resolve`
 
-## Fixed
+### Fixed
 
 * When binding query parameters, only recurse into join targets
   if they are real subqueries.
