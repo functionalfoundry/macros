@@ -48,18 +48,21 @@
   []
   @+registry+)
 
-(defn resolve-command
+(defn resolve-command-sym
   [cmd-name]
-  (let [cmd (get @+registry+ cmd-name)]
-    (when (nil? cmd)
+  (let [cmd-sym (get @+registry+ cmd-name)]
+    (when (nil? cmd-sym)
       (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
         (throw (Exception. err-msg))))
-    cmd))
+    cmd-sym))
+
+(defn resolve-command
+  [cmd-name]
+  @(resolve (resolve-command-sym cmd-name)))
 
 (defn run-command
   [cmd-name data]
-  (let [definition-sym (resolve-command cmd-name)
-        definition     @(resolve definition-sym)]
+  (let [definition (resolve-command cmd-name)]
     (when (:data-spec definition)
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"

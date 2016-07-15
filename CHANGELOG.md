@@ -1,5 +1,17 @@
 # CHANGELOG workflo/macros
 
+## Unreleased
+
+### Changed
+
+* `workflo.macros.command/resolve-command` now returns the
+  command definition map instead of its qualified symbol.
+
+### Added
+
+* `workflo.macros.command/resolve-command-sym` has been added
+  to provide the old functionality of `resolve-command`.
+
 ## 0.2.10
 
 ### Changed
