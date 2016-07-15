@@ -4,6 +4,29 @@
             [workflo.macros.command.util :as util]
             [workflo.macros.specs.entity]))
 
+;;;; Configuration
+
+(defonce ^:private +configuration+
+  (atom {:auth-query nil}))
+
+(defn configure!
+  "Configures how entities are created with defentity and how aspects
+   like authorization are performed against them. Supports the
+   following options:
+
+   :auth-query - a function that takes a parsed query and entity data;
+                 this query result from this function is then passed to
+                 the entity's auth function to perform authorization."
+  [{:keys [auth-query] :as options}]
+  (swap! +configuration+ assoc
+         :auth-query auth-query))
+
+(defn get-config
+  "Returns the configuration for a given configuration key, e.g.
+   :auth-query."
+  [key]
+  (@+configuration+ key))
+
 ;;;; Entity registry
 
 (defonce ^:private +registry+ (atom {}))
