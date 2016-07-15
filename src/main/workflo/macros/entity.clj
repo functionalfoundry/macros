@@ -1,5 +1,6 @@
 (ns workflo.macros.entity
   (:require [clojure.spec :as s]
+            [clojure.string :as string]
             [workflo.macros.command.util :as util]
             [workflo.macros.specs.entity]))
 
@@ -32,15 +33,31 @@
   @(resolve (resolve-entity-sym entity-name)))
 
 (defn authenticate
-  [entity-name data])
+  [entity data])
 
 (defn validate
-  [entity-name data])
+  [entity-or-name data]
+  (letfn [(validate* [[spec-name spec] data]
+            (or (s/valid? spec data)
+                (throw (Exception.
+                        (format "%s failed: %s"
+                                (string/capitalize (name spec-name))
+                                (s/explain-str spec data))))))]
+    (let [entity (cond-> entity-or-name
+                   (symbol? entity-or-name)
+                   resolve-entity)]
+      (->> [:schema :validation]
+           (select-keys entity)
+           (map #(validate* % data))
+           (every? true?)))))
+
+(defn validation
+  [entity]
+  (:validation entity))
 
 (defn schema
-  [entity-name]
-  (let [entity (resolve-entity entity-name)]
-    (:schema entity)))
+  [entity]
+  (:schema entity))
 
 ;;;; Utilities
 
