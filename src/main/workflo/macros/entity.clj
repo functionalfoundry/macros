@@ -57,7 +57,18 @@
   @(resolve (resolve-entity-sym entity-name)))
 
 (defn authenticate
-  [entity data])
+  [entity-or-name data]
+  (let [entity  (cond-> entity-or-name
+                  (symbol? entity-or-name)
+                  resolve-entity)
+        auth-fn (:auth entity)]
+    (if auth-fn
+      (let [auth-query   (some-> entity :auth-query
+                                 (q/bind-query-parameters data))
+            query-result (some-> (get-config :auth-query)
+                                 (apply [auth-query data]))]
+        (auth-fn query-result))
+      true)))
 
 (defn validate
   [entity-or-name data]
