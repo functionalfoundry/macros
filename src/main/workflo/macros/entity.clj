@@ -42,6 +42,13 @@
   (let [entity (resolve-entity entity-name)]
     (:schema entity)))
 
+;;;; Utilities
+
+(defn prefixed-form-name
+  [form prefix]
+  (symbol (str (ns-name *ns*))
+          (str (util/prefix-form-name (:form-name form) prefix))))
+
 ;;;; The defentity macro
 
 (s/fdef defentity*
@@ -52,8 +59,44 @@
   ([name forms]
    (defentity* name forms nil))
   ([name forms env]
-   `(do
-      )))
+   (let [args-spec       :workflo.macros.specs.entity/defentity-args
+         args            (if (s/valid? args-spec [name forms])
+                           (s/conform args-spec [name forms])
+                           (throw (Exception.
+                                   (s/explain-str args-spec
+                                                  [name forms]))))
+         description     (:description (:forms args))
+         auth            (:auth (:forms args))
+         validation      (:validation (:forms args))
+         schema          (:schema (:forms args))
+         forms           (-> (:forms args)
+                             (select-keys [:auth :validation :schema])
+                             (vals))
+         name-sym        (util/unqualify name)
+         forms-map       (zipmap (map (comp keyword :form-name) forms)
+                                 (map #(prefixed-form-name % name-sym)
+                                      forms))
+         auth-form       (when auth
+                           `((~'defn ~(util/prefix-form-name 'auth
+                                                             name-sym)
+                              []
+                              ~@(:form-body auth))))
+         validation-form (when validation
+                           `((~'def ~(util/prefix-form-name 'validation
+                                                            name-sym)
+                              ~@(:form-body validation))))
+         schema-form     (when schema
+                           `((~'def ~(util/prefix-form-name 'schema
+                                                            name-sym)
+                              ~@(:form-body schema))))
+         definition      `(~'def ~(util/prefix-form-name 'definition
+                                                         name-sym)
+                           ~forms-map)]
+     `(do
+        ~@auth-form
+        ~@validation-form
+        ~@schema-form
+        ~definition))))
 
 (defmacro defentity
   [name & forms]
