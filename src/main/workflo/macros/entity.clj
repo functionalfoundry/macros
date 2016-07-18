@@ -113,15 +113,20 @@
          query-keys      (some-> auth-query q/map-destructuring-keys)
          validation      (:validation (:forms args))
          schema          (:schema (:forms args))
+         name-sym        (unqualify name)
          forms           (-> (:forms args)
                              (select-keys [:auth :validation :schema])
-                             (vals))
-         name-sym        (unqualify name)
-         all-forms       (cond-> forms
-                           auth-query (conj {:form-name 'auth-query}))
+                             (vals)
+                             (cond->
+                               description (conj {:form-name
+                                                  'description})
+                               auth-query  (conj {:form-name
+                                                  'auth-query})))
          def-sym         (f/qualified-form-name 'definition name-sym)]
      (register-entity! name def-sym env)
      `(do
+        ~@(when description
+            `(~(f/make-def name-sym 'description description)))
         ~@(when auth
             `(~(f/make-defn name-sym 'auth [{:keys query-keys}]
                 (:form-body auth))))
@@ -134,7 +139,7 @@
         ~@(when schema
             `(~(f/make-def name-sym 'schema (:form-body schema))))
         ~(f/make-def name-sym 'definition
-          (f/forms-map all-forms name-sym))))))
+          (f/forms-map forms name-sym))))))
 
 (defmacro defentity
   [name & forms]
