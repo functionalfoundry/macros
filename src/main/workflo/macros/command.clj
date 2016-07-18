@@ -91,16 +91,20 @@
                       [name forms])
          description (:description (:forms args))
          inputs      (:inputs (:forms args))
-         forms       (:forms (:forms args))
          impl        (:implementation (:forms args))
          cache-query (when (= 2 (count inputs))
                        (q/parse (second (first inputs))))
          query-keys  (some-> cache-query q/map-destructuring-keys)
          data-spec   (second (last inputs))
          name-sym    (unqualify name)
-         all-forms   (conj forms {:form-name 'implementation
-                                  :form-body (list impl)})
-         form-fns    (->> all-forms
+         forms       (cond-> (:forms (:forms args))
+                       true        (conj {:form-name 'implementation
+                                          :form-body (list impl)})
+                       description (conj {:form-name 'description})
+                       cache-query (conj {:form-name 'cache-query})
+                       data-spec   (conj {:form-name 'data-spec}))
+         form-fns    (->> forms
+                          (remove (comp nil? :form-body))
                           (map #(update % :form-name
                                         f/prefixed-form-name
                                         name-sym))
@@ -111,20 +115,19 @@
                                                      util/bind-query-keys
                                                      query-keys)))
                           (map f/form->defn))
-         all-forms   (cond-> all-forms
-                       cache-query (conj {:form-name 'cache-query})
-                       data-spec   (conj {:form-name 'data-spec}))
          def-sym     (f/qualified-form-name 'definition name-sym)]
      (register-command! name def-sym env)
      `(do
         ~@form-fns
+        ~@(when description
+            `(~(f/make-def name-sym 'description description)))
         ~@(when cache-query
             `((~'def ~(f/prefixed-form-name 'cache-query name-sym)
                '~cache-query)))
         ~@(when data-spec
             `(~(f/make-def name-sym 'data-spec data-spec)))
         ~(f/make-def name-sym 'definition
-          (f/forms-map all-forms name-sym))))))
+          (f/forms-map forms name-sym))))))
 
 (defmacro defcommand
   [name & forms]
