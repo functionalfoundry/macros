@@ -20,6 +20,10 @@ functions.
 
 [Documentation for `defview`](docs/defview.md)
 
+## `defscreen` - Defining the screens of an Om Next app
+
+[Documentation for `defscreen`](docs/defscreen.md)
+
 ## `defcommand` - Defining pure commands with queries and input data specs
 
 The `defcommand` macro allows to define pure functions that represent
