@@ -11,13 +11,16 @@
 (s/def ::entity-description
   string?)
 
-(s/def ::entity-form-body
+(s/def ::entity-function-form-body
   (s/* ::s/any))
+
+(s/def ::entity-form-body
+  ::s/any)
 
 (s/def ::auth-form
   (s/spec (s/cat :form-name #{'auth}
                  :auth-query :workflo.macros.specs.query/query
-                 :form-body ::entity-form-body)))
+                 :form-body ::entity-function-form-body)))
 
 (s/def ::validation-form
   (s/spec (s/cat :form-name #{'validation}

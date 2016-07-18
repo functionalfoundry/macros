@@ -1,9 +1,10 @@
 (ns workflo.macros.entity
   (:require [clojure.spec :as s]
             [clojure.string :as string]
-            [workflo.macros.command.util :as util]
             [workflo.macros.query :as q]
-            [workflo.macros.specs.entity]))
+            [workflo.macros.specs.entity]
+            [workflo.macros.util.form :as f]
+            [workflo.macros.util.symbol :refer [unqualify]]))
 
 ;;;; Configuration
 
@@ -33,12 +34,8 @@
 (defonce ^:private +registry+ (atom {}))
 
 (defn register-entity!
-  [entity-name env]
-  (let [entity-sym     (util/unqualify entity-name)
-        definition-sym (util/prefix-form-name 'definition entity-sym)
-        definition     (symbol (str (ns-name *ns*))
-                               (str definition-sym))]
-    (swap! +registry+ assoc entity-name definition)))
+  [entity-name def-sym env]
+  (swap! +registry+ assoc entity-name def-sym))
 
 (defn registered-entities
   []
@@ -94,13 +91,6 @@
   [entity]
   (:schema entity))
 
-;;;; Utilities
-
-(defn prefixed-form-name
-  [form prefix]
-  (symbol (str (ns-name *ns*))
-          (str (util/prefix-form-name (:form-name form) prefix))))
-
 ;;;; The defentity macro
 
 (s/fdef defentity*
@@ -126,41 +116,26 @@
          forms           (-> (:forms args)
                              (select-keys [:auth :validation :schema])
                              (vals))
-         name-sym        (util/unqualify name)
+         name-sym        (unqualify name)
          all-forms       (cond-> forms
                            auth-query (conj {:form-name 'auth-query}))
-         forms-map       (zipmap (map (comp keyword :form-name)
-                                      all-forms)
-                                 (map #(prefixed-form-name % name-sym)
-                                      all-forms))
-         auth-form       (when auth
-                           `((~'defn ~(util/prefix-form-name 'auth
-                                                             name-sym)
-                              [{:keys [~@query-keys]}]
-                              ~@(:form-body auth))))
-         auth-query-form (when auth-query
-                           `((~'def ~(util/prefix-form-name 'auth-query
-                                                            name-sym)
-                              '~auth-query)))
-         validation-form (when validation
-                           `((~'def ~(util/prefix-form-name 'validation
-                                                            name-sym)
-                              ~@(:form-body validation))))
-         schema-form     (when schema
-                           `((~'def ~(util/prefix-form-name 'schema
-                                                            name-sym)
-                              ~@(:form-body schema))))
-         definition      `(~'def ~(util/prefix-form-name 'definition
-                                                         name-sym)
-                           ~forms-map)]
+         def-sym         (f/qualified-form-name 'definition name-sym)]
+     (register-entity! name def-sym env)
      `(do
-        ~@auth-form
-        ~@auth-query-form
-        ~@validation-form
-        ~@schema-form
-        ~definition))))
+        ~@(when auth
+            `(~(f/make-defn name-sym 'auth [{:keys query-keys}]
+                (:form-body auth))))
+        ~@(when auth-query
+            `((~'def ~(f/prefixed-form-name 'auth-query name-sym)
+               '~auth-query)))
+        ~@(when validation
+            `(~(f/make-def name-sym 'validation
+                (:form-body validation))))
+        ~@(when schema
+            `(~(f/make-def name-sym 'schema (:form-body schema))))
+        ~(f/make-def name-sym 'definition
+          (f/forms-map all-forms name-sym))))))
 
 (defmacro defentity
   [name & forms]
-  (register-entity! name &env)
   (defentity* name forms &env))
