@@ -71,6 +71,12 @@
   ([prefix name body]
    `(~'def ~(prefixed-form-name name prefix) ~body)))
 
+(defn make-def-quoted
+  ([name body]
+   `(~'def ~name '~body))
+  ([prefix name body]
+   `(~'def ~(prefixed-form-name name prefix) '~body)))
+
 (defn make-defn
   ([name args body]
    `(~'defn ~name ~args
