@@ -1,10 +1,10 @@
 #!/usr/bin/env boot
 
 (set-env!
- :resource-paths #{"resources" "src/main" "src/docs"}
+ :resource-paths #{"resources" "src/main" "src/docs" "src/examples"}
  :dependencies '[;; Boot setup
                  [adzerk/boot-cljs "1.7.228-1"]
-                 [adzerk/boot-reload "0.4.8"]
+                 [adzerk/boot-reload "0.4.12"]
                  [adzerk/boot-test "1.1.1"]
                  [adzerk/bootlaces "0.1.13"]
                  [pandeiro/boot-http "0.7.3"]
@@ -71,7 +71,7 @@
   []
   (comp
     (watch)
-    (reload)
+    (reload :on-jsload 'workflo.macros.examples.screen-router/reload)
     (build-dev)
     (target)
     (serve :dir "target")))
