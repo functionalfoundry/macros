@@ -28,7 +28,7 @@
 
 (s/def ::layout-form
   (s/spec (s/cat :form-name #{'layout}
-                 :form-body (s/map-of keyword? symbol?))))
+                 :form-body (s/map-of keyword? ::s/any))))
 
 (s/def ::defscreen-args
   (s/cat :name ::screen-name
