@@ -48,3 +48,7 @@
       {:content user-profile}))
    ```"
   (screen/registered-screens))
+
+(defcard
+  "## Resolved `users` screen"
+  (screen/resolve-screen 'users))
