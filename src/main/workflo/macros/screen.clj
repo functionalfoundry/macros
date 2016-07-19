@@ -27,9 +27,11 @@
                          (select-keys [:url :navigation :layout])
                          (vals)
                          (cond->
+                           true        (conj {:form-name 'name})
                            description (conj {:form-name 'description})))
          nav-fields  (:form-body (:navigation (:forms args)))]
      `(do
+        ~(f/make-def-quoted name-sym 'name name)
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
         ~(f/make-def name-sym 'url

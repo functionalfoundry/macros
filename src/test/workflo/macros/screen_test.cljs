@@ -5,13 +5,15 @@
 
 (deftest minimal-defscreen
   (is (= '(do
+            (def users-name 'users)
             (def users-url
               {:string "screens/users"
                :segments ["screens" "users"]})
             (def users-navigation {:title "Users"})
             (def users-layout {:content user})
             (def users-definition
-              {:url workflo.macros.screen-test/users-url,
+              {:name workflo.macros.screen-test/users-name
+               :url workflo.macros.screen-test/users-url,
                :navigation workflo.macros.screen-test/users-navigation,
                :layout workflo.macros.screen-test/users-layout})
             (workflo.macros.screen/register-screen!
@@ -26,6 +28,7 @@
 
 (deftest defscreen-with-description-navigation-and-layout
   (is (= '(do
+            (def users-name 'users)
             (def users-description "Displays all users")
             (def users-url
               {:string "screens/users"
@@ -33,7 +36,8 @@
             (def users-navigation {:title "Users"})
             (def users-layout {:content user})
             (def users-definition
-              {:description workflo.macros.screen-test/users-description
+              {:name workflo.macros.screen-test/users-name
+               :description workflo.macros.screen-test/users-description
                :url workflo.macros.screen-test/users-url
                :navigation workflo.macros.screen-test/users-navigation
                :layout workflo.macros.screen-test/users-layout})
