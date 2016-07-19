@@ -1,0 +1,2 @@
+{:require [workflo.macros.examples.screen-app]
+ :init-fns [workflo.macros.examples.screen-app/init]}

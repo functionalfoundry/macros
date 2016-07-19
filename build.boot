@@ -73,7 +73,7 @@
   []
   (comp
     (watch)
-    (reload :on-jsload 'workflo.macros.examples.screen-router/reload)
+    (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)
     (target)
     (serve :dir "target")))

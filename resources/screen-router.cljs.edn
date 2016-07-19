@@ -1,2 +1,0 @@
-{:require [workflo.macros.examples.screen-router]
- :init-fns [workflo.macros.examples.screen-router/init]}
