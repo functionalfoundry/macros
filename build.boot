@@ -1,7 +1,7 @@
 #!/usr/bin/env boot
 
 (set-env!
- :resource-paths #{"resources" "src/main" "src/docs"}
+ :resource-paths #{"resources" "src/main" "src/docs" "src/examples"}
  :dependencies '[;; Boot setup
                  [adzerk/boot-cljs "1.7.228-1"]
                  [adzerk/boot-reload "0.4.8"]
