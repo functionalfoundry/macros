@@ -39,18 +39,6 @@
         (throw (js/Exception. err-msg))))
     screen-sym))
 
-(defn sym->js
-  "Converts a ClojureScript symbol to a JS variable string."
-  [sym]
-  (-> sym
-      (string/replace #"/" ".")
-      (string/replace #"-" "_")))
-
-(defn resolve
-  "Resolves a ClojureScript symbol into a JS variable."
-  [sym]
-  (js/eval (sym->js sym)))
-
 (defn resolve-screen
   [screen-name]
   (resolve-screen-sym screen-name))
