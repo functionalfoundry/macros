@@ -14,6 +14,7 @@
                  [org.clojure/test.check "0.9.0" :scope "test"]
 
                  ;; Library dependencies
+                 [bidi "2.0.9"]
                  [org.clojure/clojure "1.9.0-alpha8"]
                  [org.clojure/clojurescript "1.9.93"]
                  [org.omcljs/om "1.0.0-alpha36"]
