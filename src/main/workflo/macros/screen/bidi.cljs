@@ -1,5 +1,6 @@
 (ns workflo.macros.screen.bidi
   (:require [bidi.bidi :as bidi]
+            [bidi.router :as br]
             [workflo.macros.screen :as scr]))
 
 (defn route
@@ -17,6 +18,11 @@
   []
   ["/" (mapv route (scr/registered-screens))])
 
+(defn match-location
+  [location]
+  {:screen (scr/resolve-screen (-> location :handler name symbol))
+   :params (:route-params location)})
+
 (defn match
   "Matches a URL against all screen routes. Returns a
    {:params <route params> :screen <screen>} map, where :screen
@@ -24,9 +30,8 @@
    parameterizable URL segments (e.g. :user-id) to their values
    in the URL."
   [url]
-  (when-let [result (bidi/match-route (routes) url)]
-    {:params (:route-params result)
-     :screen (scr/resolve-screen (-> result :handler name symbol))}))
+  (when-let [location (bidi/match-route (routes) url)]
+    (match-location location)))
 
 (defn path
   "Returns a URL path for the given screen and the given URL
@@ -42,3 +47,17 @@
                       :name)]
     (apply (partial bidi/path-for (routes) screen-name)
            params)))
+
+(defn- on-navigate
+  [env location]
+  (let [{:keys [screen params]} (match-location location)]
+    (some-> env :mount-screen (apply [screen params]))))
+
+(defn router
+  [{:keys [default-screen
+           mount-screen]
+    :or   {default-screen 'home}
+    :as   env}]
+  (br/start-router! (routes)
+                    {:on-navigate #(on-navigate env %)
+                     :default-location {:handler default-screen}}))
