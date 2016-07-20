@@ -21,11 +21,15 @@
 
 ;;;; Screen registry
 
-(defonce ^:private +registry+ (atom {}))
+(defonce ^:private +registry+ (atom (sorted-map)))
 
 (defn register-screen!
   [screen-name def-sym]
   (swap! +registry+ assoc screen-name def-sym))
+
+(defn reset-registry!
+  []
+  (reset! +registry+ (sorted-map)))
 
 (defn registered-screens
   []
