@@ -38,7 +38,8 @@
 
 (s/def ::parameterized-property
   (s/and list?
-         (s/cat :property ::regular-property
+         (s/cat :list #{'list}
+                :property ::regular-property
                 :parameters ::parameters)))
 
 (s/def ::property
