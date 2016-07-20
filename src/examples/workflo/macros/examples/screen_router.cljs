@@ -1,9 +1,10 @@
 (ns workflo.macros.examples.screen-router
-  (:require [goog.dom :as gdom]
+  (:require [cljs.pprint]
+            [goog.dom :as gdom]
             [om.next :as om]
             [om.dom :as dom]
             [workflo.macros.screen :refer-macros [defscreen]]
-            [workflo.macros.screen.bidi :as sb]
+            [workflo.macros.screen.om-next :as so]
             [workflo.macros.view :refer-macros [defview]]))
 
 ;;;; Setup
@@ -17,22 +18,45 @@
   (render
    (dom/div nil
      (dom/h3 nil "User Settings")
-     (dom/input #js {:type :text} name)
-     (dom/input #js {:type :text} email))))
+     (dom/input #js {:type "text" :value name})
+     (dom/input #js {:type "text" :value email}))))
 
 (defview UserView
   [db [id] user [name email]]
   (render
    (dom/div nil
-            (dom/h3 nil (str id ": " name))
-            (dom/p nil email))))
+     (dom/h3 nil (str id ": " name))
+     (dom/p nil email)
+     (dom/p nil
+       (dom/a #js {:href (str "#/users/" id)}
+         "View")
+       " / "
+       (dom/a #js {:href (str "#/users/" id "/settings")}
+         "Settings")))))
 
-(defview UserProfileView
+(defview UserSettingsIcon
+  (render
+   (dom/img #js {:src "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/PICOL_icon_Settings.svg/32px-PICOL_icon_Settings.svg.png"})))
+
+(defview UserSettings
+  [({user UserView} {db/id '?user-id})]
+  (render
+   (user-settings-view user)))
+
+(defview UserIcon
+  (render
+   (dom/img #js {:src "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/48px-User_icon_2.svg.png"})))
+
+(defview UserProfile
   [({user UserView} {db/id '?user-id})]
   (render
    (user-view user)))
 
-(defview UserListView
+(defview UserListIcon
+  (render
+   (dom/img #js {:src "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Gnome-system-users.svg/48px-Gnome-system-users.svg.png"})))
+
+(defview UserList
   [{users UserView}]
   (render
    (dom/div nil
@@ -42,43 +66,29 @@
 
 ;;;; Screens
 
+(defscreen UserSettingsScreen
+  (url "users/:user-id/settings")
+  (navigation
+   (title "User Settings"))
+  (layout
+   {:icon {:view UserSettingsIcon :factory user-settings-icon}
+    :content {:view UserSettings :factory user-settings}}))
+
+(defscreen UserScreen
+  (url "users/:user-id")
+  (navigation
+   (title "User"))
+  (layout
+   {:icon {:view UserIcon :factory user-icon}
+    :content {:view UserProfile :factory user-profile}}))
+
 (defscreen UserListScreen
   (url "users")
   (navigation
     (title "Users"))
   (layout
-    {:content {:view UserListView
-               :factory user-list-view}}))
-
-(defscreen UserScreen
-  (url "users/:id")
-  (navigation
-    (title "User"))
-  (layout
-    {:content {:view UserProfileView
-               :factory user-profile-view}}))
-
-(defscreen UserSettingsScreen
-  (url "users/:id/settings")
-  (navigation
-    (title "User Settings"))
-  (layout
-    {:content {:view UserSettingsView
-               :factory user-settings-view}}))
-
-;;;; Main app
-
-(defview App
-  [navigation layout [content]]
-  (render
-   (if (:factory content)
-     (let [{:keys [factory view props]} content]
-       (println content)
-       (println "FACTORY" factory view)
-       (dom/div nil
-         (dom/h1 nil (str "Screen: " (:title navigation)))
-         (factory props)))
-     (dom/div nil "Not found"))))
+   {:icon {:view UserListIcon :factory user-list-icon}
+    :content {:view UserList :factory user-list}}))
 
 ;;;; Data
 
@@ -97,27 +107,18 @@
 
 (defmulti read om/dispatch)
 
-(defmethod read :navigation
-  [{:keys [state]} _ _]
-  {:value (:navigation (:screen @state))})
-
-(defmethod read :layout/content
-  [{:keys [query parser state] :as env} key params]
-  (let [st    @state
-        value {:value {:navigation   (-> st :screen :navigation)
-                       :view         (-> st :screen :layout
-                                         (get (keyword (name key)))
-                                         :view)
-                       :factory      (-> st :screen :layout
-                                         (get (keyword (name key)))
-                                         :factory)
-                       :props        (parser env query params)}}]
-    (println "VALUE" value)
-    value))
+(defmethod read :user
+  [{:keys [query state]} key params]
+  (let [st   @state
+        user (first (filter #(= (js/parseInt (:db/id params))
+                                (:db/id %))
+                            (:users st)))]
+    {:value user}))
 
 (defmethod read :users
   [{:keys [state]} key params]
-  {:value (get @state key)})
+  (let [users (get @state key)]
+    {:value users}))
 
 (defmulti mutate om/dispatch)
 
@@ -126,34 +127,48 @@
   (println "MUTATE" key params))
 
 (def parser
-  (om/parser {:read read :mutate mutate}))
+  (so/parser {:read read :mutate mutate}))
 
 (def reconciler
   (om/reconciler {:state initial-state
                   :parser parser}))
 
-;;;; Routing
+;;;; Example app
 
-(defn mount-screen
-  [screen params]
-  (println "Mount screen" screen params)
-  (let [app     (om/app-root reconciler)
-        content (mapv (fn [[k v]]
-                        (println "VIEW" (:view v))
-                        (println "Q" (om/get-query (:view v)))
-                        {(keyword "layout" (name k))
-                         (om/get-query (:view v))})
-                      (:layout screen))
-        query   (into [:navigation] content)]
-    (println "QUERY" query)
-    (swap! (om/app-state reconciler) assoc :screen screen)
-    (om/set-query! app {:params params :query query})))
+(defview App
+  [navigation layout]
+  (render
+   (do
+     (dom/div nil
+       (dom/h1 #js {:style #js {:transition "all 0.5s ease-in"}}
+         (:title navigation))
+       (dom/table nil
+         (dom/thead nil
+           (dom/tr nil
+             (dom/th nil "Icon")
+             (dom/th nil "Content")))
+         (dom/tbody nil
+           (dom/tr nil
+             (dom/td #js {:style #js {:verticalAlign "top"}}
+               (:icon layout))
+             (dom/td #js {:style #js {:verticalAlign "top"}}
+               (:content layout)))))))))
 
-;;;; Application launch
+;;;; Bootstrapping
+
+(defonce application (atom nil))
 
 (defn init
   []
-  (let [target (gdom/getElement "app")]
-    (om/add-root! reconciler App target))
-    (sb/router {:default-screen 'UserListScreen
-                :mount-screen mount-screen}))
+  (let [target (gdom/getElement "app")
+        app    (so/application {:reconciler reconciler
+                                :target target
+                                :root app
+                                :root-js? false
+                                :default-screen 'UserListScreen})]
+    (reset! application app)
+    (so/start app)))
+
+(defn reload
+  []
+  (so/reload @application))
