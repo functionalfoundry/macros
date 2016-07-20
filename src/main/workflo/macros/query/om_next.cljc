@@ -37,11 +37,13 @@
 (defn property-query
   "Generates an Om Next query for a parsed property query"
   [prop]
-  (let [kw-name (keyword (:name prop))
-        params  (when-not (empty? (:parameters prop))
-                  (->> (:parameters prop)
-                       (map (fn [[k v]] [(keyword k) v]))
-                       (into {})))]
+  (let [kw-name      (keyword (:name prop))
+        params       (when-not (empty? (:parameters prop))
+                       (->> (:parameters prop)
+                            (map (fn [[k v]] [(keyword k) v]))
+                            (into {})))
+        parameterize (fn [query]
+                       `(~'list ~query ~params))]
     (-> (case (:type prop)
           :property kw-name
           :link     [kw-name (if (= '_ (:link-id prop))
@@ -57,7 +59,7 @@
                                                 (map property-query)
                                                 target)
                          :else `(~'om.next/get-query ~target))}))
-        (cond-> params (list params)))))
+        (cond-> params parameterize))))
 
 (s/fdef query
   :args (s/cat :parsed-query :workflo.macros.specs.parsed-query/query)
