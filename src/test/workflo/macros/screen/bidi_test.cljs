@@ -1,7 +1,13 @@
 (ns workflo.macros.screen.bidi-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require [cljs.test :refer-macros [deftest is use-fixtures]]
             [workflo.macros.screen :as screen :refer-macros [defscreen]]
             [workflo.macros.screen.bidi :as screen-bidi]))
+
+(defn empty-screen-registry [f]
+  (screen/reset-registry!)
+  (f))
+
+(use-fixtures :each empty-screen-registry)
 
 (deftest routes
   (def user-view :user-view)
@@ -27,9 +33,9 @@
       {:content users-view}))
   (and
    ;; Check routes generation
-   (is (= '["/" [[["users"] users]
-                [["users" "/" :user-id] user]
-                [["users" "/" :user-id "/" "settings"] user-settings]]]
+   (is (= '["/" [[["users" "/" :user-id] user]
+                 [["users" "/" :user-id "/" "settings"] user-settings]
+                 [["users"] users]]]
           (screen-bidi/routes)))
    ;; Check route matching
    (is (= {:screen (screen/resolve-screen 'users)
