@@ -1,12 +1,19 @@
 (ns workflo.macros.view
-  (:require [om.next]
+  (:require [om.next :as om]
             [om.dom]))
 
 ;;;; Configuration options for the defview macro
 
+(defn default-handle-command
+  "Default command handler, generating an Om Next transaction
+   with a mutation and queries that correspond 1:1 to the
+   command, its parameters and the optional reads."
+  [cmd-name view params reads]
+  (om/transact! view `[(~cmd-name ~params) ~@(or reads [])]))
+
 (defonce +configuration+
   (atom {:wrapper-view nil
-         :handle-command nil}))
+         :handle-command default-handle-command}))
 
 (defn configure!
   "Configures the defview macro, usually before it is being used.
@@ -19,7 +26,9 @@
                      and a parameter map and an optional vector
                      of things to re-query after running the
                      command."
-  [{:keys [wrapper-view handle-command] :as options}]
+  [{:keys [wrapper-view
+           handle-command]
+    :or   {handle-command default-handle-command}}]
   (swap! +configuration+ assoc
          :wrapper-view wrapper-view
          :handle-command handle-command))
