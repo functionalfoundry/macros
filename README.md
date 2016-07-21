@@ -3,6 +3,10 @@
 A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
+**Note: These are currently under heavy development. All interfaces
+are work in progress and may change substantially until this notice
+has disappeared.**
+
 ```clojure
 [workflo/macros "0.2.10"]
 ```
@@ -19,6 +23,10 @@ define properties, idents, React keys, queries and component
 functions.
 
 [Documentation for `defview`](docs/defview.md)
+
+## `defscreen` - Defining the screens of an Om Next app
+
+[Documentation for `defscreen`](docs/defscreen.md)
 
 ## `defcommand` - Defining pure commands with queries and input data specs
 

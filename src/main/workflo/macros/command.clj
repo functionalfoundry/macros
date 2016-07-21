@@ -1,8 +1,10 @@
 (ns workflo.macros.command
   (:require [clojure.spec :as s]
             [workflo.macros.command.util :as util]
+            [workflo.macros.query :as q]
             [workflo.macros.specs.command]
-            [workflo.macros.query :as q]))
+            [workflo.macros.util.form :as f]
+            [workflo.macros.util.symbol :refer [unqualify]]))
 
 ;;;; Configuration
 
@@ -37,12 +39,8 @@
 (defonce ^:private +registry+ (atom {}))
 
 (defn register-command!
-  [cmd-name env]
-  (let [cmd-sym        (util/unqualify cmd-name)
-        definition-sym (util/prefix-form-name 'definition cmd-sym)
-        definition     (symbol (str (ns-name *ns*))
-                               (str definition-sym))]
-    (swap! +registry+ assoc cmd-name definition)))
+  [cmd-name cmd-def env]
+  (swap! +registry+ assoc cmd-name cmd-def))
 
 (defn registered-commands
   []
@@ -93,52 +91,44 @@
                       [name forms])
          description (:description (:forms args))
          inputs      (:inputs (:forms args))
-         forms       (:forms (:forms args))
          impl        (:implementation (:forms args))
          cache-query (when (= 2 (count inputs))
                        (q/parse (second (first inputs))))
          query-keys  (some-> cache-query q/map-destructuring-keys)
          data-spec   (second (last inputs))
-         name-sym    (util/unqualify name)
-         all-forms   (conj forms {:form-name 'implementation
-                                  :form-body (list impl)})
-         form-fns    (->> all-forms
+         name-sym    (unqualify name)
+         forms       (cond-> (:forms (:forms args))
+                       true        (conj {:form-name 'implementation
+                                          :form-body (list impl)})
+                       description (conj {:form-name 'description})
+                       cache-query (conj {:form-name 'cache-query})
+                       data-spec   (conj {:form-name 'data-spec}))
+         form-fns    (->> forms
+                          (remove (comp nil? :form-body))
                           (map #(update % :form-name
-                                        util/prefix-form-name
+                                        f/prefixed-form-name
                                         name-sym))
+                          (map #(assoc % :form-args
+                                       '[query-result data]))
                           (map #(cond-> %
                                   query-keys (update :form-body
                                                      util/bind-query-keys
                                                      query-keys)))
-                          (map util/form->defn))
-         all-forms   (cond-> all-forms
-                       cache-query (conj {:form-name 'cache-query})
-                       data-spec   (conj {:form-name 'data-spec}))
-         forms-map   (zipmap (map (comp keyword :form-name) all-forms)
-                             (map (fn [form]
-                                    (symbol (str (ns-name *ns*))
-                                            (str (util/prefix-form-name
-                                                  (:form-name form)
-                                                  name-sym))))
-                                  all-forms))
-         query-form  (when cache-query
-                       `((~'def ~(util/prefix-form-name 'cache-query
-                                                        name-sym)
-                          '~cache-query)))
-         spec-form   (when data-spec
-                       `((~'def ~(util/prefix-form-name 'data-spec
-                                                        name-sym)
-                          ~data-spec)))
-         definition  `(~'def ~(util/prefix-form-name 'definition
-                                                     name-sym)
-                       ~forms-map)]
+                          (map f/form->defn))
+         def-sym     (f/qualified-form-name 'definition name-sym)]
+     (register-command! name def-sym env)
      `(do
         ~@form-fns
-        ~@query-form
-        ~@spec-form
-        ~definition))))
+        ~@(when description
+            `(~(f/make-def name-sym 'description description)))
+        ~@(when cache-query
+            `((~'def ~(f/prefixed-form-name 'cache-query name-sym)
+               '~cache-query)))
+        ~@(when data-spec
+            `(~(f/make-def name-sym 'data-spec data-spec)))
+        ~(f/make-def name-sym 'definition
+          (f/forms-map forms name-sym))))))
 
 (defmacro defcommand
   [name & forms]
-  (register-command! name &env)
   (defcommand* name forms &env))
