@@ -149,3 +149,23 @@
                   (bar))))
             (def view
               (workflo.macros.view/factory View {}))))))
+
+(deftest view-with-commands
+  (is (= (macroexpand-1
+          '(defview View
+             (commands [goto show-foo])
+             (render
+              (foo {:on-click #(goto 'some-screen {:id 1})}))))
+         '(do
+            (om.next/defui View
+              Object
+              (render [this]
+                (let [goto     (fn [params & reads]
+                                 (workflo.macros.view/handle-command
+                                  'goto this params reads))
+                      show-foo (fn [params & reads]
+                                 (workflo.macros.view/handle-command
+                                  'show-foo this params reads))]
+                  (foo {:on-click #(goto 'some-screen {:id 1})}))))
+            (def view
+              (workflo.macros.view/factory View {}))))))
