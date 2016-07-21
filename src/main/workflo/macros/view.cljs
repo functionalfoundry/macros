@@ -5,7 +5,8 @@
 ;;;; Configuration options for the defview macro
 
 (defonce +configuration+
-  (atom {:wrapper-view nil}))
+  (atom {:wrapper-view nil
+         :handle-command nil}))
 
 (defn configure!
   "Configures the defview macro, usually before it is being used.
@@ -13,10 +14,15 @@
 
    :wrapper-view - a React element factory to use for wrapping
                    the body of render functions if render has
-                   more than a single child expression."
-  [{:keys [wrapper-view] :as options}]
+                   more than a single child expression.
+   :handle-command - a function that takes a view, a command name
+                     and a parameter map and an optional vector
+                     of things to re-query after running the
+                     command."
+  [{:keys [wrapper-view handle-command] :as options}]
   (swap! +configuration+ assoc
-         :wrapper-view wrapper-view))
+         :wrapper-view wrapper-view
+         :handle-command handle-command))
 
 (defn get-config
   "Returns the configuration for a given configuration key, e.g.
@@ -33,6 +39,13 @@
     (do (js/console.warning "No wrapper view defined for defview.")
         om.dom/div)
     (get-config :wrapper-view)))
+
+(defn handle-command
+  [cmd-name view params reads]
+  (if-not (get-config :handle-command)
+    (js/console.warning "No command handler defined for defview.")
+    (some-> :handle-command get-config
+            (apply [cmd-name view params reads]))))
 
 (defn factory
   "A wrapper factory around om.next/factory that makes the nil

@@ -55,6 +55,21 @@
   (let [alias (fn-alias f)]
     `(~alias ~@body)))
 
+(defn commands-form?
+  "Returns true if the input form is a declaration of view
+   commands."
+  [[name & body :as f]]
+  (= 'commands name))
+
+(defn generate-command-fn
+  "Generate an anonymous wrapper function to call the
+   `:handle-command` hook with a specific command name."
+  [cmd-name]
+  `(~'fn
+    [~'params & ~'reads]
+    (workflo.macros.view/handle-command '~cmd-name ~'this
+                                        ~'params ~'reads)))
+
 (defn generate-ident-fn
   "Generate a (ident ...) function from the props spec."
   [props]
@@ -152,7 +167,7 @@
    in a let that destructures props and computed props
    according to the destructuring symbols in props and
    computed."
-  [[name args & body :as f] props computed]
+  [[name args & body :as f] props computed command-fns]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
       (let [prop-keys         (q/map-destructuring-keys props)
@@ -170,11 +185,17 @@
                                   ~actual-props])
             computed-bindings (when-not (empty? computed-keys)
                                 `[{:keys [~@computed-keys]}
-                                  ~actual-computed])]
-        (if (or prop-bindings computed-bindings)
+                                  ~actual-computed])
+            command-bindings  (when (and (>= this-index 0)
+                                         (not (empty? command-fns)))
+                                (apply concat (into [] command-fns)))]
+        (if (or prop-bindings
+                computed-bindings
+                command-bindings)
           `(~name ~args
             (~'let [~@prop-bindings
-                    ~@computed-bindings]
+                    ~@computed-bindings
+                    ~@command-bindings]
              ~@body))
           `(~name ~args
              ~@body)))
@@ -200,7 +221,14 @@
          computed           (or (some-> (second prop-queries)
                                         q/conform-and-parse)
                                 [])
-         fns-with-props     (->> (drop-while vector? forms)
+         forms              (drop-while vector? forms)
+         commands           (some-> (filter commands-form? forms)
+                                    first second)
+         command-fns        (zipmap commands
+                                    (map generate-command-fn
+                                         commands))
+         fns-with-props     (->> forms
+                                 (remove commands-form?)
                                  (maybe-generate-ident-fn props)
                                  (maybe-generate-key-fn props)
                                  (maybe-generate-query-fn props)
@@ -208,7 +236,8 @@
                                  (map maybe-inject-fn-args)
                                  (map normalize-fn-name)
                                  (map maybe-wrap-render)
-                                 (map #(inject-props % props computed)))
+                                 (map #(inject-props % props computed
+                                                     command-fns)))
          factory-fns        (filter #(= (fn-scope %) :factory)
                                     fns-with-props)
          factory-params     (zipmap (map (comp keyword first)
