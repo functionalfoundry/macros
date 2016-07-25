@@ -39,7 +39,7 @@
 (defonce ^:private +registry+ (atom {}))
 
 (defn register-command!
-  [cmd-name cmd-def env]
+  [cmd-name cmd-def]
   (swap! +registry+ assoc cmd-name cmd-def))
 
 (defn registered-commands
@@ -116,7 +116,6 @@
                                                      query-keys)))
                           (map f/form->defn))
          def-sym     (f/qualified-form-name 'definition name-sym)]
-     (register-command! name def-sym env)
      `(do
         ~@form-fns
         ~@(when description
@@ -127,7 +126,8 @@
         ~@(when data-spec
             `(~(f/make-def name-sym 'data-spec data-spec)))
         ~(f/make-def name-sym 'definition
-          (f/forms-map forms name-sym))))))
+           (f/forms-map forms name-sym))
+        (register-command! '~name ~def-sym)))))
 
 (defmacro defcommand
   [name & forms]
