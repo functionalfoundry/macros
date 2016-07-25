@@ -1,9 +1,13 @@
 (ns workflo.macros.examples.screen-router
   (:require [cljs.pprint]
+            [cljs.spec :as s]
+            [datascript.core :as d]
             [goog.dom :as gdom]
             [om.next :as om]
             [om.dom :as dom]
+            [workflo.macros.command :as c :refer-macros [defcommand]]
             [workflo.macros.screen :refer-macros [defscreen]]
+            [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen.om-next :as so]
             [workflo.macros.view :refer-macros [defview]]))
 
@@ -11,45 +15,115 @@
 
 (enable-console-print!)
 
+(defonce application
+  (atom nil))
+
+;;;; Om Next + DataScript
+
+(defonce initial-users
+  [{:db/id 1 :user/name "John" :user/email "john@email.org"}
+   {:db/id 2 :user/name "Jeff" :user/email "jeff@email.org"}
+   {:db/id 3 :user/name "Linda" :user/email "linda@email.org"}])
+
+(def ds-conn
+  (let [conn (d/create-conn {})]
+    (d/transact! conn initial-users)
+    conn))
+
+(defmulti read om/dispatch)
+(defmulti mutate om/dispatch)
+
+(defmethod read :users
+  [{:keys [query state] :as env} key params]
+  {:value (->> (d/q '[:find [(pull ?u [*]) ...]
+                      :in $
+                      :where [?u :user/name]]
+                    @state)
+               (mapv #(select-keys % query)))})
+
+(defmethod read :user
+  [{:keys [query state]} key params]
+  (let [id (js/parseInt (:db/id params))]
+    {:value (-> (d/pull @state '[*] id)
+                (select-keys query))}))
+
+(defmethod read :db/id
+  [{:keys [query query-root state]} key params]
+  {:value (-> (d/pull @state '[*] (second query-root))
+              (select-keys query))})
+
+(defmethod mutate :default
+  [env key params]
+  {:action #(c/run-command key params)})
+
+(def parser
+  (so/parser {:read read :mutate mutate}))
+
+(def reconciler
+  (om/reconciler {:state ds-conn
+                  :pathopt true
+                  :parser parser}))
+
 ;;;; Views
 
 (defview UserSettingsView
   [db [id] user [name email]]
+  (commands [update-user])
+  (.update [this attr e]
+    (update-user (merge {:db/id id
+                         :user/name name
+                         :user/email email}
+                        {attr (.. e -target -value)})))
   (render
-   (dom/div nil
-     (dom/input #js {:type "text" :value name})
-     (dom/input #js {:type "text" :value email}))))
+   (dom/form nil
+     (dom/p nil
+       (dom/label nil "Name:")
+       (dom/input #js {:type :text :value (or name "")
+                       :onChange #(.update this :user/name %)}))
+     (dom/p nil
+       (dom/label nil "Email:")
+       (dom/input #js {:type :text :value (or email "")
+                       :onChange #(.update this :user/email %)})))))
 
 (defview UserView
   [db [id] user [name email]]
+  (commands [goto])
   (render
    (dom/div nil
      (dom/p nil (str name " <" email ">"))
      (dom/p nil
-       (dom/a #js {:href (str "#/users/" id)}
+       (dom/button #js {:onClick #(goto {:screen 'UserScreen
+                                         :params {:user-id id}})}
          "View")
-       " / "
-       (dom/a #js {:href (str "#/users/" id "/settings")}
+       (dom/button #js {:onClick #(goto {:screen 'UserSettingsScreen
+                                         :params {:user-id id}})}
          "Settings")))))
 
-(defview UserSettingsTitle
-  [({user [db [id] user [name]]} {db/id ?user-id})]
+(defview UserSettingsTitleView
+  [db [id] user [name]]
   (render
-   (dom/h2 nil (str "Settings for "
-                    (:db/id user) ": "
-                    (:user/name user)))))
+   (dom/h2 nil (str "Settings for " id ": " name))))
+
+(defview UserSettingsTitle
+  [({user UserSettingsTitleView} {db/id ?user-id})]
+  (render
+   (user-settings-title-view user)))
 
 (defview UserSettings
-  [({user UserView} {db/id ?user-id})]
+  [({user UserSettingsView} {db/id ?user-id})]
+  (key (:db/id (:user props)))
   (render
    (user-settings-view user)))
+
+(defview UserTitleView
+  [db [id] user [name]]
+  (render
+   (dom/h2 nil (str "User " id ": " name))))
 
 (defview UserTitle
   [({user [user [name]]} {db/id ?user-id})]
   (render
-   (dom/h2 nil (str "User "
-                    (:db/id user) ": "
-                    (:user/name user)))))
+   (user-title-view user)))
 
 (defview UserProfile
   [({user UserView} {db/id ?user-id})]
@@ -62,20 +136,26 @@
 
 (defview UserList
   [{users UserView}]
+  (commands [add-user])
   (render
    (dom/div nil
      (for [u users]
-       (user-view u)))))
+       (user-view u))
+     (dom/p nil
+       (dom/button #js {:onClick #(add-user {:db/id (inc (count users))
+                                             :user/name ""
+                                             :user/email ""})}
+         "Add user")))))
 
 ;;;; Screens
 
 (defscreen UserSettingsScreen
-  (url "users/:user-id/settings")
-  (navigation
-   (title "User Settings"))
-  (layout
-   {:title {:view UserSettingsTitle :factory user-settings-title}
-    :content {:view UserSettings :factory user-settings}}))
+ (url "users/:user-id/settings")
+ (navigation
+  (title "User Settings"))
+ (layout
+  {:title {:view UserSettingsTitle :factory user-settings-title}
+   :content {:view UserSettings :factory user-settings}}))
 
 (defscreen UserScreen
   (url "users/:user-id")
@@ -93,50 +173,54 @@
    {:title {:view UserListTitle :factory user-list-title}
     :content {:view UserList :factory user-list}}))
 
-;;;; Data
+;;;; Commands
 
-(def initial-state
-  {:users [{:db/id 1
-            :user/name "John"
-            :user/email "john@email.org"}
-           {:db/id 2
-            :user/name "Jeff"
-            :user/email "jeff@email.org"}
-           {:db/id 3
-            :user/name "Linda"
-            :user/email "linda@email.org"}]})
+(s/def :db/id (s/and int? pos?))
+(s/def :user/name (s/or :nil nil? :string string?))
+(s/def :user/email (s/or :nil nil? :string string?))
+(s/def ::user
+  (s/keys :req [:db/id]
+          :opt [:user/name
+                :user/email]))
 
-;;;; Om Next
+(defcommand add-user
+  [::user]
+  (do
+    (println "add-user" data)
+    {:state {(:db/id data) data}
+     :location {:screen 'UserSettingsScreen
+                :params {:user-id (:db/id data)}}}))
 
-(defmulti read om/dispatch)
+(defcommand update-user
+  [::user]
+  (do
+    (println "update-user" data)
+    {:state {(:db/id data) data}}))
 
-(defmethod read :user
-  [{:keys [query state]} key params]
-  (let [st   @state
-        user (first (filter #(= (js/parseInt (:db/id params))
-                                (:db/id %))
-                            (:users st)))]
-    {:value user}))
+(s/def ::screen symbol?)
+(s/def ::params map?)
+(s/def ::location
+  (s/keys :req-un [::screen ::params]))
 
-(defmethod read :users
-  [{:keys [state]} key params]
-  (let [users (get @state key)]
-    {:value users}))
+(defcommand goto
+ [::location]
+ (do
+   (println "goto" data)
+   {:location data}))
 
-(defmulti mutate om/dispatch)
+(defn process-command-result
+  [{:keys [state location]}]
+  (when state
+    (d/transact! (om/app-state reconciler) (vals state))
+    (cljs.pprint/pprint (om/app-state reconciler)))
+  (when location
+    (so/goto @application
+             (:screen location)
+             (:params location))))
 
-(defmethod mutate :default
-  [env key params]
-  (println "MUTATE" key params))
+(c/configure! {:process-result process-command-result})
 
-(def parser
-  (so/parser {:read read :mutate mutate}))
-
-(def reconciler
-  (om/reconciler {:state initial-state
-                  :parser parser}))
-
-;;;; Example app
+;;;;;; Example app
 
 (defview Block
   [title]
@@ -151,9 +235,8 @@
      (om/children this))))
 
 (defview App
-  [navigation layout]
   (render
-   (do
+   (let [{:keys [navigation layout]} (om/props this)]
      (dom/div nil
        (block {:title "Screen"}
          (:title navigation))
@@ -164,19 +247,22 @@
 
 ;;;; Bootstrapping
 
-(defonce application (atom nil))
+(defn init []
+  (->> (so/application {:reconciler reconciler
+                        :target (gdom/getElement "app")
+                        :root app
+                        :root-js? false
+                        :default-screen 'UserListScreen
+                        :screen-mounted
+                        (fn [app screen params]
+                          (println "Screen mounted:" (:name screen))
+                          (println "Query:")
+                          (cljs.pprint/pprint (-> reconciler
+                                                  om/app-root
+                                                  om/get-query)))})
+       (so/start)
+       (reset! application)))
 
-(defn init
-  []
-  (let [target (gdom/getElement "app")
-        app    (so/application {:reconciler reconciler
-                                :target target
-                                :root app
-                                :root-js? false
-                                :default-screen 'UserListScreen})]
-    (reset! application app)
-    (so/start app)))
 
-(defn reload
-  []
+(defn reload []
   (so/reload @application))
