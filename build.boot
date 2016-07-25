@@ -21,7 +21,9 @@
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
-                 [devcards "0.2.1-7"]])
+                 [devcards "0.2.1-7"]
+                 [datascript "0.15.2"]])
+
 
 (require '[adzerk.boot-cljs :refer [cljs]]
          '[adzerk.boot-reload :refer [reload]]
