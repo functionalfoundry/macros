@@ -40,7 +40,7 @@
   (let [screen-sym (get @+registry+ screen-name)]
     (when (nil? screen-sym)
       (let [err-msg (str "Failed to resolve screen '" screen-name "'")]
-        (throw (js/Exception. err-msg))))
+        (throw (js/Error. err-msg))))
     screen-sym))
 
 (defn resolve-screen
