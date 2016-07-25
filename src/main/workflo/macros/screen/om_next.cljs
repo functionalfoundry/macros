@@ -99,7 +99,9 @@
    all returned views with their props / query results."
   [layout]
   (zipmap (keys layout)
-          (map #((:view %) (:props %))
+          (map (fn [{:keys [view props] :as item}]
+                 (view (vary-meta props assoc :om-path
+                                  (-> item meta :om-path))))
                (vals layout))))
 
 (defview RootWrapper
