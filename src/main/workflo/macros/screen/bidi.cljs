@@ -61,3 +61,8 @@
   (br/start-router! (routes)
                     {:on-navigate #(on-navigate env %)
                      :default-location {:handler default-screen}}))
+
+(defn goto!
+  [router screen params]
+  (let [location {:handler screen :route-params params}]
+    (br/set-location! router location)))
