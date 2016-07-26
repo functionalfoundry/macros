@@ -23,21 +23,21 @@
 (defscreen users
   (url "users")
   (navigation
-   (title "Users"))
+   {:title "Users"})
   (layout
    {:content user-list}))
 
 (defscreen user
   (url "users/:user-id")
   (navigation
-   (title "User"))
+   {:title "User"})
   (layout
    {:content user-profile}))
 
 (defscreen user-settings
   (url "users/:user-id/settings")
   (navigation
-   (title "User Settings"))
+   {:title "User Settings"})
   (layout
    {:content user-settings}))
 

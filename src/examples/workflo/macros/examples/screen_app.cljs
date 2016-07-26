@@ -152,7 +152,7 @@
 (defscreen UserSettingsScreen
  (url "users/:user-id/settings")
  (navigation
-  (title "User Settings"))
+  {:title "User Settings"})
  (layout
   {:title {:view UserSettingsTitle :factory user-settings-title}
    :content {:view UserSettings :factory user-settings}}))
@@ -160,7 +160,7 @@
 (defscreen UserScreen
   (url "users/:user-id")
   (navigation
-   (title "User"))
+   {:title "User"})
   (layout
    {:title {:view UserTitle :factory user-title}
     :content {:view UserProfile :factory user-profile}}))
@@ -168,7 +168,7 @@
 (defscreen UserListScreen
   (url "users")
   (navigation
-    (title "Users"))
+    {:title "Users"})
   (layout
    {:title {:view UserListTitle :factory user-list-title}
     :content {:view UserList :factory user-list}}))
