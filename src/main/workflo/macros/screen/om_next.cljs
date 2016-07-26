@@ -1,5 +1,6 @@
 (ns workflo.macros.screen.om-next
   (:require [clojure.walk :refer [walk]]
+            [com.stuartsierra.component :as component]
             [om.next :as om]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen :as scr]
@@ -154,21 +155,24 @@
 
 (defprotocol IApplication
   (mount [this])
-  (start [this])
   (reload [this])
   (goto [this screen params]))
 
 (defrecord Application [config router]
-  IApplication
-  (mount [this]
-    (om/add-root! (:reconciler config) RootWrapper (:target config)))
-
+  component/Lifecycle
   (start [this]
     (mount this)
     (assoc this :router
            (sb/router
             {:default-screen (:default-screen config)
              :mount-screen (partial mount-screen this)})))
+
+  (stop [this]
+    (dissoc this :router))
+
+  IApplication
+  (mount [this]
+    (om/add-root! (:reconciler config) RootWrapper (:target config)))
 
   (reload [this]
     (reload-active-screen!)

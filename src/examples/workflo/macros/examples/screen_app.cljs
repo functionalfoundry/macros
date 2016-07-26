@@ -1,6 +1,7 @@
 (ns workflo.macros.examples.screen-app
   (:require [cljs.pprint]
             [cljs.spec :as s]
+            [com.stuartsierra.component :as component]
             [datascript.core :as d]
             [goog.dom :as gdom]
             [om.next :as om]
@@ -260,7 +261,7 @@
                           (cljs.pprint/pprint (-> reconciler
                                                   om/app-root
                                                   om/get-query)))})
-       (so/start)
+       (component/start)
        (reset! application)))
 
 
