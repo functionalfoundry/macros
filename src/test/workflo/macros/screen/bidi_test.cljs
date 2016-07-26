@@ -16,19 +16,19 @@
   (defscreen user
     (url "users/:user-id")
     (navigation
-      (title "User"))
+      {:title "User"})
     (layout
       {:content user-view}))
   (defscreen user-settings
     (url "users/:user-id/settings")
     (navigation
-      (title "User Settings"))
+      {:title "User Settings"})
     (layout
       {:content user-settings-view}))
   (defscreen users
     (url "users")
     (navigation
-      (title "Users"))
+      {:title "Users"})
     (layout
       {:content users-view}))
   (and

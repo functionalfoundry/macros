@@ -45,11 +45,11 @@
 
 (defn resolve-command
   [cmd-name]
-  (let [cmd-sym (get @+registry+ cmd-name)]
-    (when (nil? cmd-sym)
+  (let [cmd-def (get @+registry+ cmd-name)]
+    (when (nil? cmd-def)
       (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
         (throw (js/Error. err-msg))))
-    cmd-sym))
+    cmd-def))
 
 (defn run-command
   [cmd-name data]

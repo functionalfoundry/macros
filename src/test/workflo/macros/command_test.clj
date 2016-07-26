@@ -12,7 +12,9 @@
               vector?)
             (def user-create-definition
               {:data-spec pod/user-create-data-spec
-               :implementation pod/user-create-implementation}))
+               :implementation pod/user-create-implementation})
+            (workflo.macros.command/register-command!
+             'user/create pod/user-create-definition))
          (macroexpand-1 `(defcommand user/create [~'vector?]
                            ~'(:foo :bar))))))
 
@@ -30,7 +32,9 @@
             (def user-update-definition
               {:data-spec pod/user-update-data-spec
                :cache-query pod/user-update-cache-query
-               :implementation pod/user-update-implementation}))
+               :implementation pod/user-update-implementation})
+            (workflo.macros.command/register-command!
+             'user/update pod/user-update-definition))
          (macroexpand-1 `(defcommand user/update [~'[user [name email]]
                                                   ~'vector?]
                            {:some :data})))))
@@ -48,7 +52,9 @@
             (def user-update-definition
               {:foo pod/user-update-foo
                :implementation pod/user-update-implementation
-               :data-spec pod/user-update-data-spec}))
+               :data-spec pod/user-update-data-spec})
+            (workflo.macros.command/register-command!
+             'user/update pod/user-update-definition))
          (macroexpand-1 `(defcommand user/update [~'vector?]
                            (~'foo [:bar])
                            {:implementation :result})))))
@@ -71,7 +77,9 @@
               {:foo pod/user-create-foo
                :implementation pod/user-create-implementation
                :cache-query pod/user-create-cache-query
-               :data-spec pod/user-create-data-spec}))
+               :data-spec pod/user-create-data-spec})
+            (workflo.macros.command/register-command!
+             'user/create pod/user-create-definition))
          (macroexpand-1 `(defcommand user/create [~'[db [id]] ~'map?]
                            (~'foo [:bar])
                            :result)))))

@@ -9,12 +9,13 @@
             (def users-url
               {:string "screens/users"
                :segments ["screens" "users"]})
-            (def users-navigation {:title "Users"})
+            (def users-forms
+              {:navigation {:title "Users"}})
             (def users-layout {:content user})
             (def users-definition
               {:name workflo.macros.screen-test/users-name
                :url workflo.macros.screen-test/users-url,
-               :navigation workflo.macros.screen-test/users-navigation,
+               :forms workflo.macros.screen-test/users-forms,
                :layout workflo.macros.screen-test/users-layout})
             (workflo.macros.screen/register-screen!
              'users workflo.macros.screen-test/users-definition)))
@@ -22,24 +23,25 @@
        '(defscreen users
           (url "screens/users")
           (navigation
-           (title "Users"))
+           {:title "Users"})
           (layout
            {:content user})))))
 
-(deftest defscreen-with-description-navigation-and-layout
+(deftest defscreen-with-description-forms-and-layout
   (is (= '(do
             (def users-name 'users)
             (def users-description "Displays all users")
             (def users-url
               {:string "screens/users"
                :segments ["screens" "users"]})
-            (def users-navigation {:title "Users"})
+            (def users-forms
+              {:navigation {:title "Users"}})
             (def users-layout {:content user})
             (def users-definition
               {:name workflo.macros.screen-test/users-name
                :description workflo.macros.screen-test/users-description
                :url workflo.macros.screen-test/users-url
-               :navigation workflo.macros.screen-test/users-navigation
+               :forms workflo.macros.screen-test/users-forms
                :layout workflo.macros.screen-test/users-layout})
             (workflo.macros.screen/register-screen!
              'users workflo.macros.screen-test/users-definition))
@@ -48,6 +50,6 @@
              "Displays all users"
              (url "screens/users")
              (navigation
-               (title "Users"))
+               {:title "Users"})
              (layout
                {:content user}))))))

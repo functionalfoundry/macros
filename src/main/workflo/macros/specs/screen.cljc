@@ -15,16 +15,15 @@
   (s/spec (s/cat :form-name #{'url}
                  :form-body string?)))
 
-(s/def ::navigation-field
-  (s/spec (s/cat :field-name symbol?
-                 :field-value ::s/any)))
+(s/def ::screen-form-name
+  symbol?)
 
-(s/def ::navigation-form-body
-  (s/+ ::navigation-field))
+(s/def ::screen-form-body
+  ::s/any)
 
-(s/def ::navigation-form
-  (s/spec (s/cat :form-name #{'navigation}
-                 :form-body ::navigation-form-body)))
+(s/def ::screen-form
+  (s/spec (s/cat :form-name ::screen-form-name
+                 :form-body ::screen-form-body)))
 
 (s/def ::layout-form
   (s/spec (s/cat :form-name #{'layout}
@@ -34,6 +33,6 @@
   (s/cat :name ::screen-name
          :forms (s/spec (s/cat :description (s/? ::screen-description)
                                :url ::url-form
-                               :navigation ::navigation-form
+                               :forms (s/* ::screen-form)
                                :layout ::layout-form))
          :env (s/? ::s/any)))

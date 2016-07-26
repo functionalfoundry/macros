@@ -46,17 +46,13 @@
   []
   @+registry+)
 
-(defn resolve-command-sym
-  [cmd-name]
-  (let [cmd-sym (get @+registry+ cmd-name)]
-    (when (nil? cmd-sym)
-      (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
-        (throw (Exception. err-msg))))
-    cmd-sym))
-
 (defn resolve-command
   [cmd-name]
-  @(resolve (resolve-command-sym cmd-name)))
+  (let [cmd-def (get @+registry+ cmd-name)]
+    (when (nil? cmd-def)
+      (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
+        (throw (Exception. err-msg))))
+    cmd-def))
 
 (defn run-command
   [cmd-name data]
