@@ -45,14 +45,14 @@
    om.dom/div to avoid breaking apps entirely."
   []
   (if-not (get-config :wrapper-view)
-    (do (js/console.warning "No wrapper view defined for defview.")
+    (do (js/console.warn "No wrapper view defined for defview.")
         om.dom/div)
     (get-config :wrapper-view)))
 
 (defn handle-command
   [cmd-name view params reads]
   (if-not (get-config :handle-command)
-    (js/console.warning "No command handler defined for defview.")
+    (js/console.warn "No command handler defined for defview.")
     (some-> :handle-command get-config
             (apply [cmd-name view params reads]))))
 
