@@ -1,7 +1,9 @@
 (ns workflo.macros.screen.om-next
-  (:require [om.next :as om]
+  (:require [clojure.walk :refer [walk]]
+            [om.next :as om]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen :as scr]
+            [workflo.macros.util.string :refer [kebab->camel]]
             [workflo.macros.view :refer-macros [defview]]))
 
 ;;;; Remember the active screen
@@ -104,16 +106,29 @@
                                   (-> item meta :om-path))))
                (vals layout))))
 
+(defn camel-cased-prop-map
+  "Convert a Clojure map with Om Next properties to a map
+   where all keys are camel-cased strings that can be accessed
+   like object properties in JS/React."
+  [m]
+  (walk (fn [[k v]]
+          [(kebab->camel (name k))
+           (cond-> v (map? v) camel-cased-prop-map)])
+        identity
+        m))
+
 (defview RootWrapper
   [{workflo/screen [workflo [navigation layout]]}]
   (render
-   (let [{:keys [workflo/navigation workflo/layout]} screen]
-     ((:factory (root-component))
-      (if (:js? (root-component))
-        #js {:navigation navigation
-             :layout (realize-layout layout)}
+   (let [navigation (:workflo/navigation screen)
+         layout     (realize-layout (:workflo/layout screen))
+         root-info  (root-component)]
+     ((:factory root-info)
+      (if (:js? root-info)
+        #js {:navigation (camel-cased-prop-map navigation)
+             :layout (camel-cased-prop-map layout)}
         {:navigation navigation
-         :layout (realize-layout layout)})))))
+         :layout layout})))))
 
 ;;;; Routing
 
