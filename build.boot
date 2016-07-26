@@ -17,11 +17,13 @@
                  [bidi "2.0.9"]
                  [org.clojure/clojure "1.9.0-alpha8"]
                  [org.clojure/clojurescript "1.9.93"]
-                 [org.omcljs/om "1.0.0-alpha36"]
+                 [org.omcljs/om "1.0.0-alpha40"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
-                 [devcards "0.2.1-7"]])
+                 [devcards "0.2.1-7"]
+                 [datascript "0.15.2"]])
+
 
 (require '[adzerk.boot-cljs :refer [cljs]]
          '[adzerk.boot-reload :refer [reload]]
@@ -71,7 +73,7 @@
   []
   (comp
     (watch)
-    (reload :on-jsload 'workflo.macros.examples.screen-router/reload)
+    (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)
     (target)
     (serve :dir "target")))

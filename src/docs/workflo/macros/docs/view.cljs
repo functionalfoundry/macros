@@ -35,23 +35,35 @@
 (defcard-doc
   "# Example: Users
 
-  The User view renders a user and triggers a callback function
-  when the user is clicked.
+  The User view renders a user and triggers a command
+  when the user name is clicked. The command is executed
+  using the `:handle-command` hook that is configured
+  with
+
+  ```
+  (workflo.macros.view/configure! {:handle-command ...})
+  ```
+
+  This allows arbitrary code to be executed, such as
+  generating `om/transact!` calls or calling external
+  services.
 
   ```
   (defview User
     [user [name email]]
-    [clicked-fn]
     (key name)
     (ident [:user name])
+    (commands [open])
     (render
-      (dom/div #js {:onClick #(clicked-fn name)}
-        (dom/p nil \"Name: \" name)
-        (dom/p nil \"Email: \" email))))
+      (dom/p nil
+        \"Name: \"
+        (dom/button #js {:onClick #(open {:user/name name})}
+          name))
+      (dom/p nil \"Email: \" email))))
   ```
 
-  The UserList view renders multiple children, exercising the
-  `:wrapper-view` feature that automatically wraps the content
+  The User and UserList views render multiple children, exercising
+  the `:wrapper-view` feature that automatically wraps the content
   of `(render ...)` if it does not return a single element.
 
   The UserList view also demonstrates that, with views, the
@@ -73,16 +85,19 @@
 
 (defview User
   [user [name email]]
-  [clicked-fn]
   (key name)
   (ident [:user name])
+  (commands [open])
   (render
-   (dom/div #js {:onClick #(clicked-fn name)}
-     (dom/p nil "Name: " name)
-     (dom/p nil "Email: " email))))
+    (dom/p nil
+      "Name: "
+      (dom/button #js {:onClick #(open {:user/name name})}
+        name))
+    (dom/p nil "Email: " email)))
 
 (defview Header
   [text]
+  (key text)
   (render
     (dom/h3 nil text)))
 

@@ -1,7 +1,9 @@
 (ns workflo.macros.screen.om-next
-  (:require [om.next :as om]
+  (:require [clojure.walk :refer [walk]]
+            [om.next :as om]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen :as scr]
+            [workflo.macros.util.string :refer [kebab->camel]]
             [workflo.macros.view :refer-macros [defview]]))
 
 ;;;; Remember the active screen
@@ -52,7 +54,8 @@
                     (let [[k v] (first layout-item)]
                       (assoc res k {:view (-> screen :layout
                                               k :factory)
-                                    :props (parser env v nil)})))
+                                    :props (parser (dissoc env :path)
+                                                   v nil)})))
                   {} query)})
 
 (defn- wrapping-read
@@ -98,19 +101,34 @@
    all returned views with their props / query results."
   [layout]
   (zipmap (keys layout)
-          (map #((:view %) (:props %))
+          (map (fn [{:keys [view props] :as item}]
+                 (view (vary-meta props assoc :om-path
+                                  (-> item meta :om-path))))
                (vals layout))))
+
+(defn camel-cased-prop-map
+  "Convert a Clojure map with Om Next properties to a map
+   where all keys are camel-cased strings that can be accessed
+   like object properties in JS/React."
+  [m]
+  (walk (fn [[k v]]
+          [(kebab->camel (name k))
+           (cond-> v (map? v) camel-cased-prop-map)])
+        identity
+        m))
 
 (defview RootWrapper
   [{workflo/screen [workflo [navigation layout]]}]
   (render
-   (let [{:keys [workflo/navigation workflo/layout]} screen]
-     ((:factory (root-component))
-      (if (:js? (root-component))
-        #js {:navigation navigation
-             :layout (realize-layout layout)}
+   (let [navigation (:workflo/navigation screen)
+         layout     (realize-layout (:workflo/layout screen))
+         root-info  (root-component)]
+     ((:factory root-info)
+      (if (:js? root-info)
+        #js {:navigation (camel-cased-prop-map navigation)
+             :layout (camel-cased-prop-map layout)}
         {:navigation navigation
-         :layout (realize-layout layout)})))))
+         :layout layout})))))
 
 ;;;; Routing
 
@@ -118,8 +136,8 @@
   "Mounts a screen with parameters by setting it as the active
    screen and updating the root wrapper's component query
    according to the screen's layout."
-  [reconciler screen params]
-  (let [app   (om/app-root reconciler)
+  [app screen params]
+  (let [c     (om/app-root (:reconciler (:config app)))
         query [{:workflo/screen
                 [:workflo/navigation
                  {:workflo/layout
@@ -128,14 +146,38 @@
                                  [])})
                         (:layout screen))}]}]]
     (set-active-screen! screen params)
-    (om/set-query! app {:params params :query query})))
+    (om/set-query! c {:params params :query query})
+    (some-> app :config :screen-mounted
+            (apply [app screen params]))))
 
 ;;;; Application bootstrapping
 
 (defprotocol IApplication
   (mount [this])
   (start [this])
-  (reload [this]))
+  (reload [this])
+  (goto [this screen params]))
+
+(defrecord Application [config router]
+  IApplication
+  (mount [this]
+    (om/add-root! (:reconciler config) RootWrapper (:target config)))
+
+  (start [this]
+    (mount this)
+    (assoc this :router
+           (sb/router
+            {:default-screen (:default-screen config)
+             :mount-screen (partial mount-screen this)})))
+
+  (reload [this]
+    (reload-active-screen!)
+    (mount this)
+    (let [{:keys [screen params]} (active-screen)]
+      (mount-screen this screen params)))
+
+  (goto [this screen params]
+    (sb/goto! router screen params)))
 
 (defn application
   "Creates an Om Next application that implements screen-based
@@ -155,18 +197,10 @@
    logic and generates the `:navigation` and `:layout` props
    based on the active screen."
   [{:keys [default-screen reconciler root
-           root-js? target]
+           root-js? target screen-mounted]
     :or   {root-js? false}}]
   (set-root-component! root root-js?)
-  (reify IApplication
-    (mount [this]
-      (om/add-root! reconciler RootWrapper target))
-    (start [this]
-      (mount this)
-      (sb/router {:default-screen default-screen
-                  :mount-screen (partial mount-screen reconciler)}))
-    (reload [this]
-      (reload-active-screen!)
-      (mount this)
-      (let [{:keys [screen params]} (active-screen)]
-        (mount-screen reconciler screen params)))))
+  (map->Application {:config {:default-screen default-screen
+                              :reconciler reconciler
+                              :target target
+                              :screen-mounted screen-mounted}}))
