@@ -24,12 +24,13 @@
          description (:description (:forms args))
          name-sym    (unqualify name)
          forms       (-> (:forms args)
-                         (select-keys [:url :navigation :layout])
+                         (select-keys [:url :layout])
                          (vals)
                          (cond->
                            true        (conj {:form-name 'name})
+                           true        (conj {:form-name 'forms})
                            description (conj {:form-name 'description})))
-         nav-fields  (:form-body (:navigation (:forms args)))]
+         field-forms (:forms (:forms args))]
      `(do
         ~(f/make-def-quoted name-sym 'name name)
         ~@(when description
@@ -38,9 +39,9 @@
           (let [url-str (:form-body (:url (:forms args)))]
             {:string url-str
              :segments (util/url-segments url-str)}))
-        ~(f/make-def name-sym 'navigation
-          (zipmap (map (comp keyword :field-name) nav-fields)
-                  (map :field-value nav-fields)))
+        ~(f/make-def name-sym 'forms
+          (zipmap (map (comp keyword :form-name) field-forms)
+                  (map :form-body field-forms)))
         ~(f/make-def name-sym 'layout
           (:form-body (:layout (:forms args))))
         ~(f/make-def name-sym 'definition

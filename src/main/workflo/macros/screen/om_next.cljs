@@ -41,10 +41,10 @@
   {:value (parser (assoc env :screen (:screen (active-screen)))
                   query nil)})
 
-(defn read-navigation
-  "Queries the navigation info of the active screen."
+(defn read-forms
+  "Queries the forms of the active screen."
   [_ {:keys [screen]} _ _]
-  {:value (:navigation screen)})
+  {:value (:forms screen)})
 
 (defn read-layout
   "Executes all queries for views in the layout of the
@@ -61,13 +61,13 @@
 (defn- wrapping-read
   "Wraps a user-provided parser read function for Om Next by
    special-casing queries for screen-based routing information
-   (such as :workflo/screen, :workflo/navigation and
+   (such as :workflo/screen, :workflo/forms and
    :workflo/layout.)"
   [read env key params]
   (case key
-    :workflo/screen     (read-screen read env key params)
-    :workflo/navigation (read-navigation read env key params)
-    :workflo/layout     (read-layout read env key params)
+    :workflo/screen (read-screen read env key params)
+    :workflo/forms  (read-forms read env key params)
+    :workflo/layout (read-layout read env key params)
     (read env key params)))
 
 (defn parser
@@ -118,17 +118,17 @@
         m))
 
 (defview RootWrapper
-  [{workflo/screen [workflo [navigation layout]]}]
+  [{workflo/screen [workflo [forms layout]]}]
   (render
-   (let [navigation (:workflo/navigation screen)
+   (let [forms      (:workflo/forms screen)
          layout     (realize-layout (:workflo/layout screen))
          root-info  (root-component)]
      ((:factory root-info)
       (if (:js? root-info)
-        #js {:navigation (camel-cased-prop-map navigation)
-             :layout (camel-cased-prop-map layout)}
-        {:navigation navigation
-         :layout layout})))))
+        (do
+          (clj->js (merge {:layout (camel-cased-prop-map layout)}
+                          (camel-cased-prop-map forms))))
+        (merge {:layout layout} forms))))))
 
 ;;;; Routing
 
@@ -139,7 +139,7 @@
   [app screen params]
   (let [c     (om/app-root (:reconciler (:config app)))
         query [{:workflo/screen
-                [:workflo/navigation
+                [:workflo/forms
                  {:workflo/layout
                   (mapv (fn [[k v]]
                           {k (or (om/get-query (:view v))
@@ -185,16 +185,15 @@
    target DOM element, a root component and a flag as to whether
    or not the root component is a JS component.
 
-   The root component is expected to accept two properties:
-   `:navigation` and `:layout`, where `:navigation` is a map
-   of navigation fields defined in the active screen and
+   The root component is expected to accept the properties
+   defined for screens, so `:layout` and arbitrary other forms.
    `:layout` is a map of layout keys to instantiated components.
    The root component can then decide which of these components
    to render where based on these layout keys.
 
    During rendering, the provided root component is wrapped
    in an application component that handles the screen routing
-   logic and generates the `:navigation` and `:layout` props
+   logic and generates the `:layout` and other form props
    based on the active screen."
   [{:keys [default-screen reconciler root
            root-js? target screen-mounted]
