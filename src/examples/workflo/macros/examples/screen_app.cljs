@@ -219,7 +219,7 @@
              (:screen location)
              (:params location))))
 
-(c/configure! {:process-result process-command-result})
+(c/configure-commands! {:process-result process-command-result})
 
 ;;;;;; Example app
 

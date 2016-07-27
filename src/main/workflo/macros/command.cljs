@@ -1,36 +1,25 @@
 (ns workflo.macros.command
   (:require-macros [workflo.macros.command])
   (:require [cljs.spec :as s]
+            [workflo.macros.config :refer-macros [defconfig]]
             [workflo.macros.query :as q]
             [workflo.macros.registry :refer-macros [defregistry]]))
 
-;;;; Configuration
+;;;; Configuration options for the defcommand macro
 
-(defonce ^:private +configuration+
-  (atom {:query nil
-         :process-result nil}))
-
-(defn configure!
-  "Configures how commands are created with defcommand
-   and how they are executed. Supports the following options:
-
-   :query   - a function that takes a parsed query; this function
-              is used to query a cache for data that the command
-              being executed needs to run.
-   :process-result - a function that is called after a command has been
-              executed; it takes the data returned from the command
-              implementation and handles it in whatever way is
-              desirable."
-  [{:keys [query process-result] :as options}]
-  (swap! +configuration+ assoc
-         :query query
-         :process-result process-result))
-
-(defn get-config
-  "Returns the configuration for a given configuration key, e.g.
-   :query or :process-result."
-  [key]
-  (@+configuration+ key))
+(defconfig command
+  ;; Supports the following options:
+  ;;
+  ;; :query - a function that takes a parsed query; this function
+  ;;          is used to query a cache for data that the command
+  ;;          being executed needs to run.
+  ;;
+  ;; :process-result - a function that is called after a command has
+  ;;                   been executed; it takes the data returned from
+  ;;                   the command implementation and handles it in
+  ;;                   whatever way is desirable.
+  {:query nil
+   :process-result nil})
 
 ;;;; Command registry
 
@@ -47,11 +36,11 @@
                    (s/explain-str (:data-spec definition) data))))
     (let [cache-query    (some-> definition :cache-query
                                  (q/bind-query-parameters data))
-          query-result   (some-> (get-config :query)
+          query-result   (some-> (get-command-config :query)
                                  (apply [cache-query]))
           command-result ((:implementation definition)
                           query-result data)]
-      (if (get-config :process-result)
-        (-> (get-config :process-result)
+      (if (get-command-config :process-result)
+        (-> (get-command-config :process-result)
             (apply [command-result]))
         command-result))))
