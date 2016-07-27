@@ -1,5 +1,6 @@
 (ns workflo.macros.screen
-  (:require [workflo.macros.util.js :refer [resolve]]))
+  (:require [workflo.macros.registry :refer-macros [defregistry]]
+            [workflo.macros.util.js :refer [resolve]]))
 
 ;;;; Configuration options for the defscreen macro
 
@@ -21,28 +22,4 @@
 
 ;;;; Screen registry
 
-(defonce ^:private +registry+ (atom (sorted-map)))
-
-(defn register-screen!
-  [screen-name def-sym]
-  (swap! +registry+ assoc screen-name def-sym))
-
-(defn reset-registry!
-  []
-  (reset! +registry+ (sorted-map)))
-
-(defn registered-screens
-  []
-  @+registry+)
-
-(defn resolve-screen-sym
-  [screen-name]
-  (let [screen-sym (get @+registry+ screen-name)]
-    (when (nil? screen-sym)
-      (let [err-msg (str "Failed to resolve screen '" screen-name "'")]
-        (throw (js/Error. err-msg))))
-    screen-sym))
-
-(defn resolve-screen
-  [screen-name]
-  (resolve-screen-sym screen-name))
+(defregistry screen)
