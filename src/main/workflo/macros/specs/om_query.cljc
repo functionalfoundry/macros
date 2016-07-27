@@ -37,9 +37,10 @@
   (s/map-of ::keyword ::s/any))
 
 (s/def ::parameterized-property
-  (s/spec (s/cat :list #{'list}
-                 :property ::regular-property
-                 :parameters ::parameters)))
+  (s/spec (s/cat :quote #{'quote}
+                 :parameterized-property
+                 (s/spec (s/cat :property ::regular-property
+                                :parameters ::parameters)))))
 
 (s/def ::property
   (s/or :regular ::regular-property
