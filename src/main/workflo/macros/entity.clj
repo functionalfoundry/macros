@@ -2,6 +2,7 @@
   (:require [clojure.spec :as s]
             [clojure.string :as string]
             [workflo.macros.query :as q]
+            [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.entity]
             [workflo.macros.util.form :as f]
             [workflo.macros.util.symbol :refer [unqualify]]))
@@ -31,27 +32,9 @@
 
 ;;;; Entity registry
 
-(defonce ^:private +registry+ (atom {}))
+(defregistry entity)
 
-(defn register-entity!
-  [entity-name def-sym env]
-  (swap! +registry+ assoc entity-name def-sym))
-
-(defn registered-entities
-  []
-  @+registry+)
-
-(defn resolve-entity-sym
-  [entity-name]
-  (let [entity-sym (get @+registry+ entity-name)]
-    (when (nil? entity-sym)
-      (let [err-msg (str "Failed to resolve entity '" entity-name "'")]
-        (throw (Exception. err-msg))))
-    entity-sym))
-
-(defn resolve-entity
-  [entity-name]
-  @(resolve (resolve-entity-sym entity-name)))
+;;;; Authentication
 
 (defn authenticate
   [entity-or-name data]
@@ -66,6 +49,8 @@
                                  (apply [auth-query data]))]
         (auth-fn query-result))
       true)))
+
+;;;; Validation
 
 (defn validate
   [entity-or-name data]
@@ -82,6 +67,8 @@
            (select-keys entity)
            (map #(validate* % data))
            (every? true?)))))
+
+;;;; Convenience accessors
 
 (defn validation
   [entity]
@@ -123,7 +110,7 @@
                                auth-query  (conj {:form-name
                                                   'auth-query})))
          def-sym         (f/qualified-form-name 'definition name-sym)]
-     (register-entity! name def-sym env)
+     (register-entity! name def-sym)
      `(do
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
