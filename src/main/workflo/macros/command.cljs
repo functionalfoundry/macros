@@ -1,7 +1,8 @@
 (ns workflo.macros.command
   (:require-macros [workflo.macros.command])
   (:require [cljs.spec :as s]
-            [workflo.macros.query :as q]))
+            [workflo.macros.query :as q]
+            [workflo.macros.registry :refer-macros [defregistry]]))
 
 ;;;; Configuration
 
@@ -33,23 +34,9 @@
 
 ;;;; Command registry
 
-(defonce ^:private +registry+ (atom {}))
+(defregistry command)
 
-(defn register-command!
-  [cmd-name cmd-def]
-  (swap! +registry+ assoc cmd-name cmd-def))
-
-(defn registered-commands
-  []
-  @+registry+)
-
-(defn resolve-command
-  [cmd-name]
-  (let [cmd-def (get @+registry+ cmd-name)]
-    (when (nil? cmd-def)
-      (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
-        (throw (js/Error. err-msg))))
-    cmd-def))
+;;;; Command execution
 
 (defn run-command
   [cmd-name data]

@@ -2,6 +2,7 @@
   (:require [clojure.spec :as s]
             [workflo.macros.command.util :as util]
             [workflo.macros.query :as q]
+            [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.command]
             [workflo.macros.util.form :as f]
             [workflo.macros.util.symbol :refer [unqualify]]))
@@ -36,23 +37,9 @@
 
 ;;;; Command registry
 
-(defonce ^:private +registry+ (atom {}))
+(defregistry command)
 
-(defn register-command!
-  [cmd-name cmd-def]
-  (swap! +registry+ assoc cmd-name cmd-def))
-
-(defn registered-commands
-  []
-  @+registry+)
-
-(defn resolve-command
-  [cmd-name]
-  (let [cmd-def (get @+registry+ cmd-name)]
-    (when (nil? cmd-def)
-      (let [err-msg (str "Failed to resolve command '" cmd-name "'")]
-        (throw (Exception. err-msg))))
-    cmd-def))
+;;;; Command execution
 
 (defn run-command
   [cmd-name data]
