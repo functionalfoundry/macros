@@ -161,10 +161,10 @@
               Object
               (render [this]
                 (let [goto     (fn [params & reads]
-                                 (workflo.macros.view/handle-command
+                                 (workflo.macros.view/run-command!
                                   'goto this params reads))
                       show-foo (fn [params & reads]
-                                 (workflo.macros.view/handle-command
+                                 (workflo.macros.view/run-command!
                                   'show-foo this params reads))]
                   (foo {:on-click #(goto 'some-screen {:id 1})}))))
             (def view

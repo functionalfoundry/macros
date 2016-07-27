@@ -63,12 +63,12 @@
 
 (defn generate-command-fn
   "Generate an anonymous wrapper function to call the
-   `:handle-command` hook with a specific command name."
+   `:run-command` hook with a specific command name."
   [cmd-name]
   `(~'fn
     [~'params & ~'reads]
-    (workflo.macros.view/handle-command '~cmd-name ~'this
-                                        ~'params ~'reads)))
+    (workflo.macros.view/run-command! '~cmd-name ~'this
+                                      ~'params ~'reads)))
 
 (defn generate-ident-fn
   "Generate a (ident ...) function from the props spec."

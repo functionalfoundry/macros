@@ -5,7 +5,7 @@
 
 ;;;; Configuration options for the defview macro
 
-(defn default-handle-command
+(defn default-run-command!
   "Default command handler, generating an Om Next transaction
    with a mutation and queries that correspond 1:1 to the
    command, its parameters and the optional reads."
@@ -19,12 +19,12 @@
   ;;                 the body of render functions if render has
   ;;                 more than a single child expression.
   ;;
-  ;; :handle-command - a function that takes a view, a command name
-  ;;                   and a parameter map and an optional vector
-  ;;                   of things to re-query after running the
-  ;;                   command.
+  ;; :run-command - a function that takes a view, a command name
+  ;;                and a parameter map and an optional vector
+  ;;                of things to re-query after running the
+  ;;                command.
   {:wrapper-view nil
-   :handle-command default-handle-command})
+   :run-command default-run-command!})
 
 (defn wrapper
   "Returns a wrapper factory for use in render functions. If no
@@ -36,11 +36,13 @@
         om.dom/div)
     (get-view-config :wrapper-view)))
 
-(defn handle-command
+(defn run-command!
+  "Runs a given command using the configured :run-command
+   handler, if defined."
   [cmd-name view params reads]
-  (if-not (get-view-config :handle-command)
-    (js/console.warn "No command handler defined for defview.")
-    (some-> (get-view-config :handle-command)
+  (if-not (get-view-config :run-command)
+    (js/console.warn "No :run-command handler defined for defview.")
+    (some-> (get-view-config :run-command)
             (apply [cmd-name view params reads]))))
 
 (defn factory
