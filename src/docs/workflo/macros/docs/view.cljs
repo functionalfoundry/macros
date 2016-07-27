@@ -41,7 +41,7 @@
   with
 
   ```
-  (workflo.macros.view/configure! {:handle-command ...})
+  (workflo.macros.view/configure-views! {:handle-command ...})
   ```
 
   This allows arbitrary code to be executed, such as
@@ -105,7 +105,7 @@
   (render
     (dom/section nil (om/children this))))
 
-(view/configure! {:wrapper-view om.dom/article})
+(view/configure-views! {:wrapper-view om.dom/article})
 
 (defview UserList
   [{users User}]

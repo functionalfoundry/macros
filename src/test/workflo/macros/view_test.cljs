@@ -133,7 +133,7 @@
       (om.next/children this))))
 
 (deftest view-definition-with-wrapper-and-multiple-render-children
-  (view/configure! {:wrapper-view wrapper})
+  (view/configure-views! {:wrapper-view wrapper})
   (is (= (macroexpand-1
           '(defview View
              (render

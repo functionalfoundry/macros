@@ -1,6 +1,7 @@
 (ns workflo.macros.view
   (:require [om.next :as om]
-            [om.dom]))
+            [om.dom]
+            [workflo.macros.config :refer-macros [defconfig]]))
 
 ;;;; Configuration options for the defview macro
 
@@ -11,49 +12,35 @@
   [cmd-name view params reads]
   (om/transact! view `[(~cmd-name ~params) ~@(or reads [])]))
 
-(defonce +configuration+
-  (atom {:wrapper-view nil
-         :handle-command default-handle-command}))
-
-(defn configure!
-  "Configures the defview macro, usually before it is being used.
-   Supports the following options:
-
-   :wrapper-view - a React element factory to use for wrapping
-                   the body of render functions if render has
-                   more than a single child expression.
-   :handle-command - a function that takes a view, a command name
-                     and a parameter map and an optional vector
-                     of things to re-query after running the
-                     command."
-  [{:keys [wrapper-view
-           handle-command]
-    :or   {handle-command default-handle-command}}]
-  (swap! +configuration+ assoc
-         :wrapper-view wrapper-view
-         :handle-command handle-command))
-
-(defn get-config
-  "Returns the configuration for a given configuration key, e.g.
-   :wrapper-view."
-  [key]
-  (@+configuration+ key))
+(defconfig view
+  ;; Supports the following options:
+  ;;
+  ;; :wrapper-view - a React element factory to use for wrapping
+  ;;                 the body of render functions if render has
+  ;;                 more than a single child expression.
+  ;;
+  ;; :handle-command - a function that takes a view, a command name
+  ;;                   and a parameter map and an optional vector
+  ;;                   of things to re-query after running the
+  ;;                   command.
+  {:wrapper-view nil
+   :handle-command default-handle-command})
 
 (defn wrapper
   "Returns a wrapper factory for use in render functions. If no
    wrapper function is defined, issues a warning and returns
    om.dom/div to avoid breaking apps entirely."
   []
-  (if-not (get-config :wrapper-view)
+  (if-not (get-view-config :wrapper-view)
     (do (js/console.warn "No wrapper view defined for defview.")
         om.dom/div)
-    (get-config :wrapper-view)))
+    (get-view-config :wrapper-view)))
 
 (defn handle-command
   [cmd-name view params reads]
-  (if-not (get-config :handle-command)
+  (if-not (get-view-config :handle-command)
     (js/console.warn "No command handler defined for defview.")
-    (some-> :handle-command get-config
+    (some-> (get-view-config :handle-command)
             (apply [cmd-name view params reads]))))
 
 (defn factory
