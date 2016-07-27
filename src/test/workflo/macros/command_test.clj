@@ -107,8 +107,9 @@
   [[db [id]] ::user-create-data]
   {:cache {:db-id id}})
 
-(c/configure! {:query example-query
-               :process-result example-process-result})
+(c/configure-commands!
+  {:query example-query
+   :process-result example-process-result})
 
 (c/run-command 'user/create {:user-name "Jeff"
                              :user-email "jeff@jeff.org"})

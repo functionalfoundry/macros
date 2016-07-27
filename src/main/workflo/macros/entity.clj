@@ -1,57 +1,31 @@
 (ns workflo.macros.entity
   (:require [clojure.spec :as s]
             [clojure.string :as string]
+            [workflo.macros.config :refer [defconfig]]
             [workflo.macros.query :as q]
+            [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.entity]
             [workflo.macros.util.form :as f]
             [workflo.macros.util.symbol :refer [unqualify]]))
 
-;;;; Configuration
+;;;; Configuration options for the defentity macro
 
-(defonce ^:private +configuration+
-  (atom {:auth-query nil}))
-
-(defn configure!
-  "Configures how entities are created with defentity and how aspects
-   like authorization are performed against them. Supports the
-   following options:
-
-   :auth-query - a function that takes a parsed query and entity data;
-                 this query result from this function is then passed to
-                 the entity's auth function to perform authorization."
-  [{:keys [auth-query] :as options}]
-  (swap! +configuration+ assoc
-         :auth-query auth-query))
-
-(defn get-config
-  "Returns the configuration for a given configuration key, e.g.
-   :auth-query."
-  [key]
-  (@+configuration+ key))
+(defconfig entity
+  ;; Configures how entities are created with defentity and how aspects
+  ;; like authorization are performed against them. Supports the
+  ;; following options:
+  ;;
+  ;; :auth-query - a function that takes a parsed query and entity data;
+  ;;               this query result from this function is then passed
+  ;;               to the entity's auth function to perform
+  ;;               authorization.
+  {:auth-query nil})
 
 ;;;; Entity registry
 
-(defonce ^:private +registry+ (atom {}))
+(defregistry entity)
 
-(defn register-entity!
-  [entity-name def-sym env]
-  (swap! +registry+ assoc entity-name def-sym))
-
-(defn registered-entities
-  []
-  @+registry+)
-
-(defn resolve-entity-sym
-  [entity-name]
-  (let [entity-sym (get @+registry+ entity-name)]
-    (when (nil? entity-sym)
-      (let [err-msg (str "Failed to resolve entity '" entity-name "'")]
-        (throw (Exception. err-msg))))
-    entity-sym))
-
-(defn resolve-entity
-  [entity-name]
-  @(resolve (resolve-entity-sym entity-name)))
+;;;; Authentication
 
 (defn authenticate
   [entity-or-name data]
@@ -62,10 +36,12 @@
     (if auth-fn
       (let [auth-query   (some-> entity :auth-query
                                  (q/bind-query-parameters data))
-            query-result (some-> (get-config :auth-query)
+            query-result (some-> (get-entity-config :auth-query)
                                  (apply [auth-query data]))]
         (auth-fn query-result))
       true)))
+
+;;;; Validation
 
 (defn validate
   [entity-or-name data]
@@ -82,6 +58,8 @@
            (select-keys entity)
            (map #(validate* % data))
            (every? true?)))))
+
+;;;; Convenience accessors
 
 (defn validation
   [entity]
@@ -123,7 +101,7 @@
                                auth-query  (conj {:form-name
                                                   'auth-query})))
          def-sym         (f/qualified-form-name 'definition name-sym)]
-     (register-entity! name def-sym env)
+     (register-entity! name def-sym)
      `(do
         ~@(when description
             `(~(f/make-def name-sym 'description description)))

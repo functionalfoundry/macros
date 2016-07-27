@@ -40,13 +40,10 @@
   (let [kw-name      (keyword (:name prop))
         params       (when-not (empty? (:parameters prop))
                        (->> (:parameters prop)
-                            (map (fn [[k v]] [(keyword k)
-                                              (if (symbol? v)
-                                                `(~'quote ~v)
-                                                v)]))
+                            (map (fn [[k v]] [(keyword k) v]))
                             (into {})))
         parameterize (fn [query]
-                       `(~'list ~query ~params))]
+                       `'(~query ~params))]
     (-> (case (:type prop)
           :property kw-name
           :link     [kw-name (if (= '_ (:link-id prop))

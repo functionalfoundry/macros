@@ -37,11 +37,11 @@
 
   The User view renders a user and triggers a command
   when the user name is clicked. The command is executed
-  using the `:handle-command` hook that is configured
+  using the `:run-command` hook that is configured
   with
 
   ```
-  (workflo.macros.view/configure! {:handle-command ...})
+  (workflo.macros.view/configure-views! {:run-command ...})
   ```
 
   This allows arbitrary code to be executed, such as
@@ -105,7 +105,7 @@
   (render
     (dom/section nil (om/children this))))
 
-(view/configure! {:wrapper-view om.dom/article})
+(view/configure-views! {:wrapper-view om.dom/article})
 
 (defview UserList
   [{users User}]

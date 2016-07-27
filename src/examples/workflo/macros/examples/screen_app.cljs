@@ -1,6 +1,7 @@
 (ns workflo.macros.examples.screen-app
   (:require [cljs.pprint]
             [cljs.spec :as s]
+            [com.stuartsierra.component :as component]
             [datascript.core :as d]
             [goog.dom :as gdom]
             [om.next :as om]
@@ -154,24 +155,24 @@
  (navigation
   {:title "User Settings"})
  (layout
-  {:title {:view UserSettingsTitle :factory user-settings-title}
-   :content {:view UserSettings :factory user-settings}}))
+  {:title 'UserSettingsTitle
+   :content 'UserSettings}))
 
 (defscreen UserScreen
   (url "users/:user-id")
   (navigation
    {:title "User"})
   (layout
-   {:title {:view UserTitle :factory user-title}
-    :content {:view UserProfile :factory user-profile}}))
+   {:title 'UserTitle
+    :content 'UserProfile}))
 
 (defscreen UserListScreen
   (url "users")
   (navigation
     {:title "Users"})
   (layout
-   {:title {:view UserListTitle :factory user-list-title}
-    :content {:view UserList :factory user-list}}))
+   {:title 'UserListTitle
+    :content 'UserList}))
 
 ;;;; Commands
 
@@ -218,7 +219,7 @@
              (:screen location)
              (:params location))))
 
-(c/configure! {:process-result process-command-result})
+(c/configure-commands! {:process-result process-command-result})
 
 ;;;;;; Example app
 
@@ -260,7 +261,7 @@
                           (cljs.pprint/pprint (-> reconciler
                                                   om/app-root
                                                   om/get-query)))})
-       (so/start)
+       (component/start)
        (reset! application)))
 
 

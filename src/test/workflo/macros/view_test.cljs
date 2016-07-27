@@ -8,7 +8,10 @@
          '(do
             (om.next/defui MinimalView)
             (def minimal-view
-              (workflo.macros.view/factory MinimalView {}))))))
+              (workflo.macros.view/factory MinimalView {}))
+            (workflo.macros.view/register-view!
+             'MinimalView {:view MinimalView
+                           :factory minimal-view})))))
 
 (deftest view-definition-with-props
   (is (= (macroexpand-1
@@ -25,7 +28,9 @@
                 {:keyfn (fn [props]
                           (let [{:keys [user/name
                                         user/email]} props]
-                            name))}))))))
+                            name))}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-computed-props
   (is (= (macroexpand-1
@@ -44,7 +49,9 @@
                  (fn [props]
                    (let [{:keys [user/name user/email]} props
                          {:keys [on-click]} (om/get-computed props)]
-                     name))}))))))
+                     name))}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-implicit-ident-and-keyfn-via-db-id
   (is (= (macroexpand-1
@@ -63,7 +70,9 @@
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
                           (let [{:keys [db/id]} props]
-                            id))}))))))
+                            id))}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-simple-keyfn-is-correct
   (is (= (macroexpand-1
@@ -73,7 +82,9 @@
             (om.next/defui View)
             (def view
               (workflo.macros.view/factory View
-                {:keyfn (fn [props] :foo)}))))))
+                {:keyfn (fn [props] :foo)}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-overriden-query-and-keyfn
   (is (= (macroexpand-1
@@ -87,7 +98,9 @@
                 [:custom :query]))
             (def view
               (workflo.macros.view/factory View
-                {:keyfn (fn [props] :custom)}))))))
+                {:keyfn (fn [props] :custom)}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-overriden-ident
   (is (= (macroexpand-1
@@ -107,7 +120,9 @@
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
                           (let [{:keys [db/id user/name]} props]
-                            id))}))))))
+                            id))}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-definition-with-raw-function
   (is (= (macroexpand-1
@@ -125,7 +140,9 @@
                 (let [{:keys [user/name]} (om/props this)]
                   (js/alert name))))
             (def view
-              (workflo.macros.view/factory View {}))))))
+              (workflo.macros.view/factory View {}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (defview Wrapper
   (render
@@ -133,7 +150,7 @@
       (om.next/children this))))
 
 (deftest view-definition-with-wrapper-and-multiple-render-children
-  (view/configure! {:wrapper-view wrapper})
+  (view/configure-views! {:wrapper-view wrapper})
   (is (= (macroexpand-1
           '(defview View
              (render
@@ -148,7 +165,9 @@
                   (foo)
                   (bar))))
             (def view
-              (workflo.macros.view/factory View {}))))))
+              (workflo.macros.view/factory View {}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))
 
 (deftest view-with-commands
   (is (= (macroexpand-1
@@ -161,11 +180,13 @@
               Object
               (render [this]
                 (let [goto     (fn [params & reads]
-                                 (workflo.macros.view/handle-command
+                                 (workflo.macros.view/run-command!
                                   'goto this params reads))
                       show-foo (fn [params & reads]
-                                 (workflo.macros.view/handle-command
+                                 (workflo.macros.view/run-command!
                                   'show-foo this params reads))]
                   (foo {:on-click #(goto 'some-screen {:id 1})}))))
             (def view
-              (workflo.macros.view/factory View {}))))))
+              (workflo.macros.view/factory View {}))
+            (workflo.macros.view/register-view!
+             'View {:view View :factory view})))))

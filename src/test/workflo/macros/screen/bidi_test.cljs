@@ -4,7 +4,7 @@
             [workflo.macros.screen.bidi :as screen-bidi]))
 
 (defn empty-screen-registry [f]
-  (screen/reset-registry!)
+  (screen/reset-registered-screens!)
   (f))
 
 (use-fixtures :each empty-screen-registry)

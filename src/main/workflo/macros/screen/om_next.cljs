@@ -1,10 +1,13 @@
 (ns workflo.macros.screen.om-next
   (:require [clojure.walk :refer [walk]]
+            [com.stuartsierra.component :as component]
             [om.next :as om]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen :as scr]
             [workflo.macros.util.string :refer [kebab->camel]]
-            [workflo.macros.view :refer-macros [defview]]))
+            [workflo.macros.view
+             :refer [resolve-view]
+             :refer-macros [defview]]))
 
 ;;;; Remember the active screen
 
@@ -50,13 +53,14 @@
   "Executes all queries for views in the layout of the
    active screen."
   [_ {:keys [parser query screen] :as env} _ _]
-  {:value (reduce (fn [res layout-item]
-                    (let [[k v] (first layout-item)]
-                      (assoc res k {:view (-> screen :layout
-                                              k :factory)
-                                    :props (parser (dissoc env :path)
-                                                   v nil)})))
-                  {} query)})
+  {:value
+   (reduce (fn [res layout-item]
+             (let [[section query] (first layout-item)]
+               (assoc res section
+                      {:view  (-> screen :layout section
+                                  resolve-view :factory)
+                       :props (parser (dissoc env :path) query nil)})))
+           {} query)})
 
 (defn- wrapping-read
   "Wraps a user-provided parser read function for Om Next by
@@ -141,9 +145,10 @@
         query [{:workflo/screen
                 [:workflo/forms
                  {:workflo/layout
-                  (mapv (fn [[k v]]
-                          {k (or (om/get-query (:view v))
-                                 [])})
+                  (mapv (fn [[section view-name]]
+                          {section (or (some-> view-name resolve-view
+                                               :view om/get-query)
+                                       [])})
                         (:layout screen))}]}]]
     (set-active-screen! screen params)
     (om/set-query! c {:params params :query query})
@@ -154,21 +159,24 @@
 
 (defprotocol IApplication
   (mount [this])
-  (start [this])
   (reload [this])
   (goto [this screen params]))
 
 (defrecord Application [config router]
-  IApplication
-  (mount [this]
-    (om/add-root! (:reconciler config) RootWrapper (:target config)))
-
+  component/Lifecycle
   (start [this]
     (mount this)
     (assoc this :router
            (sb/router
             {:default-screen (:default-screen config)
              :mount-screen (partial mount-screen this)})))
+
+  (stop [this]
+    (dissoc this :router))
+
+  IApplication
+  (mount [this]
+    (om/add-root! (:reconciler config) RootWrapper (:target config)))
 
   (reload [this]
     (reload-active-screen!)

@@ -63,12 +63,12 @@
 
 (defn generate-command-fn
   "Generate an anonymous wrapper function to call the
-   `:handle-command` hook with a specific command name."
+   `:run-command` hook with a specific command name."
   [cmd-name]
   `(~'fn
     [~'params & ~'reads]
-    (workflo.macros.view/handle-command '~cmd-name ~'this
-                                        ~'params ~'reads)))
+    (workflo.macros.view/run-command! '~cmd-name ~'this
+                                      ~'params ~'reads)))
 
 (defn generate-ident-fn
   "Generate a (ident ...) function from the props spec."
@@ -248,12 +248,16 @@
                                  (remove #(some #{%} factory-fns))
                                  (group-by fn-protocol))
          flat-view-fns      (apply concat (interleave (keys view-fns)
-                                                      (vals view-fns)))]
+                                                      (vals view-fns)))
+         factory-name       (symbol (camel->kebab (str name)))]
      `(do
         (om.next/defui ~name
           ~@flat-view-fns)
-        (def ~(symbol (camel->kebab (str name)))
-          (workflo.macros.view/factory ~name ~factory-params))))))
+        (def ~factory-name
+          (workflo.macros.view/factory ~name ~factory-params))
+        (register-view! '~name
+                        {:view ~name
+                         :factory ~factory-name})))))
 
 (defmacro defview
   "Create a new view with the given name.
