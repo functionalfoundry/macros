@@ -1,7 +1,8 @@
 (ns workflo.macros.view
   (:require [om.next :as om]
             [om.dom]
-            [workflo.macros.config :refer-macros [defconfig]]))
+            [workflo.macros.config :refer-macros [defconfig]]
+            [workflo.macros.registry :refer-macros [defregistry]]))
 
 ;;;; Configuration options for the defview macro
 
@@ -58,3 +59,7 @@
                (rest children))
         (apply (partial om-factory {})
                children)))))
+
+;;;; View registry
+
+(defregistry view)
