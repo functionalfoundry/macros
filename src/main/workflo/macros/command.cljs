@@ -36,8 +36,9 @@
                    (s/explain-str (:data-spec definition) data))))
     (let [cache-query    (some-> definition :cache-query
                                  (q/bind-query-parameters data))
-          query-result   (some-> (get-command-config :query)
-                                 (apply [cache-query]))
+          query-result   (when cache-query
+                           (some-> (get-command-config :query)
+                                   (apply [cache-query])))
           command-result ((:implementation definition)
                           query-result data)]
       (if (get-command-config :process-result)
