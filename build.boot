@@ -16,6 +16,7 @@
                  ;; Library dependencies
                  [bidi "2.0.9"]
                  [com.stuartsierra/component "0.3.1"]
+                 [inflections "0.12.2"]
                  [org.clojure/clojure "1.9.0-alpha8"]
                  [org.clojure/clojurescript "1.9.93"]
                  [org.omcljs/om "1.0.0-alpha40"]
