@@ -1,11 +1,18 @@
 (ns workflo.macros.service
   (:require [clojure.spec :as s]
-            [workflo.macros.command.util :as util]
+            [clojure.string :as string]
+            [workflo.macros.command.util :as cutil]
+            [workflo.macros.service.util :as util]
             [workflo.macros.query :as q]
             [workflo.macros.config :refer [defconfig]]
             [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.service]
+            [workflo.macros.util.macro :refer [component-record-symbol
+                                               definition-symbol
+                                               record-symbol
+                                               with-destructured-query]]
             [workflo.macros.util.form :as f]
+            [workflo.macros.util.string :refer [kebab->camel]]
             [workflo.macros.util.symbol :refer [unqualify]]))
 
 ;;;; Configuration options for the defservice macro
@@ -22,11 +29,45 @@
 
 (defregistry service)
 
+;;;; Service components
+
+(defregistry service-component)
+
+(defn new-service-component
+  ([name]
+   (new-service-component name {}))
+  ([name config]
+   (let [service (resolve-service name)]
+     ((:component-ctor service) {:service service
+                                 :config config}))))
+
+;;;; Service interface
+
+(defprotocol IService
+  (process [this query-result data]))
+
 ;;;; Delivery to services
 
-;; TODO
-(defn deliver!
-  [service-name data])
+(defn deliver-to-service-component!
+  [component data]
+  (let [query  (some-> component :service :query
+                       (q/bind-query-parameters data))
+        result (when query
+                 (some-> (get-service-config :query)
+                         (apply [query])))]
+    (process component result data)))
+
+(defn deliver-to-services!
+  [data]
+  {:pre [(s/valid? (s/map-of keyword? ::s/any) data)]}
+  (doseq [[service-kw service-data] data]
+    (let [service-name (symbol (name service-kw))
+          component    (try
+                         (resolve-service-component service-name)
+                         (catch Exception e
+                           (println "WARN:" (.getMessage e))))]
+      (some-> component
+        (deliver-to-service-component! data)))))
 
 ;;;; The defservice macro
 
@@ -34,51 +75,79 @@
   :args :workflo.macros.specs.service/defservice-args
   :ret  ::s/any)
 
+(defn make-service-component
+  [name args]
+  `(defrecord ~(component-record-symbol name)
+       ~'[service config redis]
+     com.stuartsierra.component/Lifecycle
+     (~'start [~'this]
+      (let [~'this' ((:start ~'service) ~'this)]
+        (register-service-component! (:name ~'service) ~'this')
+        ~'this'))
+     (~'stop [~'this]
+      (let [~'this' ((:stop ~'service) ~'this)]
+        (unregister-service-component! (:name ~'service))
+        ~'this'))
+     workflo.macros.service/IService
+     (~'process ~'[this query-result data]
+      ((:process ~'service) ~'this ~'query-result ~'data))))
+
+(defn make-service-record
+  [name args]
+  `(defrecord ~(record-symbol name)
+       ~'[name description dependencies start stop
+          query data-spec process]))
+
+(defn make-service-definition
+  [name args]
+  (let [forms              (:forms args)
+        query              (some-> forms :query :form-body q/parse)
+        start              (some-> forms :start :form-body)
+        stop               (some-> forms :stop :form-body)
+        process            (some-> forms :process :form-body)
+        ctor-sym           (symbol (str "map->" (record-symbol name)))
+        component-ctor-sym (symbol (str "map->" (component-record-symbol
+                                                 name)))]
+    `(def ~(definition-symbol name)
+       (~ctor-sym
+        {:name '~name
+         :description ~(-> forms :description)
+         :dependencies '~(-> forms :dependencies :form-body)
+         :query '~query
+         :data-spec ~(some-> forms :data-spec :form-body)
+         :start ~(when start
+                   `(fn [~'this]
+                      ~@start))
+         :stop ~(when stop
+                  `(fn [~'this]
+                     ~@stop))
+         :process ~(if query
+                     `(fn ~'[this query-result data]
+                        (with-destructured-query ~query ~'query-result
+                          ~@process))
+                     `(fn ~'[this query-result data]
+                        ~@process))
+         :component-ctor ~component-ctor-sym}))))
+
+(defn make-register-call
+  [name args]
+  `(register-service! '~name ~(definition-symbol name)))
+
 (defn defservice*
   ([name forms]
    (defservice* name forms nil))
   ([name forms env]
-   (let [args-spec   :workflo.macros.specs.service/defservice-args
-         args        (if (s/valid? args-spec [name forms])
-                       (s/conform args-spec [name forms])
-                       (throw (Exception.
-                               (s/explain-str args-spec
-                                              [name forms]))))
-         description (:description (:forms args))
-         query       (some-> args :forms :query :form-body q/parse)
-         query-keys  (some-> query q/map-destructuring-keys)
-         data-spec   (some-> args :forms :data-spec :form-body)
-         name-sym    (unqualify name)
-         forms       (cond-> (:forms (:forms args))
-                       true        (conj (:process (:forms args)))
-                       description (conj {:form-name 'description})
-                       query       (conj {:form-name 'query})
-                       data-spec   (conj {:form-name 'data-spec}))
-         form-fns    (->> forms
-                          (remove (comp nil? :form-body))
-                          (map #(update % :form-name
-                                        f/prefixed-form-name
-                                        name-sym))
-                          (map #(assoc % :form-args
-                                       '[query-result data]))
-                          (map #(cond-> %
-                                  query-keys (update :form-body
-                                                     util/bind-query-keys
-                                                     query-keys)))
-                          (map f/form->defn))
-         def-sym     (f/qualified-form-name 'definition name-sym)]
+   (let [args-spec :workflo.macros.specs.service/defservice-args
+         args      (if (s/valid? args-spec [name forms])
+                     (s/conform args-spec [name forms])
+                     (throw (Exception.
+                             (s/explain-str args-spec
+                                            [name forms]))))]
      `(do
-        ~@form-fns
-        ~@(when description
-            `(~(f/make-def name-sym 'description description)))
-        ~@(when query
-            `((~'def ~(f/prefixed-form-name 'query name-sym)
-               '~query)))
-        ~@(when data-spec
-            `(~(f/make-def name-sym 'data-spec data-spec)))
-        ~(f/make-def name-sym 'definition
-           (f/forms-map forms name-sym))
-        (register-service! '~name ~def-sym)))))
+        ~(make-service-component name args)
+        ~(make-service-record name args)
+        ~(make-service-definition name args)
+        ~(make-register-call name args)))))
 
 (defmacro defservice
   [name & forms]

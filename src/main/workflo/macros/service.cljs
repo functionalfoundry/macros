@@ -11,16 +11,50 @@
   ;; Supports the following options:
   ;;
   ;; :query - a function that takes a parsed query; this function
-  ;;          is used to query a cache for data that the service
-  ;;          being executed needs to run.
+  ;;          is used to query a data store for data that the service
+  ;;          needs to process its input.
   {:query nil})
 
 ;;;; Service registry
 
 (defregistry service)
 
+;;;; Service components
+
+(defregistry service-component)
+
+(defn new-service-component
+  ([name]
+   (new-service-component name {}))
+  ([name config]
+   (let [service (resolve-service name)]
+     ((:component-ctor service) {:service service
+                                 :config config}))))
+
+;;;; Service interface
+
+(defprotocol IService
+  (process [this query-result data]))
+
 ;;;; Delivery to services
 
-;; TODO
-(defn deliver!
-  [service-name data])
+(defn deliver-to-service-component!
+  [component data]
+  (let [query  (some-> component :service :query
+                       (q/bind-query-parameters data))
+        result (when query
+                 (some-> (get-service-config :query)
+                         (apply [query])))]
+    (process component result data)))
+
+(defn deliver-to-services!
+  [data]
+  {:pre [(s/valid? (s/map-of keyword? ::s/any) data)]}
+  (doseq [[service-kw service-data] data]
+    (let [service-name (symbol (name service-kw))
+          component    (try
+                         (resolve-service-component service-name)
+                         (catch Exception e
+                           (println "WARN:" (.getMessage e))))]
+      (some-> component
+        (deliver-to-service-component! data)))))

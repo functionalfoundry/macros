@@ -16,8 +16,15 @@
     ::s/any
     #(s/gen #{symbol? map? vector?})))
 
+(s/def ::service-dependencies
+  (s/coll-of symbol? :kind vector?))
+
 (s/def ::service-form-body
   (s/* ::s/any))
+
+(s/def ::service-dependencies-form
+  (s/spec (s/cat :form-name #{'dependencies}
+                 :form-body ::service-dependencies)))
 
 (s/def ::service-query-form
   (s/spec (s/cat :form-name #{'query}
@@ -36,13 +43,14 @@
                  :form-body ::service-form-body)))
 
 (s/def ::service-process-form
-  (s/spec (s/cat :form-name #{'emit}
+  (s/spec (s/cat :form-name #{'process}
                  :form-body ::service-form-body)))
 
 (s/def ::defservice-args
   (s/cat :name ::service-name
          :forms
          (s/spec (s/cat :description (s/? ::service-description)
+                        :dependencies (s/? ::service-dependencies-form)
                         :query (s/? ::service-query-form)
                         :data-spec (s/? ::service-data-spec-form)
                         :start (s/? ::service-start-form)
