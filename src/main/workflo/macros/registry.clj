@@ -24,6 +24,7 @@
    will result in the following functions to be defined:
 
    (defn register-command! [name def] ...)
+   (defn unregister-command! [name] ...)
    (defn registered-commands [] ...)
    (defn reset-registered-commands! [] ...)
    (defn resolve-command [name] ...)."
@@ -32,6 +33,7 @@
   ([name env]
    (let [registry-sym   (symbol (str "+" name "-registry+"))
          register-sym   (symbol (str "register-" name "!"))
+         unregister-sym (symbol (str "unregister-" name "!"))
          registered-sym (symbol (str "registered-" (plural name)))
          reset-sym      (symbol (str "reset-registered-"
                                      (plural name) "!"))
@@ -41,6 +43,9 @@
         (defn ~register-sym
           [~'name ~'def]
           (swap! ~registry-sym assoc ~'name ~'def))
+        (defn ~unregister-sym
+          [~'name]
+          (swap! ~registry-sym dissoc ~'name))
         (defn ~registered-sym
           []
           (deref ~registry-sym))
