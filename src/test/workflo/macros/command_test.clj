@@ -84,7 +84,7 @@
                            (~'foo [:bar])
                            :result)))))
 
-;;;; Exercise run-command
+;;;; Exercise run-command!
 
 ;;; Define a spec for the command data
 
@@ -111,5 +111,5 @@
   {:query example-query
    :process-result example-process-result})
 
-(c/run-command 'user/create {:user-name "Jeff"
-                             :user-email "jeff@jeff.org"})
+(c/run-command! 'user/create {:user-name "Jeff"
+                              :user-email "jeff@jeff.org"})

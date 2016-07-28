@@ -30,7 +30,7 @@
 
 ;;;; Command execution
 
-(defn run-command
+(defn run-command!
   [cmd-name data]
   (let [definition (resolve-command cmd-name)]
     (when (:data-spec definition)

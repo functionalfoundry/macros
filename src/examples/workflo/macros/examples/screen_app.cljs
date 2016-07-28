@@ -55,7 +55,7 @@
 
 (defmethod mutate :default
   [env key params]
-  {:action #(c/run-command key params)})
+  {:action #(c/run-command! key params)})
 
 (def parser
   (so/parser {:read read :mutate mutate}))
