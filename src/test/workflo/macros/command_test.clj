@@ -104,7 +104,7 @@
   [query]
   {:db/id 15})
 
-(defn example-process-result
+(defn example-process-emit
   [data]
   data)
 
@@ -116,7 +116,7 @@
 
 (c/configure-commands!
   {:query example-query
-   :process-result example-process-result})
+   :process-emit example-process-emit})
 
 (c/run-command! 'user/create {:user-name "Jeff"
                               :user-email "jeff@jeff.org"})
