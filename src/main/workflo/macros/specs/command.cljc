@@ -11,23 +11,16 @@
 (s/def ::command-description
   string?)
 
-(s/def ::command-query
-  :workflo.macros.specs.query/query)
-
 (s/def ::command-data-spec
   (s/with-gen
     ::s/any
     #(s/gen #{symbol? map? vector?})))
 
-(s/def ::command-inputs
-  (s/spec (s/cat :command-query (s/? ::command-query)
-                 :command-data-spec ::command-data-spec)))
-
 (s/def ::command-form-name
   (s/with-gen
     (s/and symbol?
            #(not (some #{\/} (str %))))
-    #(s/gen '#{workflows lifecycles foo bar foo-bar})))
+    #(s/gen '#{foo bar foo-bar})))
 
 (s/def ::command-form-body
   (s/* ::s/any))
@@ -35,6 +28,14 @@
 (s/def ::command-form
   (s/spec (s/cat :form-name ::command-form-name
                  :form-body ::command-form-body)))
+
+(s/def ::command-query-form
+  (s/spec (s/cat :form-name #{'query}
+                 :form-body :workflo.macros.specs.query/query)))
+
+(s/def ::command-data-spec-form
+  (s/spec (s/cat :form-name #{'data-spec}
+                 :form-body ::command-data-spec)))
 
 (s/def ::command-emit-form
   (s/spec (s/cat :form-name #{'emit}
@@ -44,7 +45,8 @@
   (s/cat :name ::command-name
          :forms
          (s/spec (s/cat :description (s/? ::command-description)
-                        :inputs ::command-inputs
+                        :query (s/? ::command-query-form)
+                        :data-spec (s/? ::command-data-spec-form)
                         :forms (s/* ::command-form)
                         :emit ::command-emit-form))
          :env (s/? ::s/any)))

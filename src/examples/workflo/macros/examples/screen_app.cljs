@@ -185,7 +185,7 @@
                 :user/email]))
 
 (defcommand add-user
-  [::user]
+  (data-spec ::user)
   (emit
     (println "add-user" data)
     {:state {(:db/id data) data}
@@ -193,7 +193,7 @@
                 :params {:user-id (:db/id data)}}}))
 
 (defcommand update-user
-  [::user]
+  (data-spec ::user)
   (emit
     (println "update-user" data)
     {:state {(:db/id data) data}}))
@@ -204,8 +204,8 @@
   (s/keys :req-un [::screen ::params]))
 
 (defcommand goto
- [::location]
- (emit
+  (data-spec ::location)
+  (emit
    (println "goto" data)
    {:location data}))
 

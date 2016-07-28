@@ -34,11 +34,11 @@
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"
                    (s/explain-str (:data-spec definition) data))))
-    (let [cache-query    (some-> definition :cache-query
+    (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
-          query-result   (when cache-query
+          query-result   (when query
                            (some-> (get-command-config :query)
-                                   (apply [cache-query])))
+                                   (apply [query])))
           command-result ((:emit definition) query-result data)]
       (if (get-command-config :process-result)
         (-> (get-command-config :process-result)

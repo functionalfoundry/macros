@@ -37,13 +37,12 @@
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"
                    (s/explain-str (:data-spec definition) data))))
-    (let [cache-query    (some-> definition :cache-query
+    (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
-          query-result   (when cache-query
+          query-result   (when query
                            (some-> (get-command-config :query)
-                                   (apply [cache-query])))
-          command-result ((:emit definition)
-                          query-result data)]
+                                   (apply [query])))
+          command-result ((:emit definition) query-result data)]
       (if (get-command-config :process-result)
         (-> (get-command-config :process-result)
             (apply [command-result]))
@@ -66,16 +65,14 @@
                                (s/explain-str args-spec
                                               [name forms]))))
          description (:description (:forms args))
-         inputs      (:inputs (:forms args))
-         cache-query (when (= 2 (count inputs))
-                       (q/parse (second (first inputs))))
-         query-keys  (some-> cache-query q/map-destructuring-keys)
-         data-spec   (second (last inputs))
+         query       (some-> args :forms :query :form-body q/parse)
+         query-keys  (some-> query q/map-destructuring-keys)
+         data-spec   (some-> args :forms :data-spec :form-body)
          name-sym    (unqualify name)
          forms       (cond-> (:forms (:forms args))
                        true        (conj (:emit (:forms args)))
                        description (conj {:form-name 'description})
-                       cache-query (conj {:form-name 'cache-query})
+                       query       (conj {:form-name 'query})
                        data-spec   (conj {:form-name 'data-spec}))
          form-fns    (->> forms
                           (remove (comp nil? :form-body))
@@ -94,9 +91,9 @@
         ~@form-fns
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
-        ~@(when cache-query
-            `((~'def ~(f/prefixed-form-name 'cache-query name-sym)
-               '~cache-query)))
+        ~@(when query
+            `((~'def ~(f/prefixed-form-name 'query name-sym)
+               '~query)))
         ~@(when data-spec
             `(~(f/make-def name-sym 'data-spec data-spec)))
         ~(f/make-def name-sym 'definition
