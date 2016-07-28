@@ -5,22 +5,22 @@
 
 (deftest minimal-defcommand
   (is (= '(do
-            (defn user-create-implementation
+            (defn user-create-emit
               [query-result data]
               (:foo :bar))
             (def user-create-data-spec
               vector?)
             (def user-create-definition
               {:data-spec pod/user-create-data-spec
-               :implementation pod/user-create-implementation})
+               :emit pod/user-create-emit})
             (workflo.macros.command/register-command!
              'user/create pod/user-create-definition))
          (macroexpand-1 `(defcommand user/create [~'vector?]
-                           ~'(:foo :bar))))))
+                           (~'emit (:foo :bar)))))))
 
 (deftest defcommand-with-cache-query
   (is (= '(do
-            (defn user-update-implementation
+            (defn user-update-emit
               [query-result data]
               (let [{:keys [user/name user/email]} query-result]
                 {:some :data}))
@@ -32,32 +32,32 @@
             (def user-update-definition
               {:data-spec pod/user-update-data-spec
                :cache-query pod/user-update-cache-query
-               :implementation pod/user-update-implementation})
+               :emit pod/user-update-emit})
             (workflo.macros.command/register-command!
              'user/update pod/user-update-definition))
          (macroexpand-1 `(defcommand user/update [~'[user [name email]]
                                                   ~'vector?]
-                           {:some :data})))))
+                           (~'emit {:some :data}))))))
 
 (deftest defcommand-with-forms
   (is (= '(do
             (defn user-update-foo
               [query-result data]
               [:bar])
-            (defn user-update-implementation
+            (defn user-update-emit
               [query-result data]
-              {:implementation :result})
+              {:emit :result})
             (def user-update-data-spec
               vector?)
             (def user-update-definition
               {:foo pod/user-update-foo
-               :implementation pod/user-update-implementation
+               :emit pod/user-update-emit
                :data-spec pod/user-update-data-spec})
             (workflo.macros.command/register-command!
              'user/update pod/user-update-definition))
          (macroexpand-1 `(defcommand user/update [~'vector?]
                            (~'foo [:bar])
-                           {:implementation :result})))))
+                           (~'emit {:emit :result}))))))
 
 (deftest defcommand-with-cache-query-and-forms
   (is (= '(do
@@ -65,7 +65,7 @@
               [query-result data]
               (let [{:keys [db/id]} query-result]
                 [:bar]))
-            (defn user-create-implementation
+            (defn user-create-emit
               [query-result data]
               (let [{:keys [db/id]} query-result]
                 :result))
@@ -75,14 +75,14 @@
               map?)
             (def user-create-definition
               {:foo pod/user-create-foo
-               :implementation pod/user-create-implementation
+               :emit pod/user-create-emit
                :cache-query pod/user-create-cache-query
                :data-spec pod/user-create-data-spec})
             (workflo.macros.command/register-command!
              'user/create pod/user-create-definition))
          (macroexpand-1 `(defcommand user/create [~'[db [id]] ~'map?]
                            (~'foo [:bar])
-                           :result)))))
+                           (~'emit :result))))))
 
 ;;;; Exercise run-command!
 
@@ -93,7 +93,7 @@
 (s/def ::user-create-data
   (s/keys :req-un [::user-name ::user-email]))
 
-;;; Define example query and run implementations
+;;; Define example query and run an example command
 
 (defn example-query
   [query]
@@ -105,7 +105,8 @@
 
 (defcommand user/create
   [[db [id]] ::user-create-data]
-  {:cache {:db-id id}})
+  (emit
+   {:cache {:db-id id}}))
 
 (c/configure-commands!
   {:query example-query

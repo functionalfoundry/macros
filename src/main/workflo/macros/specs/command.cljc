@@ -36,8 +36,9 @@
   (s/spec (s/cat :form-name ::command-form-name
                  :form-body ::command-form-body)))
 
-(s/def ::command-implementation
-  ::s/any)
+(s/def ::command-emit-form
+  (s/spec (s/cat :form-name #{'emit}
+                 :form-body ::command-form-body)))
 
 (s/def ::defcommand-args
   (s/cat :name ::command-name
@@ -45,7 +46,7 @@
          (s/spec (s/cat :description (s/? ::command-description)
                         :inputs ::command-inputs
                         :forms (s/* ::command-form)
-                        :implementation ::command-implementation))
+                        :emit ::command-emit-form))
          :env (s/? ::s/any)))
 
 (s/def ::form-name

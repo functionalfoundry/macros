@@ -186,7 +186,7 @@
 
 (defcommand add-user
   [::user]
-  (do
+  (emit
     (println "add-user" data)
     {:state {(:db/id data) data}
      :location {:screen 'UserSettingsScreen
@@ -194,7 +194,7 @@
 
 (defcommand update-user
   [::user]
-  (do
+  (emit
     (println "update-user" data)
     {:state {(:db/id data) data}}))
 
@@ -205,7 +205,7 @@
 
 (defcommand goto
  [::location]
- (do
+ (emit
    (println "goto" data)
    {:location data}))
 

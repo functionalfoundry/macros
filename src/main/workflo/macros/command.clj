@@ -19,7 +19,7 @@
   ;;
   ;; :process-result - a function that is called after a command has
   ;;                   been executed; it takes the data returned from
-  ;;                   the command implementation and handles it in
+  ;;                   the command emit function and handles it in
   ;;                   whatever way is desirable.
   {:query nil
    :process-result nil})
@@ -42,7 +42,7 @@
           query-result   (when cache-query
                            (some-> (get-command-config :query)
                                    (apply [cache-query])))
-          command-result ((:implementation definition)
+          command-result ((:emit definition)
                           query-result data)]
       (if (get-command-config :process-result)
         (-> (get-command-config :process-result)
@@ -67,15 +67,13 @@
                                               [name forms]))))
          description (:description (:forms args))
          inputs      (:inputs (:forms args))
-         impl        (:implementation (:forms args))
          cache-query (when (= 2 (count inputs))
                        (q/parse (second (first inputs))))
          query-keys  (some-> cache-query q/map-destructuring-keys)
          data-spec   (second (last inputs))
          name-sym    (unqualify name)
          forms       (cond-> (:forms (:forms args))
-                       true        (conj {:form-name 'implementation
-                                          :form-body (list impl)})
+                       true        (conj (:emit (:forms args)))
                        description (conj {:form-name 'description})
                        cache-query (conj {:form-name 'cache-query})
                        data-spec   (conj {:form-name 'data-spec}))

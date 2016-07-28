@@ -39,8 +39,7 @@
           query-result   (when cache-query
                            (some-> (get-command-config :query)
                                    (apply [cache-query])))
-          command-result ((:implementation definition)
-                          query-result data)]
+          command-result ((:emit definition) query-result data)]
       (if (get-command-config :process-result)
         (-> (get-command-config :process-result)
             (apply [command-result]))
