@@ -55,7 +55,7 @@
 
 (defmethod mutate :default
   [env key params]
-  {:action #(c/run-command key params)})
+  {:action #(c/run-command! key params)})
 
 (def parser
   (so/parser {:read read :mutate mutate}))
@@ -185,16 +185,16 @@
                 :user/email]))
 
 (defcommand add-user
-  [::user]
-  (do
+  (data-spec ::user)
+  (emit
     (println "add-user" data)
     {:state {(:db/id data) data}
      :location {:screen 'UserSettingsScreen
                 :params {:user-id (:db/id data)}}}))
 
 (defcommand update-user
-  [::user]
-  (do
+  (data-spec ::user)
+  (emit
     (println "update-user" data)
     {:state {(:db/id data) data}}))
 
@@ -204,8 +204,8 @@
   (s/keys :req-un [::screen ::params]))
 
 (defcommand goto
- [::location]
- (do
+  (data-spec ::location)
+  (emit
    (println "goto" data)
    {:location data}))
 

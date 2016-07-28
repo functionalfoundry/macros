@@ -5,86 +5,91 @@
 
 (deftest minimal-defcommand
   (is (= '(do
-            (defn user-create-implementation
+            (defn user-create-emit
               [query-result data]
               (:foo :bar))
             (def user-create-data-spec
               vector?)
             (def user-create-definition
               {:data-spec pod/user-create-data-spec
-               :implementation pod/user-create-implementation})
+               :emit pod/user-create-emit})
             (workflo.macros.command/register-command!
              'user/create pod/user-create-definition))
-         (macroexpand-1 `(defcommand user/create [~'vector?]
-                           ~'(:foo :bar))))))
+         (macroexpand-1 `(defcommand user/create
+                           (~'data-spec ~'vector?)
+                           (~'emit (:foo :bar)))))))
 
-(deftest defcommand-with-cache-query
+(deftest defcommand-with-query
   (is (= '(do
-            (defn user-update-implementation
+            (defn user-update-emit
               [query-result data]
               (let [{:keys [user/name user/email]} query-result]
                 {:some :data}))
-            (def user-update-cache-query
+            (def user-update-query
               '[{:name user/name :type :property}
                 {:name user/email :type :property}])
             (def user-update-data-spec
               vector?)
             (def user-update-definition
               {:data-spec pod/user-update-data-spec
-               :cache-query pod/user-update-cache-query
-               :implementation pod/user-update-implementation})
+               :query pod/user-update-query
+               :emit pod/user-update-emit})
             (workflo.macros.command/register-command!
              'user/update pod/user-update-definition))
-         (macroexpand-1 `(defcommand user/update [~'[user [name email]]
-                                                  ~'vector?]
-                           {:some :data})))))
+         (macroexpand-1 `(defcommand user/update
+                           (~'query ~'[user [name email]])
+                           (~'data-spec ~'vector?)
+                           (~'emit {:some :data}))))))
 
 (deftest defcommand-with-forms
   (is (= '(do
             (defn user-update-foo
               [query-result data]
               [:bar])
-            (defn user-update-implementation
+            (defn user-update-emit
               [query-result data]
-              {:implementation :result})
+              {:emit :result})
             (def user-update-data-spec
               vector?)
             (def user-update-definition
               {:foo pod/user-update-foo
-               :implementation pod/user-update-implementation
+               :emit pod/user-update-emit
                :data-spec pod/user-update-data-spec})
             (workflo.macros.command/register-command!
              'user/update pod/user-update-definition))
-         (macroexpand-1 `(defcommand user/update [~'vector?]
+         (macroexpand-1 `(defcommand user/update
+                           (~'data-spec ~'vector?)
                            (~'foo [:bar])
-                           {:implementation :result})))))
+                           (~'emit {:emit :result}))))))
 
-(deftest defcommand-with-cache-query-and-forms
+(deftest defcommand-with-query-and-forms
   (is (= '(do
             (defn user-create-foo
               [query-result data]
               (let [{:keys [db/id]} query-result]
                 [:bar]))
-            (defn user-create-implementation
+            (defn user-create-emit
               [query-result data]
               (let [{:keys [db/id]} query-result]
                 :result))
-            (def user-create-cache-query
+            (def user-create-query
               '[{:name db/id :type :property}])
             (def user-create-data-spec
               map?)
             (def user-create-definition
               {:foo pod/user-create-foo
-               :implementation pod/user-create-implementation
-               :cache-query pod/user-create-cache-query
+               :emit pod/user-create-emit
+               :query pod/user-create-query
                :data-spec pod/user-create-data-spec})
             (workflo.macros.command/register-command!
              'user/create pod/user-create-definition))
-         (macroexpand-1 `(defcommand user/create [~'[db [id]] ~'map?]
+         (macroexpand-1 `(defcommand user/create
+                           (~'query ~'[db [id]])
+                           (~'data-spec ~'map?)
                            (~'foo [:bar])
-                           :result)))))
+                           (~'emit :result))))))
 
-;;;; Exercise run-command
+;;;; Exercise run-command!
 
 ;;; Define a spec for the command data
 
@@ -93,23 +98,25 @@
 (s/def ::user-create-data
   (s/keys :req-un [::user-name ::user-email]))
 
-;;; Define example query and run implementations
+;;; Define example query and run emits
 
 (defn example-query
   [query]
   {:db/id 15})
 
-(defn example-process-result
+(defn example-process-emit
   [data]
   data)
 
 (defcommand user/create
-  [[db [id]] ::user-create-data]
-  {:cache {:db-id id}})
+  (query [db [id]])
+  (data-spec ::user-create-data)
+  (emit
+   {:cache {:db-id id}}))
 
 (c/configure-commands!
   {:query example-query
-   :process-result example-process-result})
+   :process-emit example-process-emit})
 
-(c/run-command 'user/create {:user-name "Jeff"
-                             :user-email "jeff@jeff.org"})
+(c/run-command! 'user/create {:user-name "Jeff"
+                              :user-email "jeff@jeff.org"})

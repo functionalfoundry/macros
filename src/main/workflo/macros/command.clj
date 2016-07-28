@@ -17,12 +17,12 @@
   ;;          is used to query a cache for data that the command
   ;;          being executed needs to run.
   ;;
-  ;; :process-result - a function that is called after a command has
-  ;;                   been executed; it takes the data returned from
-  ;;                   the command implementation and handles it in
-  ;;                   whatever way is desirable.
+  ;; :process-emit - a function that is called after a command has
+  ;;                 been executed; it takes the data returned from
+  ;;                 the command emit function and handles it in
+  ;;                 whatever way is desirable.
   {:query nil
-   :process-result nil})
+   :process-emit nil})
 
 ;;;; Command registry
 
@@ -30,22 +30,21 @@
 
 ;;;; Command execution
 
-(defn run-command
+(defn run-command!
   [cmd-name data]
   (let [definition (resolve-command cmd-name)]
     (when (:data-spec definition)
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"
                    (s/explain-str (:data-spec definition) data))))
-    (let [cache-query    (some-> definition :cache-query
+    (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
-          query-result   (when cache-query
+          query-result   (when query
                            (some-> (get-command-config :query)
-                                   (apply [cache-query])))
-          command-result ((:implementation definition)
-                          query-result data)]
-      (if (get-command-config :process-result)
-        (-> (get-command-config :process-result)
+                                   (apply [query])))
+          command-result ((:emit definition) query-result data)]
+      (if (get-command-config :process-emit)
+        (-> (get-command-config :process-emit)
             (apply [command-result]))
         command-result))))
 
@@ -59,22 +58,21 @@
   ([name forms]
    (defcommand* name forms nil))
   ([name forms env]
-   (let [args        (s/conform
-                      :workflo.macros.specs.command/defcommand-args
-                      [name forms])
+   (let [args-spec   :workflo.macros.specs.command/defcommand-args
+         args        (if (s/valid? args-spec [name forms])
+                       (s/conform args-spec [name forms])
+                       (throw (Exception.
+                               (s/explain-str args-spec
+                                              [name forms]))))
          description (:description (:forms args))
-         inputs      (:inputs (:forms args))
-         impl        (:implementation (:forms args))
-         cache-query (when (= 2 (count inputs))
-                       (q/parse (second (first inputs))))
-         query-keys  (some-> cache-query q/map-destructuring-keys)
-         data-spec   (second (last inputs))
+         query       (some-> args :forms :query :form-body q/parse)
+         query-keys  (some-> query q/map-destructuring-keys)
+         data-spec   (some-> args :forms :data-spec :form-body)
          name-sym    (unqualify name)
          forms       (cond-> (:forms (:forms args))
-                       true        (conj {:form-name 'implementation
-                                          :form-body (list impl)})
+                       true        (conj (:emit (:forms args)))
                        description (conj {:form-name 'description})
-                       cache-query (conj {:form-name 'cache-query})
+                       query       (conj {:form-name 'query})
                        data-spec   (conj {:form-name 'data-spec}))
          form-fns    (->> forms
                           (remove (comp nil? :form-body))
@@ -93,9 +91,9 @@
         ~@form-fns
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
-        ~@(when cache-query
-            `((~'def ~(f/prefixed-form-name 'cache-query name-sym)
-               '~cache-query)))
+        ~@(when query
+            `((~'def ~(f/prefixed-form-name 'query name-sym)
+               '~query)))
         ~@(when data-spec
             `(~(f/make-def name-sym 'data-spec data-spec)))
         ~(f/make-def name-sym 'definition
