@@ -14,12 +14,12 @@
   ;;          is used to query a cache for data that the command
   ;;          being executed needs to run.
   ;;
-  ;; :process-result - a function that is called after a command has
-  ;;                   been executed; it takes the data returned from
-  ;;                   the command implementation and handles it in
-  ;;                   whatever way is desirable.
+  ;; :process-emit - a function that is called after a command has
+  ;;                 been executed; it takes the data returned from
+  ;;                 the command implementation and handles it in
+  ;;                 whatever way is desirable.
   {:query nil
-   :process-result nil})
+   :process-emit nil})
 
 ;;;; Command registry
 
@@ -27,21 +27,20 @@
 
 ;;;; Command execution
 
-(defn run-command
+(defn run-command!
   [cmd-name data]
   (let [definition (resolve-command cmd-name)]
     (when (:data-spec definition)
       (assert (s/valid? (:data-spec definition) data)
               (str "Command data is invalid:"
                    (s/explain-str (:data-spec definition) data))))
-    (let [cache-query    (some-> definition :cache-query
+    (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
-          query-result   (when cache-query
+          query-result   (when query
                            (some-> (get-command-config :query)
-                                   (apply [cache-query])))
-          command-result ((:implementation definition)
-                          query-result data)]
-      (if (get-command-config :process-result)
-        (-> (get-command-config :process-result)
+                                   (apply [query])))
+          command-result ((:emit definition) query-result data)]
+      (if (get-command-config :process-emit)
+        (-> (get-command-config :process-emit)
             (apply [command-result]))
         command-result))))
