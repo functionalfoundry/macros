@@ -17,7 +17,8 @@
     #(s/gen #{symbol? map? vector?})))
 
 (s/def ::service-dependencies
-  (s/coll-of symbol? :kind vector?))
+  #?(:cljs (s/and vector? (s/* symbol?))
+     :clj  (s/coll-of symbol? :kind vector?)))
 
 (s/def ::service-form-body
   (s/* ::s/any))

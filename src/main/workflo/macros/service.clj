@@ -99,18 +99,19 @@
           query data-spec process]))
 
 (defn make-service-definition
-  [name args]
+  [service-name args]
   (let [forms              (:forms args)
         query              (some-> forms :query :form-body q/parse)
         start              (some-> forms :start :form-body)
         stop               (some-> forms :stop :form-body)
         process            (some-> forms :process :form-body)
-        ctor-sym           (symbol (str "map->" (record-symbol name)))
+        ctor-sym           (symbol (str "map->" (record-symbol
+                                                 service-name)))
         component-ctor-sym (symbol (str "map->" (component-record-symbol
-                                                 name)))]
-    `(def ~(definition-symbol name)
+                                                 service-name)))]
+    `(def ~(symbol (name (definition-symbol service-name)))
        (~ctor-sym
-        {:name '~name
+        {:name '~service-name
          :description ~(-> forms :description)
          :dependencies '~(-> forms :dependencies :form-body)
          :query '~query

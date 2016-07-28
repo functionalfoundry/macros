@@ -54,7 +54,7 @@
     (let [service-name (symbol (name service-kw))
           component    (try
                          (resolve-service-component service-name)
-                         (catch Exception e
-                           (println "WARN:" (.getMessage e))))]
+                         (catch js/Error e
+                           (println "WARN:" (.-message e))))]
       (some-> component
         (deliver-to-service-component! data)))))
