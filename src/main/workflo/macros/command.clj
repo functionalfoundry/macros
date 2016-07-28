@@ -59,9 +59,12 @@
   ([name forms]
    (defcommand* name forms nil))
   ([name forms env]
-   (let [args        (s/conform
-                      :workflo.macros.specs.command/defcommand-args
-                      [name forms])
+   (let [args-spec   :workflo.macros.specs.command/defcommand-args
+         args        (if (s/valid? args-spec [name forms])
+                       (s/conform args-spec [name forms])
+                       (throw (Exception.
+                               (s/explain-str args-spec
+                                              [name forms]))))
          description (:description (:forms args))
          inputs      (:inputs (:forms args))
          impl        (:implementation (:forms args))
