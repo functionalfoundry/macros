@@ -90,7 +90,8 @@
         ~'this'))
      workflo.macros.service/IService
      (~'process ~'[this query-result data]
-      ((:process ~'service) ~'this ~'query-result ~'data))))
+      (some-> (:process ~'service)
+              (apply [~'this ~'query-result ~'data])))))
 
 (defn make-service-record
   [name args]
@@ -122,12 +123,13 @@
          :stop ~(when stop
                   `(fn [~'this]
                      ~@stop))
-         :process ~(if query
-                     `(fn ~'[this query-result data]
-                        (with-destructured-query ~query ~'query-result
-                          ~@process))
-                     `(fn ~'[this query-result data]
-                        ~@process))
+         :process ~(when process
+                     (if query
+                       `(fn ~'[this query-result data]
+                          (with-destructured-query ~query ~'query-result
+                            ~@process))
+                       `(fn ~'[this query-result data]
+                          ~@process)))
          :component-ctor ~component-ctor-sym}))))
 
 (defn make-register-call
