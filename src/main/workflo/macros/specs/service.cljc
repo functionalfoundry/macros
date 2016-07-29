@@ -56,5 +56,5 @@
                         :data-spec (s/? ::service-data-spec-form)
                         :start (s/? ::service-start-form)
                         :stop (s/? ::service-stop-form)
-                        :process ::service-process-form))
+                        :process (s/? ::service-process-form)))
          :env (s/? ::s/any)))
