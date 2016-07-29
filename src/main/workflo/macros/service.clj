@@ -81,11 +81,11 @@
        ~'[service config redis]
      com.stuartsierra.component/Lifecycle
      (~'start [~'this]
-      (let [~'this' ((:start ~'service) ~'this)]
+      (let [~'this' ((or (:start ~'service) identity) ~'this)]
         (register-service-component! (:name ~'service) ~'this')
         ~'this'))
      (~'stop [~'this]
-      (let [~'this' ((:stop ~'service) ~'this)]
+      (let [~'this' ((or (:stop ~'service) identity) ~'this)]
         (unregister-service-component! (:name ~'service))
         ~'this'))
      workflo.macros.service/IService
