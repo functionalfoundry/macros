@@ -67,7 +67,7 @@
                          (catch Exception e
                            (println "WARN:" (.getMessage e))))]
       (some-> component
-        (deliver-to-service-component! data)))))
+        (deliver-to-service-component! service-data)))))
 
 ;;;; The defservice macro
 

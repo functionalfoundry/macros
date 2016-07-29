@@ -57,4 +57,4 @@
                          (catch js/Error e
                            (println "WARN:" (.-message e))))]
       (some-> component
-        (deliver-to-service-component! data)))))
+        (deliver-to-service-component! service-data)))))
