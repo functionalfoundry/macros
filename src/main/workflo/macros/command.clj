@@ -33,10 +33,10 @@
 (defn run-command!
   [cmd-name data]
   (let [definition (resolve-command cmd-name)]
-    (when (:data-spec definition)
-      (assert (s/valid? (:data-spec definition) data)
+    (when (:spec definition)
+      (assert (s/valid? (:spec definition) data)
               (str "Command data is invalid:"
-                   (s/explain-str (:data-spec definition) data))))
+                   (s/explain-str (:spec definition) data))))
     (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
           query-result   (when query
@@ -67,13 +67,13 @@
          description (:description (:forms args))
          query       (some-> args :forms :query :form-body q/parse)
          query-keys  (some-> query q/map-destructuring-keys)
-         data-spec   (some-> args :forms :data-spec :form-body)
+         spec        (some-> args :forms :spec :form-body)
          name-sym    (unqualify name)
          forms       (cond-> (:forms (:forms args))
                        true        (conj (:emit (:forms args)))
                        description (conj {:form-name 'description})
                        query       (conj {:form-name 'query})
-                       data-spec   (conj {:form-name 'data-spec}))
+                       spec        (conj {:form-name 'spec}))
          form-fns    (->> forms
                           (remove (comp nil? :form-body))
                           (map #(update % :form-name
@@ -94,8 +94,8 @@
         ~@(when query
             `((~'def ~(f/prefixed-form-name 'query name-sym)
                '~query)))
-        ~@(when data-spec
-            `(~(f/make-def name-sym 'data-spec data-spec)))
+        ~@(when spec
+            `(~(f/make-def name-sym 'spec spec)))
         ~(f/make-def name-sym 'definition
            (f/forms-map forms name-sym))
         (register-command! '~name ~def-sym)))))

@@ -30,10 +30,10 @@
 (defn run-command!
   [cmd-name data]
   (let [definition (resolve-command cmd-name)]
-    (when (:data-spec definition)
-      (assert (s/valid? (:data-spec definition) data)
+    (when (:spec definition)
+      (assert (s/valid? (:spec definition) data)
               (str "Command data is invalid:"
-                   (s/explain-str (:data-spec definition) data))))
+                   (s/explain-str (:spec definition) data))))
     (let [query          (some-> definition :query
                                  (q/bind-query-parameters data))
           query-result   (when query
