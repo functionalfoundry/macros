@@ -1,6 +1,6 @@
 # CHANGELOG workflo/macros
 
-## Unreleased
+## 0.2.11
 
 ### Changed
 
