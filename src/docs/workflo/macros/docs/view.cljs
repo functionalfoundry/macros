@@ -50,7 +50,7 @@
 
   ```
   (defview User
-    [user [name email]]
+    (query [user [name email]])
     (key name)
     (ident [:user name])
     (commands [open])
@@ -72,7 +72,7 @@
 
   ```
   (defview UserList
-    [{users User}]
+    (query [{users User}])
     (render
      (header {:text \"First user\"})
      (user (first users))
@@ -84,7 +84,7 @@
   ```")
 
 (defview User
-  [user [name email]]
+  (query [user [name email]])
   (key name)
   (ident [:user name])
   (commands [open])
@@ -96,7 +96,7 @@
     (dom/p nil "Email: " email)))
 
 (defview Header
-  [text]
+  (query [text])
   (key text)
   (render
     (dom/h3 nil text)))
@@ -108,7 +108,7 @@
 (view/configure-views! {:wrapper-view om.dom/article})
 
 (defview UserList
-  [{users User}]
+  (query [{users User}])
   (render
    (header {:text "First user"})
    (user (first users))

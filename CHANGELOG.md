@@ -4,13 +4,36 @@
 
 ### Changed
 
-* `workflo.macros.command/resolve-command` now returns the
-  command definition map instead of its qualified symbol.
+* `defview` now takes an optional `(commands [cmd ...])` form
+  to make arbitrary external commands available in each view
+  function; it comes with a `:run-command` hook that allows
+  to handle these commands; this can then be used to transact
+  Om Next mutations or call arbitrary functions.
+* The syntax and names of forms in the macros was changed
+  in various incompatible ways, e.g. the query and data spec
+  vector in `(defcommand ... [<query> <spec>] ...)` were changed
+  to `(defcommand ... (query ...) (spec ...))` forms.
+* The `:process-result` hook of `defcommand` has been renamed
+  to `:process-emit` and the implementation form of `defcommand`
+  has been moved into `(emit <implementation>)`.
+* The Om Next query generation for ClojureScript was improved
+  and fixed, especially parameterized queries.
 
 ### Added
 
-* `workflo.macros.command/resolve-command-sym` has been added
-  to provide the old functionality of `resolve-command`.
+* `defentity` macro for bundle system entities with
+  schemas/validation specs and authorization.
+* `defscreen` macro for defining screens of ClojureScript
+  apps with URL patterns, navigation information and views
+  for different layout segments.
+* A screen-based router and application layouer that works
+  with Om Next, including a demo app (`screen-app.html`).
+* `defservice` macro to define services that can be used to
+  consume and process data emitted from commands written with
+  `defcommand`. `defservice` generates a com.stuartsierra.component
+  component for each service to allow straight forward integration
+  of services written with `defservice` into systems built using
+  `org.danielsz/system`.
 
 ## 0.2.10
 

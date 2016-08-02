@@ -43,7 +43,7 @@
                             (map (fn [[k v]] [(keyword k) v]))
                             (into {})))
         parameterize (fn [query]
-                       `'(~query ~params))]
+                       `(~'list ~query '~params))]
     (-> (case (:type prop)
           :property kw-name
           :link     [kw-name (if (= '_ (:link-id prop))
@@ -58,7 +58,7 @@
                          (vector? target) (into []
                                                 (map property-query)
                                                 target)
-                         :else `(~'om.next/get-query ~target))}))
+                         :else `(om.next/get-query ~target))}))
         (cond-> params parameterize))))
 
 (s/fdef query

@@ -3,20 +3,23 @@
             [workflo.macros.view :as view :refer-macros [defview]]))
 
 (deftest minimal-view-definition
-  (is (= (macroexpand-1
-          '(defview MinimalView))
-         '(do
-            (om.next/defui MinimalView)
-            (def minimal-view
-              (workflo.macros.view/factory MinimalView {}))
-            (workflo.macros.view/register-view!
-             'MinimalView {:view MinimalView
-                           :factory minimal-view})))))
+  (try
+    (is (= (macroexpand-1
+            '(defview MinimalView))
+           '(do
+              (om.next/defui MinimalView)
+              (def minimal-view
+                (workflo.macros.view/factory MinimalView {}))
+              (workflo.macros.view/register-view!
+               'MinimalView {:view MinimalView
+                             :factory minimal-view}))))
+    (catch js/Object e
+      (println e))))
 
 (deftest view-definition-with-props
   (is (= (macroexpand-1
           '(defview View
-             [user [name email]]
+             (query [user [name email]])
              (key name)))
          '(do
             (om.next/defui View
@@ -35,8 +38,8 @@
 (deftest view-definition-with-computed-props
   (is (= (macroexpand-1
           '(defview View
-             [user [name email]]
-             [on-click]
+             (query [user [name email]])
+             (computed [on-click])
              (key name)))
          '(do
             (om.next/defui View
@@ -56,16 +59,16 @@
 (deftest view-definition-with-implicit-ident-and-keyfn-via-db-id
   (is (= (macroexpand-1
           '(defview View
-             [db [id]]))
+             (query [db [id]])))
          '(do
             (om.next/defui View
-              static om.next/IQuery
-              (query [this]
-                [:db/id])
               static om.next/Ident
               (ident [this props]
                 (let [{:keys [db/id]} props]
-                  [:db/id id])))
+                  [:db/id id]))
+              static om.next/IQuery
+              (query [this]
+                [:db/id]))
             (def view
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
@@ -105,17 +108,17 @@
 (deftest view-definition-with-overriden-ident
   (is (= (macroexpand-1
           '(defview View
-             [db [id] user [name]]
+             (query [db [id] user [name]])
              (ident [:user/by-name name])))
          '(do
             (om.next/defui View
-              static om.next/IQuery
-              (query [this]
-                [:db/id :user/name])
               static om.next/Ident
               (ident [this props]
                 (let [{:keys [db/id user/name]} props]
-                  [:user/by-name name])))
+                  [:user/by-name name]))
+              static om.next/IQuery
+              (query [this]
+                [:db/id :user/name]))
             (def view
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
@@ -127,18 +130,18 @@
 (deftest view-definition-with-raw-function
   (is (= (macroexpand-1
           '(defview View
-             [user [name]]
+             (query [user [name]])
              (.on-click [this]
               (js/alert name))))
          '(do
             (om.next/defui View
-              static om.next/IQuery
-              (query [this]
-                [:user/name])
               Object
               (on-click [this]
                 (let [{:keys [user/name]} (om/props this)]
-                  (js/alert name))))
+                  (js/alert name)))
+              static om.next/IQuery
+              (query [this]
+                [:user/name]))
             (def view
               (workflo.macros.view/factory View {}))
             (workflo.macros.view/register-view!

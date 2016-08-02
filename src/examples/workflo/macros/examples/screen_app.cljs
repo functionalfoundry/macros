@@ -10,6 +10,8 @@
             [workflo.macros.screen :refer-macros [defscreen]]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen.om-next :as so]
+            [workflo.macros.service :as service
+             :refer-macros [defservice]]
             [workflo.macros.view :refer-macros [defview]]))
 
 ;;;; Setup
@@ -68,7 +70,7 @@
 ;;;; Views
 
 (defview UserSettingsView
-  [db [id] user [name email]]
+  (query [db [id] user [name email]])
   (commands [update-user])
   (.update [this attr e]
     (update-user (merge {:db/id id
@@ -87,7 +89,7 @@
                        :onChange #(.update this :user/email %)})))))
 
 (defview UserView
-  [db [id] user [name email]]
+  (query [db [id] user [name email]])
   (commands [goto])
   (render
    (dom/div nil
@@ -101,33 +103,33 @@
          "Settings")))))
 
 (defview UserSettingsTitleView
-  [db [id] user [name]]
+  (query [db [id] user [name]])
   (render
    (dom/h2 nil (str "Settings for " id ": " name))))
 
 (defview UserSettingsTitle
-  [({user UserSettingsTitleView} {db/id ?user-id})]
+  (query [({user UserSettingsTitleView} {db/id ?user-id})])
   (render
    (user-settings-title-view user)))
 
 (defview UserSettings
-  [({user UserSettingsView} {db/id ?user-id})]
+  (query [({user UserSettingsView} {db/id ?user-id})])
   (key (:db/id (:user props)))
   (render
    (user-settings-view user)))
 
 (defview UserTitleView
-  [db [id] user [name]]
+  (query [db [id] user [name]])
   (render
    (dom/h2 nil (str "User " id ": " name))))
 
 (defview UserTitle
-  [({user [user [name]]} {db/id ?user-id})]
+  (query [({user [user [name]]} {db/id ?user-id})])
   (render
    (user-title-view user)))
 
 (defview UserProfile
-  [({user UserView} {db/id ?user-id})]
+  (query [({user UserView} {db/id ?user-id})])
   (render
    (user-view user)))
 
@@ -136,7 +138,7 @@
    (dom/h2 nil "User List")))
 
 (defview UserList
-  [{users UserView}]
+  (query [{users UserView}])
   (commands [add-user])
   (render
    (dom/div nil
@@ -185,7 +187,7 @@
                 :user/email]))
 
 (defcommand add-user
-  (data-spec ::user)
+  (spec ::user)
   (emit
     (println "add-user" data)
     {:state {(:db/id data) data}
@@ -193,7 +195,7 @@
                 :params {:user-id (:db/id data)}}}))
 
 (defcommand update-user
-  (data-spec ::user)
+  (spec ::user)
   (emit
     (println "update-user" data)
     {:state {(:db/id data) data}}))
@@ -204,27 +206,28 @@
   (s/keys :req-un [::screen ::params]))
 
 (defcommand goto
-  (data-spec ::location)
+  (spec ::location)
   (emit
    (println "goto" data)
    {:location data}))
 
-(defn process-command-result
-  [{:keys [state location]}]
-  (when state
-    (d/transact! (om/app-state reconciler) (vals state))
-    (cljs.pprint/pprint (om/app-state reconciler)))
-  (when location
-    (so/goto @application
-             (:screen location)
-             (:params location))))
+;;;; Services
 
-(c/configure-commands! {:process-result process-command-result})
+(defservice state
+  (process
+   (d/transact! (om/app-state reconciler) (vals data))
+   (cljs.pprint/pprint (om/app-state reconciler))))
+
+(defservice location
+  (process
+   (so/goto @application (:screen data) (:params data))))
+
+(c/configure-commands! {:process-emit service/deliver-to-services!})
 
 ;;;;;; Example app
 
 (defview Block
-  [title]
+  (query [title])
   (key title)
   (render
    (dom/div #js {:style #js {:background "#fafafa"
@@ -249,6 +252,8 @@
 ;;;; Bootstrapping
 
 (defn init []
+  (-> 'location service/new-service-component component/start)
+  (-> 'state service/new-service-component component/start)
   (->> (so/application {:reconciler reconciler
                         :target (gdom/getElement "app")
                         :root app

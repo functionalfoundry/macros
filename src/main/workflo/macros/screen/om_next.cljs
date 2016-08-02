@@ -122,7 +122,7 @@
         m))
 
 (defview RootWrapper
-  [{workflo/screen [workflo [forms layout]]}]
+  (query [{workflo/screen [workflo [forms layout]]}])
   (render
    (let [forms      (:workflo/forms screen)
          layout     (realize-layout (:workflo/layout screen))

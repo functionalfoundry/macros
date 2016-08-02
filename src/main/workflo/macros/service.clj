@@ -97,7 +97,7 @@
   [name args]
   `(defrecord ~(record-symbol name)
        ~'[name description dependencies start stop
-          query data-spec process]))
+          query spec process]))
 
 (defn make-service-definition
   [service-name args]
@@ -116,7 +116,7 @@
          :description ~(-> forms :description)
          :dependencies '~(-> forms :dependencies :form-body)
          :query '~query
-         :data-spec ~(some-> forms :data-spec :form-body)
+         :spec ~(some-> forms :spec :form-body)
          :start ~(when start
                    `(fn [~'this]
                       ~@start))
