@@ -209,7 +209,7 @@
    (println "goto" data)
    {:location data}))
 
-(defn process-command-result
+(defn process-emit
   [{:keys [state location]}]
   (when state
     (d/transact! (om/app-state reconciler) (vals state))
@@ -219,7 +219,7 @@
              (:screen location)
              (:params location))))
 
-(c/configure-commands! {:process-result process-command-result})
+(c/configure-commands! {:process-emit process-emit})
 
 ;;;;;; Example app
 
