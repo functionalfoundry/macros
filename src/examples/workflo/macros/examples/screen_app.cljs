@@ -10,6 +10,8 @@
             [workflo.macros.screen :refer-macros [defscreen]]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen.om-next :as so]
+            [workflo.macros.service :as service
+             :refer-macros [defservice]]
             [workflo.macros.view :refer-macros [defview]]))
 
 ;;;; Setup
@@ -209,17 +211,18 @@
    (println "goto" data)
    {:location data}))
 
-(defn process-emit
-  [{:keys [state location]}]
-  (when state
-    (d/transact! (om/app-state reconciler) (vals state))
-    (cljs.pprint/pprint (om/app-state reconciler)))
-  (when location
-    (so/goto @application
-             (:screen location)
-             (:params location))))
+;;;; Services
 
-(c/configure-commands! {:process-emit process-emit})
+(defservice state
+  (process
+   (d/transact! (om/app-state reconciler) (vals data))
+   (cljs.pprint/pprint (om/app-state reconciler))))
+
+(defservice location
+  (process
+   (so/goto @application (:screen data) (:params data))))
+
+(c/configure-commands! {:process-emit service/deliver-to-services!})
 
 ;;;;;; Example app
 
@@ -249,6 +252,8 @@
 ;;;; Bootstrapping
 
 (defn init []
+  (-> 'location service/new-service-component component/start)
+  (-> 'state service/new-service-component component/start)
   (->> (so/application {:reconciler reconciler
                         :target (gdom/getElement "app")
                         :root app
