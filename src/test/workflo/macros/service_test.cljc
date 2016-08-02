@@ -24,7 +24,7 @@
   ;; Email service definition
   (defservice email
     "Email service"
-    (data-spec ::email)
+    (spec ::email)
     (start
       (swap! email-service-info assoc :started? true)
       this)
@@ -39,7 +39,7 @@
 
    ;; Verify that it has all the expected fields
    (is (= "Email service" (:description email)))
-   (is (= ::email (:data-spec email)))
+   (is (= ::email (:spec email)))
    (is (fn? (:start email)))
    (is (fn? (:stop email)))
    (is (fn? (:process email)))

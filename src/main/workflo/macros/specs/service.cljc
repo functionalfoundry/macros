@@ -11,7 +11,7 @@
 (s/def ::service-description
   string?)
 
-(s/def ::service-data-spec
+(s/def ::service-spec
   (s/with-gen
     ::s/any
     #(s/gen #{symbol? map? vector?})))
@@ -31,9 +31,9 @@
   (s/spec (s/cat :form-name #{'query}
                  :form-body :workflo.macros.specs.query/query)))
 
-(s/def ::service-data-spec-form
-  (s/spec (s/cat :form-name #{'data-spec}
-                 :form-body ::service-data-spec)))
+(s/def ::service-spec-form
+  (s/spec (s/cat :form-name #{'spec}
+                 :form-body ::service-spec)))
 
 (s/def ::service-start-form
   (s/spec (s/cat :form-name #{'start}
@@ -53,7 +53,7 @@
          (s/spec (s/cat :description (s/? ::service-description)
                         :dependencies (s/? ::service-dependencies-form)
                         :query (s/? ::service-query-form)
-                        :data-spec (s/? ::service-data-spec-form)
+                        :spec (s/? ::service-spec-form)
                         :start (s/? ::service-start-form)
                         :stop (s/? ::service-stop-form)
                         :process (s/? ::service-process-form)))
