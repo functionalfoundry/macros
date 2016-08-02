@@ -27,39 +27,39 @@
 
 (defn fn-scope
   "Return the scope (:static, :instance, :props) for a view function."
-  [[name & args-and-body]]
-  (let [[scope _ _] (fn-specs name)]
+  [{:keys [form-name]}]
+  (let [[scope _ _] (fn-specs form-name)]
     (or scope :instance)))
 
 (defn fn-protocol
   "Return the scope (e.g. (static om.next/IQuery) for a view function."
-  [[name & args-and-body]]
-  (let [[_ protocol _ :as fn-spec] (fn-specs name)]
+  [{:keys [form-name]}]
+  (let [[_ protocol _ :as fn-spec] (fn-specs form-name)]
     (if fn-spec protocol '(Object))))
 
 (defn fn-args
   "Return the arguments (e.g. [this]) for a view function."
-  [[name & args-and-body]]
-  (let [[_ _ args] (fn-specs name)]
+  [{:keys [form-name]}]
+  (let [[_ _ args] (fn-specs form-name)]
     (or args '[this])))
 
 (defn fn-alias
   "Return the alias for a view function or the name of the
    function itself if no alias is defined."
-  [[name & _]]
-  (or (fn-aliases name) name))
+  [{:keys [form-name]}]
+  (or (fn-aliases form-name) form-name))
 
 (defn resolve-fn-alias
   "Resolve the function alias for a view function."
-  [[name & body :as f]]
+  [f]
   (let [alias (fn-alias f)]
-    `(~alias ~@body)))
+    (assoc f :form-name alias)))
 
 (defn commands-form?
   "Returns true if the input form is a declaration of view
    commands."
-  [[name & body :as f]]
-  (= 'commands name))
+  [{:keys [form-name]}]
+  (= 'commands form-name))
 
 (defn generate-command-fn
   "Generate an anonymous wrapper function to call the
@@ -73,17 +73,14 @@
 (defn generate-ident-fn
   "Generate a (ident ...) function from the props spec."
   [props]
-  (list 'ident '[:db/id id]))
+  {:form-name 'ident
+   :form-body '[[:db/id id]]})
 
 (defn generate-key-fn
   "Generate a (key ...) function from the props spec."
   [props]
-  (list 'key 'id))
-
-(defn generate-query-fn
-  "Generate a (query ...) function from the props spec."
-  [props]
-  (list 'query (om-query/query props)))
+  {:form-name 'key
+   :form-body '[id]})
 
 (defn maybe-generate-ident-fn
   "If the props spec includes a :db/id property, an (ident ...)
@@ -91,7 +88,7 @@
   [props fns]
   (cond-> fns
     (and (some #{'db/id} (map :name props))
-         (not (some #{'ident} (map first fns))))
+         (not (some #{'ident} (map :form-name fns))))
     (conj (generate-ident-fn props))))
 
 (defn maybe-generate-key-fn
@@ -100,38 +97,32 @@
   [props fns]
   (cond-> fns
     (and (some #{'db/id} (map :name props))
-         (not (some #{'keyfn 'key} (map first fns))))
+         (not (some #{'keyfn 'key} (map :form-name fns))))
     (conj (generate-key-fn props))))
 
-(defn maybe-generate-query-fn
-  "If (query ...) is missing from fns, it is generated automatically
-   from the props spec."
-  [props fns]
-  (cond-> fns
-    (and (not (empty? props))
-         (not (some #{'query} (map first fns))))
-    (conj (generate-query-fn props))))
+(defn transform-query-body
+  [f]
+  (update f :form-body
+          (fn [query]
+            [(om-query/query (q/parse query))])))
 
 (defn raw-fn?
   "Returns true if f is a raw function, that is if its name
    starts with a ., indicating that its function signature
    should be left alone."
- [[name & body :as f]]
- (str/starts-with? (str name) "."))
+ [{:keys [form-name]}]
+ (str/starts-with? (str form-name) "."))
 
 (defn inject-fn-args
   "Inject a function argument binding vector into f if it doesn't
    already have one."
-  [[name & body :as f]]
-  (let [args (fn-args f)]
-    (if args
-      `(~name ~args ~@body)
-      `(~name [~'this] ~@body))))
+  [f]
+  (assoc f :form-args (fn-args f)))
 
 (defn maybe-inject-fn-args
   "Inject a function argument binding vector into f unless it
    is a raw function that is assumed to define its own arguments."
-  [[name & body :as f]]
+  [f]
   (cond-> f
     (not (raw-fn? f))
     inject-fn-args))
@@ -139,45 +130,44 @@
 (defn normalize-fn-name
   "Normalize the function name of f. This removes the leading .
    from the names of raw functions."
-  [[name args & body :as f]]
-  (let [name (symbol (cond-> (str name) (raw-fn? f) (subs 1)))]
-    `(~name ~args ~@body)))
+  [{:keys [form-name] :as f}]
+  (assoc f :form-name (symbol (cond-> (str form-name)
+                                (raw-fn? f) (subs 1)))))
 
 (defn wrap-render
   "Wraps the body of the function f in a wrapper view according to
    the :wrapper-view option set via workflo.macros.view/configure!."
-  [[name args & body :as f]]
-  `(~name ~args ((workflo.macros.view/wrapper)
-                  (~'om.next/props ~'this)
-                  ~@body)))
+  [{:keys [form-body] :as f}]
+  (assoc f :form-body
+         `[((workflo.macros.view/wrapper)
+            (~'om.next/props ~'this)
+            ~@form-body)]))
 
 (defn maybe-wrap-render
   "If f is the render function, checks whether it has more than one
    child expression. If so, wraps these children in a wrapper view
    according to the :wrapper-view option set via
    workflo.macros.view/configure!."
-  [[name args & body :as f]]
+  [{:keys [form-name form-body] :as f}]
   (cond-> f
-    (and (= name 'render)
-         (> (count body) 1))
+    (and (= form-name 'render)
+         (> (count form-body) 1))
     wrap-render))
 
 (defn inject-props
-  "Wrap the body of a function of the form (name [args] body)
-   in a let that destructures props and computed props
-   according to the destructuring symbols in props and
-   computed."
-  [[name args & body :as f] props computed command-fns]
+  "Wrap the body of a function in a let expression that
+   destructures props, computed and command-fns."
+  [{:keys [form-body form-args] :as f} props computed command-fns]
   (let [scope (fn-scope f)]
     (if (not= scope :static)
       (let [prop-keys         (q/map-destructuring-keys props)
             computed-keys     (q/map-destructuring-keys computed)
-            this-index        (.indexOf args 'this)
-            props-index       (.indexOf args 'props)
+            this-index        (.indexOf form-args 'this)
+            props-index       (.indexOf form-args 'props)
             actual-props      (if (>= props-index 0)
-                                (args props-index)
+                                (form-args props-index)
                                 (if (not= scope :static)
-                                  `(~'om/props ~(args this-index))
+                                  `(~'om/props ~(form-args this-index))
                                   nil))
             actual-computed   `(~'om/get-computed ~actual-props)
             prop-bindings     (when-not (empty? prop-keys)
@@ -189,22 +179,30 @@
             command-bindings  (when (and (>= this-index 0)
                                          (not (empty? command-fns)))
                                 (apply concat (into [] command-fns)))]
-        (if (or prop-bindings
-                computed-bindings
-                command-bindings)
-          `(~name ~args
-            (~'let [~@prop-bindings
-                    ~@computed-bindings
-                    ~@command-bindings]
-             ~@body))
-          `(~name ~args
-             ~@body)))
+        (cond-> f
+          (or prop-bindings
+              computed-bindings
+              command-bindings)
+          (assoc :form-body
+                 `[(~'let [~@prop-bindings
+                           ~@computed-bindings
+                           ~@command-bindings]
+                    ~@form-body)])))
       f)))
 
 (defn anonymous-fn
   "Make a function f anonymous by replacing its name with fn."
-  [f]
-  (cons 'fn (rest f)))
+  [{:keys [form-args form-body]}]
+  `(~'fn ~form-args ~@form-body))
+
+(defn instance-fn
+  "Make a function to put inside a record or defui expression."
+  [{:keys [form-name form-args form-body]}]
+  `(~form-name ~form-args ~@form-body))
+
+(defn instance-fns
+  [fns]
+  (map instance-fn fns))
 
 (s/fdef defview*
   :args :workflo.macros.specs.view/defview-args
@@ -214,42 +212,50 @@
   ([name forms]
    (defview* name forms nil))
   ([name forms env]
-   (let [prop-queries       (take-while vector? forms)
-         props              (or (some-> (first prop-queries)
-                                        q/conform-and-parse)
-                                [])
-         computed           (or (some-> (second prop-queries)
-                                        q/conform-and-parse)
-                                [])
-         forms              (drop-while vector? forms)
-         commands           (some-> (filter commands-form? forms)
-                                    first second)
-         command-fns        (zipmap commands
-                                    (map generate-command-fn
-                                         commands))
-         fns-with-props     (->> forms
-                                 (remove commands-form?)
-                                 (maybe-generate-ident-fn props)
-                                 (maybe-generate-key-fn props)
-                                 (maybe-generate-query-fn props)
-                                 (map resolve-fn-alias)
-                                 (map maybe-inject-fn-args)
-                                 (map normalize-fn-name)
-                                 (map maybe-wrap-render)
-                                 (map #(inject-props % props computed
-                                                     command-fns)))
-         factory-fns        (filter #(= (fn-scope %) :factory)
-                                    fns-with-props)
-         factory-params     (zipmap (map (comp keyword first)
-                                         factory-fns)
-                                    (map #(anonymous-fn %)
-                                         factory-fns))
-         view-fns           (->> fns-with-props
-                                 (remove #(some #{%} factory-fns))
-                                 (group-by fn-protocol))
-         flat-view-fns      (apply concat (interleave (keys view-fns)
-                                                      (vals view-fns)))
-         factory-name       (symbol (camel->kebab (str name)))]
+   (let [args-spec      :workflo.macros.specs.view/defview-args
+         args           (if (s/valid? args-spec [name forms])
+                          (s/conform args-spec [name forms])
+                          (throw (Exception.
+                                  (s/explain-str args-spec
+                                                 [name forms]))))
+         forms          (:forms args)
+         props          (or (some-> forms :query :form-body q/parse)
+                            [])
+         computed       (or (some-> forms :computed :form-body q/parse)
+                            [])
+         commands       (some-> (filter commands-form? (:forms forms))
+                                first :form-args)
+         command-fns    (zipmap commands
+                                (map generate-command-fn
+                                     commands))
+         fns-with-props (->> (cond-> (vec (:forms forms))
+                               (:query forms)
+                               (conj (transform-query-body
+                                      (:query forms))))
+                             (remove commands-form?)
+                             (maybe-generate-ident-fn props)
+                             (maybe-generate-key-fn props)
+                             (map resolve-fn-alias)
+                             (map maybe-inject-fn-args)
+                             (map normalize-fn-name)
+                             (map maybe-wrap-render)
+                             (map #(inject-props % props computed
+                                                 command-fns)))
+         factory-fns    (filter #(= (fn-scope %) :factory)
+                                fns-with-props)
+         factory-params (zipmap (map (comp keyword :form-name)
+                                     factory-fns)
+                                (map #(anonymous-fn %)
+                                     factory-fns))
+         view-fns       (->> fns-with-props
+                             (remove #(some #{%} factory-fns))
+                             (group-by fn-protocol))
+         flat-view-fns  (let [fns (zipmap (keys view-fns)
+                                          (map instance-fns
+                                               (vals view-fns)))]
+                          (apply concat (interleave (keys fns)
+                                                    (vals fns))))
+         factory-name   (symbol (camel->kebab (str name)))]
      `(do
         (om.next/defui ~name
           ~@flat-view-fns)

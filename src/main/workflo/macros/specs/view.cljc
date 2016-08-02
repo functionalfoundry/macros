@@ -11,13 +11,25 @@
     util/capitalized-symbol?
     #(s/gen '#{Foo Bar FooBar})))
 
+(s/def ::view-form-args
+  #?(:cljs (s/and vector? (s/+ symbol?))
+     :clj  (s/coll-of symbol? :kind vector? :min-count 1)))
+
 (s/def ::view-form
-  #?(:cljs seq?
-     :clj  (s/coll-of ::s/any :kind seq?)))
+  (s/spec (s/cat :form-name symbol?
+                 :form-args (s/? ::view-form-args)
+                 :form-body (s/* ::s/any))))
+
+(s/def ::view-query-form
+  (s/spec (s/cat :form-name #{'query}
+                 :form-body :workflo.macros.specs.query/query)))
+
+(s/def ::view-computed-form
+  (s/spec (s/cat :form-name #{'computed}
+                 :form-body :workflo.macros.specs.query/query)))
 
 (s/def ::defview-args
   (s/cat :name ::view-name
-         :forms
-         (s/spec (s/cat :props (s/? :workflo.macros.specs.query/query)
-                        :computed (s/? :workflo.macros.specs.query/query)
-                        :forms (s/* ::view-form)))))
+         :forms (s/spec (s/cat :query (s/? ::view-query-form)
+                               :computed (s/? ::view-computed-form)
+                               :forms (s/* ::view-form)))))

@@ -68,7 +68,7 @@
 ;;;; Views
 
 (defview UserSettingsView
-  [db [id] user [name email]]
+  (query [db [id] user [name email]])
   (commands [update-user])
   (.update [this attr e]
     (update-user (merge {:db/id id
@@ -87,7 +87,7 @@
                        :onChange #(.update this :user/email %)})))))
 
 (defview UserView
-  [db [id] user [name email]]
+  (query [db [id] user [name email]])
   (commands [goto])
   (render
    (dom/div nil
@@ -101,33 +101,33 @@
          "Settings")))))
 
 (defview UserSettingsTitleView
-  [db [id] user [name]]
+  (query [db [id] user [name]])
   (render
    (dom/h2 nil (str "Settings for " id ": " name))))
 
 (defview UserSettingsTitle
-  [({user UserSettingsTitleView} {db/id ?user-id})]
+  (query [({user UserSettingsTitleView} {db/id ?user-id})])
   (render
    (user-settings-title-view user)))
 
 (defview UserSettings
-  [({user UserSettingsView} {db/id ?user-id})]
+  (query [({user UserSettingsView} {db/id ?user-id})])
   (key (:db/id (:user props)))
   (render
    (user-settings-view user)))
 
 (defview UserTitleView
-  [db [id] user [name]]
+  (query [db [id] user [name]])
   (render
    (dom/h2 nil (str "User " id ": " name))))
 
 (defview UserTitle
-  [({user [user [name]]} {db/id ?user-id})]
+  (query [({user [user [name]]} {db/id ?user-id})])
   (render
    (user-title-view user)))
 
 (defview UserProfile
-  [({user UserView} {db/id ?user-id})]
+  (query [({user UserView} {db/id ?user-id})])
   (render
    (user-view user)))
 
@@ -136,7 +136,7 @@
    (dom/h2 nil "User List")))
 
 (defview UserList
-  [{users UserView}]
+  (query [{users UserView}])
   (commands [add-user])
   (render
    (dom/div nil
@@ -224,7 +224,7 @@
 ;;;;;; Example app
 
 (defview Block
-  [title]
+  (query [title])
   (key title)
   (render
    (dom/div #js {:style #js {:background "#fafafa"
