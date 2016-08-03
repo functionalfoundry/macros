@@ -4,7 +4,7 @@
 (defn sym->var-string
   "Converts a ClojureScript symbol to a JS variable string."
   [sym]
-  (-> sym
+  (-> (str sym)
       (string/replace #"/" ".")
       (string/replace #"-" "_")))
 

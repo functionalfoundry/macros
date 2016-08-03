@@ -23,9 +23,12 @@
            (doseq [v (s/speced-vars)]
              (println "  Testing" v)
              (when-not
-                 (some #{v} [#'workflo.macros.query/parse-subquery
-                             #'workflo.macros.query/parse
-                             #'workflo.macros.util.form/forms-map])
+                 (some #{v}
+                       [#'workflo.macros.query/parse-subquery
+                        #'workflo.macros.query/parse
+                        #'workflo.macros.query.om-next/query
+                        #'workflo.macros.query.om-next/property-query
+                        #'workflo.macros.util.form/forms-map])
                (let [result (st/check-var v :num-tests 10 :max-size 10)]
                  (println "  >" result)
                  (and (is (map? result))
