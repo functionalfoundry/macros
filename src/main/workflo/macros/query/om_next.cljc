@@ -2,6 +2,7 @@
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
             [clojure.walk :refer [keywordize-keys]]
+            #?(:cljs [workflo.macros.util.js :refer [resolve]])
             [workflo.macros.specs.om-query]
             [workflo.macros.specs.parsed-query]))
 
@@ -43,7 +44,8 @@
                             (map (fn [[k v]] [(keyword k) v]))
                             (into {})))
         parameterize (fn [query]
-                       `(~'list ~query '~params))]
+                       #?(:cljs `(~query ~params)
+                          :clj  `(list ~query '~params)))]
     (-> (case (:type prop)
           :property kw-name
           :link     [kw-name (if (= '_ (:link-id prop))
@@ -58,7 +60,11 @@
                          (vector? target) (into []
                                                 (map property-query)
                                                 target)
-                         :else `(om.next/get-query ~target))}))
+                         :else
+                         #?(:cljs (om.next/get-query (cond-> target
+                                                       (symbol? target)
+                                                       resolve))
+                            :clj `(om.next/get-query ~target)))}))
         (cond-> params parameterize))))
 
 (s/fdef query

@@ -134,19 +134,30 @@
                   q/conform-and-parse om/query)
               [:foo/bar :foo/baz :ruux]))))
 
+#?(:cljs
+   (om.next/defui User
+     static om.next/IQuery
+     (query [this]
+            [:user/name :user/email])))
+
 (deftest queries-with-joins
-  (and (is (= (-> '[{foo User}]
+  (and (is (= (-> '[{foo workflo.macros.query-test/User}]
                   q/conform-and-parse om/query)
-              '[{:foo (om.next/get-query User)}]))
+              #?(:cljs '[{:foo [:user/name :user/email]}]
+                 :clj '[{:foo (om.next/get-query
+                               workflo.macros.query-test/User)}])))
        (is (= (-> '[{foo ...}]
                   q/conform-and-parse om/query)
               '[{:foo '...}]))
        (is (= (-> '[{foo 17}]
                   q/conform-and-parse om/query)
               '[{:foo 17}]))
-       (is (= (-> '[foo [{bar User}]]
+       (is (= (-> '[foo [{bar workflo.macros.query-test/User}]]
                   q/conform-and-parse om/query)
-              '[{:foo/bar (om.next/get-query User)}]))))
+              #?(:cljs '[{:foo/bar [:user/name :user/email]}]
+                 :clj  '[{:foo/bar
+                          (om.next/get-query
+                           workflo.macros.query-test/User)}])))))
 
 (deftest queries-with-links
   (and (is (= (-> '[[current-user _]]
@@ -164,6 +175,16 @@
        (is (= (-> '[user [name [friend 123]]]
                   q/conform-and-parse om/query)
               '[:user/name [:user/friend 123]]))))
+
+(deftest queries-with-parameterization
+  (and (is (= (-> '[({user workflo.macros.query-test/User} {id ?id})]
+                  q/conform-and-parse om/query)
+              #?(:cljs '[({:user [:user/name :user/email]}
+                          {:id ?id})]
+                 :clj  '[(clojure.core/list
+                          {:user (om.next/get-query
+                                  workflo.macros.query-test/User)}
+                          '{:id ?id})])))))
 
 ;;;; Map destructuring
 

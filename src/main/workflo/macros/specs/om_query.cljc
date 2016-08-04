@@ -37,7 +37,7 @@
   (s/map-of ::keyword ::s/any))
 
 (s/def ::parameterized-property
-  (s/spec (s/cat :list #{'list}
+  (s/spec (s/cat :list #{'clojure.core/list}
                  :property ::regular-property
                  :parameters
                  (s/spec (s/cat :quote #{'quote}
