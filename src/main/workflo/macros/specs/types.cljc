@@ -1,5 +1,5 @@
 (ns workflo.macros.specs.types
-  (:refer-clojure :exclude [bigdec? double? float?])
+  (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
   (:require #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])))
 
@@ -31,6 +31,10 @@
   #?(:cljs (float? x)
      :clj  (clojure.core/bigdec? x)))
 
+(defn bytes? [x]
+  #?(:cljs (array? x)
+     :clj  (clojure.core/bytes? x)))
+
 ;;;; Fundamental types
 
 (s/def ::keyword keyword?)
@@ -43,17 +47,27 @@
 (s/def ::bigdec bigdec?)
 (s/def ::instant inst?)
 (s/def ::uuid uuid?)
-(s/def ::uri uri?)
-;;(s/def ::bytes ::TODO)
-;;(s/def ::enum ::TODO)
+(s/def ::bytes bytes?)
+
+;; TODO What is a URI in ClojureScript? In Clojure there is
+;; java.net.URI and a clojure.core/uri? predicate.
+;; (s/def ::uri ::TODO)
+
+;; TODO How do we specify allowed enum values?
+;; (s/def ::enum ::TODO)
+
+;;;; Entity IDs
+
+;; TODO How do we specify different formats for IDs for
+;; DataScript / Datomic / Redis when we at the same time
+;; want to transfer entity data from one to the other?
+;; Will we need to pass all data through a transformation
+;; function that converts IDs (and other things, potentially)?
+(s/def ::id ::s/any)
 
 ;;;; Reference types
 
-;; ref
-;; ref-many
-
-;;;; Type options
-
-(defn add-options
-  [spec-k & kvs]
-  (apply (partial vary-meta (s/get-spec spec-k) assoc) kvs))
+(s/def ::ref ::id)
+(s/def ::ref-many
+  #?(:cljs (s/and vector? (s/* ::id))
+     :clj  (s/coll-of ::id :kind vector?)))
