@@ -41,7 +41,7 @@
                :schema pod/macros-user-schema}))
          (macroexpand-1 `(defentity macros/user
                            ~'(auth [foo bar]
-                             (println foo bar))
+                               (println foo bar))
                            ~'(schema map?))))))
 
 (deftest defentity-with-auth-and-validation
@@ -62,7 +62,7 @@
                :schema pod/macros-user-schema}))
          (macroexpand-1 `(defentity macros/user
                            ~'(auth [foo bar]
-                                   (println foo bar))
+                               (println foo bar))
                            ~'(validation
                                (s/keys :req-un [::foo ::bar]))
                            ~'(schema map?))))))
