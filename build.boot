@@ -15,7 +15,9 @@
 
                  ;; Library dependencies
                  [bidi "2.0.9"]
+                 [com.datomic/datomic-free "0.9.5390" :scope "test"]
                  [com.stuartsierra/component "0.3.1"]
+                 [datomic-schema "1.3.0"]
                  [inflections "0.12.2"]
                  [org.clojure/clojure "1.9.0-alpha8"]
                  [org.clojure/clojurescript "1.9.93"]
