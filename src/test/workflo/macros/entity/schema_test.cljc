@@ -37,6 +37,7 @@
 
 (s/def :db/id :workflo.macros.specs.types/id)
 (s/def :user/email (s/and :workflo.macros.specs.types/string
+                          :workflo.macros.specs.types/unique-value
                           #(> (count %) 5)))
 (s/def :user/name :workflo.macros.specs.types/string)
 (s/def :user/bio :workflo.macros.specs.types/string)
@@ -50,7 +51,7 @@
   (let [entity (resolve-entity 'user)]
     (and (is (not (nil? entity)))
          (is (= {:db/id []
-                 :user/email [:string]
+                 :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
@@ -65,7 +66,7 @@
   (let [entity (resolve-entity 'user-with-extended-spec)]
     (and (is (not (nil? entity)))
          (is (= {:db/id []
-                 :user/email [:string]
+                 :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
@@ -74,7 +75,7 @@
   (let [entity (resolve-entity 'user-with-extended-spec)]
     (and (is (not (nil? entity)))
          (is (= {:db/id []
-                 :user/email [:string]
+                 :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
