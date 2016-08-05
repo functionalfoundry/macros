@@ -36,7 +36,8 @@
           #(> (count %) 5))))
 
 (s/def :db/id :workflo.macros.specs.types/id)
-(s/def :user/email :workflo.macros.specs.types/string)
+(s/def :user/email (s/and :workflo.macros.specs.types/string
+                          #(> (count %) 5)))
 (s/def :user/name :workflo.macros.specs.types/string)
 (s/def :user/bio :workflo.macros.specs.types/string)
 
@@ -77,3 +78,10 @@
                  :user/name [:string]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
+
+(deftest matching-entity-schemas
+  (and (let [pattern #"^(url|ui)\/.*"]
+         (is (= {:url/selected-user []
+                 :ui/search-text [:string]
+                 :ui/search-text-with-extended-spec [:string]}
+                (schema/matching-entity-schemas pattern))))))
