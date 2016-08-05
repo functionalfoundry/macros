@@ -71,3 +71,12 @@
 (s/def ::ref-many
   #?(:cljs (s/and vector? (s/* ::id))
      :clj  (s/coll-of ::id :kind vector?)))
+
+;;;; Type options
+
+(s/def ::unique-value ::s/any)
+(s/def ::unique-identity ::s/any)
+(s/def ::indexed ::s/any)
+(s/def ::fulltext ::s/any)
+;; (s/def ::component ::s/any) - how do component attributes work?
+(s/def ::no-history ::s/any)
