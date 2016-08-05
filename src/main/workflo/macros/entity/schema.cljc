@@ -22,14 +22,34 @@
 (defn type-spec-schema
   [spec]
   (case spec
+    ;; Types
     :workflo.macros.specs.types/id []
     :workflo.macros.specs.types/string [:string]
-    :workflo.macros.specs.types/boolean [:boolean]))
+    :workflo.macros.specs.types/boolean [:boolean]
+    :workflo.macros.specs.types/long [:long]
+    :workflo.macros.specs.types/bigint [:bigint]
+    :workflo.macros.specs.types/float [:float]
+    :workflo.macros.specs.types/double [:double]
+    :workflo.macros.specs.types/bigdec [:bigdec]
+    :workflo.macros.specs.types/instant [:instant]
+    :workflo.macros.specs.types/uuid [:uuid]
+    :workflo.macros.specs.types/bytes [:bytes]
+    :workflo.macros.specs.types/enum [:enum]
+    :workflo.macros.specs.types/ref [:ref]
+    :workflo.macros.specs.types/ref-many [:ref :many]
+
+    ;; Type options
+    :workflo.macros.specs.types/unique-value [:unique-value]
+    :workflo.macros.specs.types/unique-identity [:unique-identity]
+    :workflo.macros.specs.types/indexed [:indexed]
+    :workflo.macros.specs.types/fulltext [:fulltext]
+    :workflo.macros.specs.types/no-history [:nohistory]))
 
 (defn and-spec-schema
   [spec]
-  (let [type-spec (first (filter type-spec? spec))]
-    (type-spec-schema type-spec)))
+  (let [type-specs (filter type-spec? spec)
+        schemas    (map type-spec-schema type-specs)]
+    (apply concat schemas)))
 
 (defn value-spec-schema
   [spec]
@@ -51,9 +71,10 @@
   (zipmap (keys kspecs)
           (mapv value-spec-schema (vals kspecs))))
 
-(defn type-entity-spec-schema
-  [entity spec]
-  {(keyword (:name entity)) (type-spec-schema spec)})
+(defn types-entity-spec-schema
+  [entity type-specs]
+  {(keyword (:name entity))
+   (apply concat (map type-spec-schema type-specs))})
 
 (defn keys-entity-spec-schema
   [entity spec]
@@ -67,18 +88,18 @@
 
 (defn and-entity-spec-schema
   [entity spec]
-  (let [sub-spec (or (first (filter keys-spec? spec))
-                     (first (filter type-spec? spec)))]
-    (cond->> sub-spec
-      (type-spec? sub-spec) (type-entity-spec-schema entity)
-      (keys-spec? sub-spec) (keys-entity-spec-schema entity))))
+  (let [keys-spec  (first (filter keys-spec? spec))
+        type-specs (filter type-spec? spec)]
+    (cond
+      keys-spec  (keys-entity-spec-schema entity keys-spec)
+      type-specs (types-entity-spec-schema entity type-specs))))
 
 (defn entity-spec-schema
   [entity spec]
-  (cond->> spec
-    (type-spec? spec) (type-entity-spec-schema entity)
-    (and-spec? spec) (and-entity-spec-schema entity)
-    (keys-spec? spec) (keys-entity-spec-schema entity)))
+  (cond
+    (type-spec? spec) (types-entity-spec-schema entity [spec])
+    (and-spec? spec)  (and-entity-spec-schema entity spec)
+    (keys-spec? spec) (keys-entity-spec-schema entity spec)))
 
 ;;;; Schemas from entities
 
