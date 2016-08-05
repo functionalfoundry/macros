@@ -4,7 +4,20 @@
             [workflo.macros.entity :as e]
             [workflo.macros.specs.entity]))
 
-;;;; Schemas from type specs
+;;;; Helpers
+
+(defn val-after
+  [coll x]
+  (loop [coll coll]
+    (if (= x (first coll))
+      (first (rest coll))
+      (recur (rest coll)))))
+
+(defn type-spec? [spec] (keyword? spec))
+(defn and-spec? [spec] (and (seq? spec) (= 'and (first spec))))
+(defn keys-spec? [spec] (and (seq? spec) (= 'keys (first spec))))
+
+;;;; Schemas from value or type specs
 
 (defn type-spec-schema
   [spec]
@@ -13,18 +26,21 @@
     :workflo.macros.specs.types/string [:string]
     :workflo.macros.specs.types/boolean [:boolean]))
 
-;;;; Schemas from value specs
+(defn and-spec-schema
+  [spec]
+  (let [type-spec (first (filter type-spec? spec))]
+    (type-spec-schema type-spec)))
 
-(defmulti value-spec-schema (fn [[tag spec]] tag))
+(defn value-spec-schema
+  [spec]
+  (let [desc (cond-> spec
+               (not (type-spec? spec))
+               s/describe)]
+    (cond->> desc
+      (type-spec? desc) (type-spec-schema)
+      (and-spec? desc) (and-spec-schema))))
 
-(defmethod value-spec-schema :and
-  [[_ spec]])
-
-(defmethod value-spec-schema :simple
-  [[_ spec]]
-  (type-spec-schema spec))
-
-;;;; Schemas from entity specs
+;;;;;; Schemas from entity specs
 
 (defn key-specs
   [keys]
@@ -33,30 +49,50 @@
 (defn key-schemas
   [kspecs]
   (zipmap (keys kspecs)
-          (mapv type-spec-schema (vals kspecs))))
+          (mapv value-spec-schema (vals kspecs))))
 
-(defmulti entity-spec-schema (fn [entity [tag spec]] tag))
+(defn type-entity-spec-schema
+  [entity spec]
+  {(keyword (:name entity)) (type-spec-schema spec)})
 
-(defmethod entity-spec-schema :and
-  [entity [_ spec]]
-  (entity-spec-schema entity (:spec spec)))
-
-(defmethod entity-spec-schema :keys
-  [entity [_ spec]]
-  (let [req-key-schemas (-> (or (:keys (:required spec)) [])
+(defn keys-entity-spec-schema
+  [entity spec]
+  (let [req-key-schemas (-> (or (val-after spec :req) [])
                             (key-specs)
                             (key-schemas))
-        opt-key-schemas (-> (or (:keys (:optional spec)) [])
+        opt-key-schemas (-> (or (val-after spec :opt) [])
                             (key-specs)
                             (key-schemas))]
     (merge req-key-schemas opt-key-schemas)))
 
-(defmethod entity-spec-schema :value
-  [entity [_ spec]]
-  {(keyword (:name entity)) (value-spec-schema spec)})
+(defn and-entity-spec-schema
+  [entity spec]
+  (let [sub-spec (or (first (filter keys-spec? spec))
+                     (first (filter type-spec? spec)))]
+    (cond->> sub-spec
+      (type-spec? sub-spec) (type-entity-spec-schema entity)
+      (keys-spec? sub-spec) (keys-entity-spec-schema entity))))
+
+(defn entity-spec-schema
+  [entity spec]
+  (cond->> spec
+    (type-spec? spec) (type-entity-spec-schema entity)
+    (and-spec? spec) (and-entity-spec-schema entity)
+    (keys-spec? spec) (keys-entity-spec-schema entity)))
 
 ;;;; Schemas from entities
 
 (defn entity-schema
   [entity]
-  (entity-spec-schema entity (:conforming-spec entity)))
+  (let [desc (cond-> (:spec entity)
+               (not (type-spec? (:spec entity)))
+               s/describe)]
+    (entity-spec-schema entity desc)))
+
+(defn matching-entity-schemas
+  [name-pattern]
+  (->> (e/registered-entities)
+       (vals)
+       (filter #(->> % :name str (re-matches name-pattern)))
+       (map entity-schema)
+       (apply merge)))
