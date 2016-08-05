@@ -54,7 +54,7 @@
 ;; (s/def ::uri ::TODO)
 
 ;; TODO How do we specify allowed enum values?
-;; (s/def ::enum ::TODO)
+(s/def ::enum ::s/any)
 
 ;;;; Entity IDs
 
