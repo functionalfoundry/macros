@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.12
+
+## Fixed
+
+* Fixed Om Next query generation, particularly in
+  ClojureScript.
+
 ## 0.2.11
 
 ### Changed
