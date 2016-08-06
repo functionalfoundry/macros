@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.13
+
+## Changed
+
+* Allow arbitrary parameters to be passed to view commands,
+  not just maps.
+
 ## 0.2.12
 
 ## Fixed

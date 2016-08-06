@@ -35,7 +35,7 @@
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def version "0.2.12")
+(def version "0.2.13")
 
 (bootlaces! version :dont-modify-paths? true)
 
