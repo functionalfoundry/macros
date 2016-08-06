@@ -11,7 +11,8 @@
    with a mutation and queries that correspond 1:1 to the
    command, its parameters and the optional reads."
   [cmd-name view params reads]
-  (om/transact! view `[(~cmd-name ~params) ~@(or reads [])]))
+  (om/transact! view `[(~cmd-name ~{:cmd-params params})
+                       ~@(or reads [])]))
 
 (defconfig view
   ;; Supports the following options:

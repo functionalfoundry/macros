@@ -56,8 +56,8 @@
               (select-keys query))})
 
 (defmethod mutate :default
-  [env key params]
-  {:action #(c/run-command! key params)})
+  [env key {:keys [cmd-params]}]
+  {:action #(c/run-command! key cmd-params)})
 
 (def parser
   (so/parser {:read read :mutate mutate}))
