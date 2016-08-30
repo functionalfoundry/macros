@@ -50,7 +50,7 @@
   [spec]
   (let [type-specs (filter type-spec? spec)
         schemas    (map type-spec-schema type-specs)]
-    (apply concat schemas)))
+    (into [] (apply concat schemas))))
 
 (defn value-spec-schema
   [spec]
