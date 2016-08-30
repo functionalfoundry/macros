@@ -1,7 +1,7 @@
 #!/usr/bin/env boot
 
 (set-env!
- :resource-paths #{"resources" "src/main" "src/docs" "src/examples"}
+ :resource-paths #{"resources" "src/main" "src/docs"}
  :dependencies '[;; Boot setup
                  [adzerk/boot-cljs "1.7.228-1"]
                  [adzerk/boot-reload "0.4.12"]
@@ -58,6 +58,11 @@
             :license {"MIT License"
                       "https://opensource.org/licenses/MIT"}})
 
+(deftask developing
+  []
+  (merge-env! :source-paths #{"src/examples"})
+  identity)
+
 (deftask build-dev
   []
   (comp
@@ -76,6 +81,7 @@
 (deftask dev
   []
   (comp
+    (developing)
     (watch)
     (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)
