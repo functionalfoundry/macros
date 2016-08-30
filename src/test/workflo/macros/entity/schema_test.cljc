@@ -81,8 +81,7 @@
                 (schema/entity-schema entity))))))
 
 (deftest matching-entity-schemas
-  (and (let [pattern #"^(url|ui)\/.*"]
-         (is (= {:url/selected-user []
-                 :ui/search-text [:string]
-                 :ui/search-text-with-extended-spec [:string]}
-                (schema/matching-entity-schemas pattern))))))
+  (is (= {:url/selected-user []
+          :ui/search-text [:string]
+          :ui/search-text-with-extended-spec [:string]}
+         (schema/matching-entity-schemas #"^(url|ui)/.*"))))
