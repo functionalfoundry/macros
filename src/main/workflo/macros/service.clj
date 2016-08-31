@@ -78,7 +78,7 @@
 (defn make-service-component
   [name args]
   `(defrecord ~(component-record-symbol name)
-       ~'[service config redis]
+       ~'[service config]
      com.stuartsierra.component/Lifecycle
      (~'start [~'this]
       (let [~'this' ((or (:start ~'service) identity) ~'this)]
