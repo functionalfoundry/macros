@@ -85,3 +85,13 @@
           :ui/search-text [:string]
           :ui/search-text-with-extended-spec [:string]}
          (schema/matching-entity-schemas #"^(url|ui)/.*"))))
+
+(deftest required-keys
+  (and (is (= [] (-> 'url/selected-user resolve-entity
+                     schema/required-keys)))
+       (is (= [] (-> 'ui/search-text resolve-entity
+                     schema/required-keys)))
+       (is (= [] (-> 'ui/search-text-with-extended-spec
+                     resolve-entity schema/required-keys)))
+       (is (= [:db/id :user/name :user/email]
+              (-> 'user resolve-entity schema/required-keys)))))

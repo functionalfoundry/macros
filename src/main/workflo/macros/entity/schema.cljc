@@ -118,3 +118,29 @@
        (filter #(->> % :name str (re-matches name-pattern)))
        (map entity-schema)
        (apply merge)))
+
+;;;; Utilities
+
+(defn required-keys-spec-keys
+  [entity spec]
+  (val-after spec :req))
+
+(defn required-and-spec-keys
+  [entity spec]
+  (let [keys-spec (first (filter keys-spec? spec))]
+    (when keys-spec
+      (required-keys-spec-keys entity keys-spec))))
+
+(defn required-spec-keys
+  [entity spec]
+  (cond
+    (type-spec? spec) []
+    (and-spec? spec)  (or (required-and-spec-keys entity spec) [])
+    (keys-spec? spec) (or (required-keys-spec-keys entity spec) [])))
+
+(defn required-keys
+  [entity]
+  (let [desc (cond-> (:spec entity)
+               (not (type-spec? (:spec entity)))
+               s/describe)]
+    (required-spec-keys entity desc)))
