@@ -12,8 +12,10 @@
     #(s/gen '#{Foo Bar FooBar})))
 
 (s/def ::view-form-args
-  #?(:cljs (s/and vector? (s/+ symbol?))
-     :clj  (s/coll-of symbol? :kind vector? :min-count 1)))
+  (s/with-gen
+    #?(:cljs (s/and vector? (s/+ symbol?))
+       :clj  (s/coll-of symbol? :kind vector? :min-count 1))
+    #(s/gen '#{[this] [props] [this props]})))
 
 (s/def ::view-form
   (s/spec (s/cat :form-name symbol?
