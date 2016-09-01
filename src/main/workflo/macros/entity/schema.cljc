@@ -11,7 +11,8 @@
   (loop [coll coll]
     (if (= x (first coll))
       (first (rest coll))
-      (recur (rest coll)))))
+      (when (not (empty? (rest coll)))
+        (recur (rest coll))))))
 
 (defn type-spec? [spec] (keyword? spec))
 (defn and-spec? [spec] (and (seq? spec) (= 'and (first spec))))
