@@ -40,11 +40,13 @@
                           :workflo.macros.specs.types/unique-value
                           #(> (count %) 5)))
 (s/def :user/name :workflo.macros.specs.types/string)
+(s/def :user/role (s/and :workflo.macros.specs.types/enum
+                         #{:user :admin :owner}))
 (s/def :user/bio :workflo.macros.specs.types/string)
 
 (defentity user
   (spec
-   (s/keys :req [:db/id :user/name :user/email]
+   (s/keys :req [:db/id :user/name :user/email :user/role]
            :opt [:user/bio])))
 
 (deftest entity-with-keys-spec
@@ -53,12 +55,13 @@
          (is (= {:db/id []
                  :user/email [:string :unique-value]
                  :user/name [:string]
+                 :user/role [:enum [:admin :user :owner]]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
 
 (defentity user-with-extended-spec
   (spec
-   (s/and (s/keys :req [:db/id :user/name :user/email]
+   (s/and (s/keys :req [:db/id :user/name :user/email :user/role]
                   :opt [:user/bio])
           #(> (count (:user/name %)) 5))))
 
@@ -68,6 +71,7 @@
          (is (= {:db/id []
                  :user/email [:string :unique-value]
                  :user/name [:string]
+                 :user/role [:enum [:admin :user :owner]]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
 
@@ -77,6 +81,7 @@
          (is (= {:db/id []
                  :user/email [:string :unique-value]
                  :user/name [:string]
+                 :user/role [:enum [:admin :user :owner]]
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
 
@@ -93,5 +98,5 @@
                      schema/required-keys)))
        (is (= [] (-> 'ui/search-text-with-extended-spec
                      resolve-entity schema/required-keys)))
-       (is (= [:db/id :user/name :user/email]
+       (is (= [:db/id :user/name :user/email :user/role]
               (-> 'user resolve-entity schema/required-keys)))))

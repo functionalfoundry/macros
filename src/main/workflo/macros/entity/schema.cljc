@@ -1,5 +1,6 @@
 (ns workflo.macros.entity.schema
-  (:require #?(:cljs [cljs.spec :as s]
+  (:require [clojure.set :refer [intersection]]
+            #?(:cljs [cljs.spec :as s]
                :clj  [clojure.spec :as s])
             [workflo.macros.entity :as e]
             [workflo.macros.specs.entity]))
@@ -17,6 +18,7 @@
 (defn type-spec? [spec] (keyword? spec))
 (defn and-spec? [spec] (and (seq? spec) (= 'and (first spec))))
 (defn keys-spec? [spec] (and (seq? spec) (= 'keys (first spec))))
+(defn enum-spec? [spec] (= :workflo.macros.specs.types/enum spec))
 
 ;;;; Schemas from value or type specs
 
@@ -48,11 +50,24 @@
     :workflo.macros.specs.types/no-history [:nohistory]
     :workflo.macros.specs.types/component [:component]))
 
+(defn enum-values-from-and-spec
+  [spec]
+  (let [set-specs (filter set? spec)]
+    (when-not (empty? set-specs)
+      (->> set-specs
+           (apply intersection)
+           (into [])))))
+
 (defn and-spec-schema
   [spec]
-  (let [type-specs (filter type-spec? spec)
-        schemas    (map type-spec-schema type-specs)]
-    (into [] (apply concat schemas))))
+  (let [type-specs  (filter type-spec? spec)
+        schemas     (->> (map type-spec-schema type-specs)
+                         (apply concat)
+                         (into []))
+        enum-values (when (some enum-spec? type-specs)
+                      (enum-values-from-and-spec spec))]
+    (cond-> schemas
+      enum-values (conj enum-values))))
 
 (defn value-spec-schema
   [spec]
@@ -75,9 +90,15 @@
           (mapv value-spec-schema (vals kspecs))))
 
 (defn types-entity-spec-schema
-  [entity type-specs]
-  {(keyword (:name entity))
-   (apply concat (map type-spec-schema type-specs))})
+  ([entity type-specs]
+   (types-entity-spec-schema entity type-specs nil))
+  ([entity type-specs enum-values]
+   {(keyword (:name entity))
+    (cond-> (->> type-specs
+                 (map type-spec-schema)
+                 (apply concat)
+                 (into []))
+      enum-values (conj enum-values))}))
 
 (defn keys-entity-spec-schema
   [entity spec]
@@ -92,10 +113,13 @@
 (defn and-entity-spec-schema
   [entity spec]
   (let [keys-spec  (first (filter keys-spec? spec))
-        type-specs (filter type-spec? spec)]
+        type-specs (filter type-spec? spec)
+        enum-values (when (some enum-spec? type-specs)
+                      (enum-values-from-and-spec spec))]
     (cond
       keys-spec  (keys-entity-spec-schema entity keys-spec)
-      type-specs (types-entity-spec-schema entity type-specs))))
+      type-specs (types-entity-spec-schema entity type-specs
+                                           enum-values))))
 
 (defn entity-spec-schema
   [entity spec]
