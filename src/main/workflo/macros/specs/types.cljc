@@ -50,17 +50,8 @@
 (s/def ::bytes bytes?)
 (s/def ::enum keyword?)
 
-;; TODO What is a URI in ClojureScript? In Clojure there is
-;; java.net.URI and a clojure.core/uri? predicate.
-;; (s/def ::uri ::TODO)
-
 ;;;; Entity IDs
 
-;; TODO How do we specify different formats for IDs for
-;; DataScript / Datomic / Redis when we at the same time
-;; want to transfer entity data from one to the other?
-;; Will we need to pass all data through a transformation
-;; function that converts IDs (and other things, potentially)?
 (s/def ::id ::s/any)
 
 ;;;; Reference types
