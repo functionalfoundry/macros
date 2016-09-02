@@ -48,13 +48,11 @@
 (s/def ::instant inst?)
 (s/def ::uuid uuid?)
 (s/def ::bytes bytes?)
+(s/def ::enum keyword?)
 
 ;; TODO What is a URI in ClojureScript? In Clojure there is
 ;; java.net.URI and a clojure.core/uri? predicate.
 ;; (s/def ::uri ::TODO)
-
-;; TODO How do we specify allowed enum values?
-(s/def ::enum ::s/any)
 
 ;;;; Entity IDs
 
