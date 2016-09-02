@@ -45,7 +45,8 @@
     :workflo.macros.specs.types/unique-identity [:unique-identity]
     :workflo.macros.specs.types/indexed [:indexed]
     :workflo.macros.specs.types/fulltext [:fulltext]
-    :workflo.macros.specs.types/no-history [:nohistory]))
+    :workflo.macros.specs.types/no-history [:nohistory]
+    :workflo.macros.specs.types/component [:component]))
 
 (defn and-spec-schema
   [spec]

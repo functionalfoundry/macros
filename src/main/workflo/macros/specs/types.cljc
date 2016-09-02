@@ -78,5 +78,5 @@
 (s/def ::unique-identity ::s/any)
 (s/def ::indexed ::s/any)
 (s/def ::fulltext ::s/any)
-;; (s/def ::component ::s/any) - how do component attributes work?
+(s/def ::component ::s/any)
 (s/def ::no-history ::s/any)
