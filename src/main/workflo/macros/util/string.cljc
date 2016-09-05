@@ -3,14 +3,18 @@
                :clj  [clojure.spec :as s])
             [clojure.string :as string]))
 
+(s/fdef camel->kebab
+  :args (s/cat :s string?)
+  :ret string?)
+
 (defn camel->kebab
   "Converts from camel case (e.g. Foo or FooBar) to kebab case
    (e.g. foo or foo-bar)."
   [s]
-  (->> s
-       (re-seq #"[A-Z][a-z0-9_-]*")
-       (string/join "-")
-       (string/lower-case)))
+  (let [segments (re-seq #"[A-Z][a-z0-9_-]*" s)]
+    (cond
+      segments (->> segments (string/join "-") (string/lower-case))
+      :else    s)))
 
 (s/fdef kebab->camel
   :args (s/cat :s string?)
