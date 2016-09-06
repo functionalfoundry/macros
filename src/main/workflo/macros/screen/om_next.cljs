@@ -151,9 +151,9 @@
                                        [])})
                         (:layout screen))}]}]]
     (set-active-screen! screen params)
-    (om/set-query! c {:params params :query query})
     (some-> app :config :screen-mounted
-            (apply [app screen params]))))
+            (apply [app screen params]))
+    (om/set-query! c {:params params :query query})))
 
 ;;;; Application bootstrapping
 
