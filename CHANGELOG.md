@@ -1,15 +1,51 @@
 # CHANGELOG workflo/macros
 
+## 0.2.14
+
+### Added
+
+* Add support for typed URL segments in screens, with the help of Bidi.
+* Add `(spec ...)` form to `defentity`.
+* Add specs for various fundamental types for entities and entity
+  keys in `workflo.macros.specs.types`.
+* Add specs for type options (mostly for Datomic) in
+  `workflo.macros.specs.types`.
+* Add functions to extract schemas from entities in
+  `workflo.macros.entity.schema`.
+* Add Datomic schema generation from entities in
+  `workflo.macros.entity.datomic`.
+* Add DataScript schema generation from entities in
+  `workflo.macros.entity.datascript`.
+
+### Changed
+
+* Only include examples when developing, not when running the
+  tests. This ensures specs from examples and tests don't clash.
+* Generate the initial :screen-mounted call before updating the
+  root component query.
+
+### Removed
+
+* Remove `(validation ...)` form in `defentity`.
+* Remove `(schema ...)` form in `defentity`.
+
+### Fixed
+
+* Fix invalid namespace forms in `workflo.macros.config` and
+  `workflo.macros.registry`.
+* Fix generator of `:workflo.macros.specs.view/view-form-args`
+  spec to always generate valid view form arguments.
+
 ## 0.2.13
 
-## Changed
+### Changed
 
 * Allow arbitrary parameters to be passed to view commands,
   not just maps.
 
 ## 0.2.12
 
-## Fixed
+### Fixed
 
 * Fixed Om Next query generation, particularly in
   ClojureScript.
