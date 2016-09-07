@@ -68,15 +68,26 @@
         :link ::link
         :join ::join))
 
+(s/def ::aliased-property
+  (s/cat :property ::property
+         :alias (s/cat :as #{:as}
+                       :alias ::property-name)))
+
+(s/def ::property-or-aliased-property
+  (s/alt :property ::property
+         :aliased-property ::aliased-property))
+
 (s/def ::property-group
-  (s/coll-of ::property :kind vector? :min-count 1))
+  (s/coll-of ::property-or-aliased-property
+             :kind vector? :min-count 1
+             :gen-max 5))
 
 (s/def ::nested-properties
   (s/cat :base ::property-name
          :children ::property-group))
 
 (s/def ::regular-query
-  (s/alt :property ::property
+  (s/alt :property ::property-or-aliased-property
          :nested-properties ::nested-properties))
 
 (s/def ::parameter-name
