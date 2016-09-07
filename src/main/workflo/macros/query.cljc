@@ -75,7 +75,9 @@
        {:name current-user :type :link :link-id _}.
 
    Each of these may in addition contain an optional :parameters
-   key with a {symbol ?variable}-style map."
+   key with a {symbol ?variable}-style map and an :alias key
+   with a symbol to use when destructuring instead of the
+   original name."
   [[type query :as subquery]]
   (case type
     :regular-query       (parse-subquery query)
@@ -90,6 +92,12 @@
                                 (apply concat)
                                 (mapv (partial prefix-child-name base))))
     :property            (parse-subquery query)
+    :aliased-property    (let [parsed (parse-subquery (:property query))]
+                           (assert (= 1 (count parsed)))
+                           (mapv (fn [prop]
+                                   (assoc prop :alias
+                                          (:alias (:alias query))))
+                                 parsed))
     :simple              [{:name query :type :property}]
     :link                (let [[name link-id] query]
                            [{:name name :type :link :link-id link-id}])
@@ -141,12 +149,12 @@
 (defn conform-and-parse
   "Conforms and parses a query expression like
 
-       [user [name email {friends User}] [current-user _]]
+       [user [name :as nm email {friends User}] [current-user _]]
 
    into a flat vector of parsed properties with the following
    structure:
 
-       [{:name user/name :type :property}
+       [{:name user/name :type :property :alias nm}
         {:name user/email :type :property}
         {:name user/friends :type :join :join-target User}
         {:name current-user :type :link :link-id _}].
@@ -171,7 +179,6 @@
    properties specification."
   [props]
   (into [] (map :name) props))
-
 
 (s/fdef bind-query-parameters
   :args (s/cat :query :workflo.macros.specs.parsed-query/query
