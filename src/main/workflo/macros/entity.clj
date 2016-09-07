@@ -45,29 +45,15 @@
 
 (defn validate
   [entity-or-name data]
-  (letfn [(validate* [[spec-name spec] data]
-            (or (s/valid? spec data)
-                (throw (Exception.
-                        (format "%s failed: %s"
-                                (string/capitalize (name spec-name))
-                                (s/explain-str spec data))))))]
-    (let [entity (cond-> entity-or-name
-                   (symbol? entity-or-name)
-                   resolve-entity)]
-      (->> [:schema :validation]
-           (select-keys entity)
-           (map #(validate* % data))
-           (every? true?)))))
-
-;;;; Convenience accessors
-
-(defn validation
-  [entity]
-  (:validation entity))
-
-(defn schema
-  [entity]
-  (:schema entity))
+  (let [entity (cond-> entity-or-name
+                 (symbol? entity-or-name)
+                 resolve-entity)
+        spec   (:spec entity)]
+    (or (s/valid? spec data)
+        (throw (Exception.
+                (format "Validation of %s entity data failed: %s"
+                        (:name entity)
+                        (s/explain-str spec data)))))))
 
 ;;;; The defentity macro
 
@@ -90,34 +76,35 @@
          auth-query      (some-> (:auth-query auth) q/parse)
          query-keys      (some-> auth-query q/map-destructuring-keys)
          validation      (:validation (:forms args))
-         schema          (:schema (:forms args))
+         spec            (:form-body (:spec (:forms args)))
          name-sym        (unqualify name)
          forms           (-> (:forms args)
-                             (select-keys [:auth :validation :schema])
+                             (select-keys [:auth :spec])
                              (vals)
                              (cond->
+                               true        (conj {:form-name 'name})
                                description (conj {:form-name
                                                   'description})
                                auth-query  (conj {:form-name
                                                   'auth-query})))
          def-sym         (f/qualified-form-name 'definition name-sym)]
-     (register-entity! name def-sym)
      `(do
+        ~(f/make-def name-sym 'name `'~name)
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
         ~@(when auth
             `(~(f/make-defn name-sym 'auth [{:keys query-keys}]
-                (:form-body auth))))
+                 (:form-body auth))))
         ~@(when auth-query
             `((~'def ~(f/prefixed-form-name 'auth-query name-sym)
                '~auth-query)))
         ~@(when validation
             `(~(f/make-def name-sym 'validation
-                (:form-body validation))))
-        ~@(when schema
-            `(~(f/make-def name-sym 'schema (:form-body schema))))
+                 (:form-body validation))))
+        ~(f/make-def name-sym 'spec spec)
         ~(f/make-def name-sym 'definition
-          (f/forms-map forms name-sym))))))
+           (f/forms-map forms name-sym))
+        (register-entity! '~name ~def-sym)))))
 
 (defmacro defentity
   [name & forms]

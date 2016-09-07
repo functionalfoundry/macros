@@ -1,7 +1,7 @@
 #!/usr/bin/env boot
 
 (set-env!
- :resource-paths #{"resources" "src/main" "src/docs" "src/examples"}
+ :resource-paths #{"resources" "src/main" "src/docs"}
  :dependencies '[;; Boot setup
                  [adzerk/boot-cljs "1.7.228-1"]
                  [adzerk/boot-reload "0.4.12"]
@@ -15,7 +15,9 @@
 
                  ;; Library dependencies
                  [bidi "2.0.9"]
+                 [com.datomic/datomic-free "0.9.5390" :scope "test"]
                  [com.stuartsierra/component "0.3.1"]
+                 [datomic-schema "1.3.0"]
                  [inflections "0.12.2"]
                  [org.clojure/clojure "1.9.0-alpha8"]
                  [org.clojure/clojurescript "1.9.93"]
@@ -56,6 +58,11 @@
             :license {"MIT License"
                       "https://opensource.org/licenses/MIT"}})
 
+(deftask developing
+  []
+  (merge-env! :source-paths #{"src/examples"})
+  identity)
+
 (deftask build-dev
   []
   (comp
@@ -74,6 +81,7 @@
 (deftask dev
   []
   (comp
+    (developing)
     (watch)
     (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)

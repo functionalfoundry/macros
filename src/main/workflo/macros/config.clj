@@ -1,6 +1,6 @@
 (ns workflo.macros.config
-  (require [clojure.spec :as s]
-           [inflections.core :refer [plural]]))
+  (:require [clojure.spec :as s]
+            [inflections.core :refer [plural]]))
 
 (s/def ::defconfig-args
   (s/cat :name symbol?
