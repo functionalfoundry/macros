@@ -69,8 +69,35 @@
         :link   ::link
         :join   ::join))
 
-(s/def ::property
+(s/def ::regular-property
   (s/tuple #{:property} ::property-value))
+
+(s/def :alias/property
+  ::property-value)
+
+(s/def :alias-info/as
+  #{:as})
+
+(s/def :alias-info/alias
+  :workflo.macros.specs.query/property-name)
+
+(s/def :alias/alias
+  (s/keys :req-un [:alias-info/as
+                   :alias-info/alias]))
+
+(s/def ::aliased-property-value
+  (s/keys :req-un [:alias/property
+                   :alias/alias]))
+
+(s/def ::aliased-property
+  (s/tuple #{:aliased-property} ::aliased-property-value))
+
+(s/def ::property-or-aliased-property
+  (s/or :property ::regular-property
+        :aliased-property ::aliased-property))
+
+(s/def ::property
+  (s/tuple #{:property} ::property-or-aliased-property))
 
 ;;;; Nested properties
 
