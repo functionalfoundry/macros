@@ -24,10 +24,7 @@
        (= \? (first (str x)))))
 
 (s/def ::path
-  #?(:cljs (s/with-gen
-             (s/and vector? (s/* ::var))
-             #(gen/vector (s/gen ::var) 0 10))
-     :clj  (s/coll-of ::var :kind vector?)))
+  (s/coll-of ::var :kind vector? :min-count 0 :gen-max 10))
 
 (s/fdef path?
   :args (s/cat :x any?)
