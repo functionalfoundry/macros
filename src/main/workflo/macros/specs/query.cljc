@@ -78,9 +78,18 @@
          :aliased-property ::aliased-property))
 
 (s/def ::property-group
-  (s/coll-of ::property-or-aliased-property
-             :kind vector? :min-count 1
-             :gen-max 5))
+  (s/with-gen
+    (s/coll-of ::property-or-aliased-property
+               :kind vector? :min-count 1
+               :gen-max 5)
+    #(gen/fmap (fn [ps]
+                 (reduce (fn [res p]
+                           (if (sequential? p)
+                             (into res p)
+                             (conj res p)))
+                         [] ps))
+               (gen/vector
+                (s/gen ::property-or-aliased-property) 1 5))))
 
 (s/def ::nested-properties
   (s/cat :base ::property-name
