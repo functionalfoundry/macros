@@ -1,6 +1,5 @@
 (ns workflo.macros.util.string
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             [clojure.string :as string]))
 
 (s/fdef camel->kebab

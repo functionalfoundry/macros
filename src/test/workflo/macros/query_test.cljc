@@ -1,6 +1,5 @@
 (ns workflo.macros.query-test
-  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
+  (:require [clojure.test :refer [deftest is]]
             [workflo.macros.query :as q]
             [workflo.macros.query.om-next :as om]))
 

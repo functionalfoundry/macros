@@ -1,7 +1,6 @@
 (ns workflo.macros.entity.schema
   (:require [clojure.set :refer [intersection]]
-            #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+            [clojure.spec :as s]
             [workflo.macros.entity :as e]
             [workflo.macros.specs.entity]))
 
