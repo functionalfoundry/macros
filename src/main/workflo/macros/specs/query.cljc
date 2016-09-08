@@ -74,8 +74,8 @@
                        :alias ::property-name)))
 
 (s/def ::property-or-aliased-property
-  (s/alt :property ::property
-         :aliased-property ::aliased-property))
+  (s/or :property ::property
+        :aliased-property ::aliased-property))
 
 (s/def ::property-group
   (s/with-gen
