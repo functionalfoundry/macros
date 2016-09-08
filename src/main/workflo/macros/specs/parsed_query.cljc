@@ -30,10 +30,10 @@
 (s/def ::join-target
   (s/with-gen
     (s/or :model :workflo.macros.specs.query/model-name
-          :recursion :workflo.macros.specs.query/recursion
+          :recursion :workflo.macros.specs.query/join-recursion
           :properties ::query)
     #(gen/one-of [(s/gen :workflo.macros.specs.query/model-name)
-                  (s/gen :workflo.macros.specs.query/recursion)
+                  (s/gen :workflo.macros.specs.query/join-recursion)
                   (s/gen '#{[{:type :property :name name}]
                             [{:type :property :name name}
                              {:type :property :name email}]
@@ -45,23 +45,26 @@
 (s/def ::parameters
   :workflo.macros.specs.query/parameters)
 
+(s/def ::alias
+  :workflo.macros.specs.query/property-name)
+
 (s/def ::property
   (s/keys :req-un [:property/type ::name]
-          :opt-un [::parameters]))
+          :opt-un [::parameters ::alias]))
 
 (s/def ::unparameterized-property
   (s/keys :req-un [:property/type ::name]))
 
 (s/def ::link
   (s/keys :req-un [:link/type ::name ::link-id]
-          :opt-un [::parameters]))
+          :opt-un [::parameters ::alias]))
 
 (s/def ::unparameterized-link
   (s/keys :req-un [:link/type ::name ::link-id]))
 
 (s/def ::join
   (s/keys :req-un [:join/type ::name ::join-source ::join-target]
-          :opt-un [::parameters]))
+          :opt-un [::parameters ::alias]))
 
 (defmulti  typed-property-spec :type)
 
