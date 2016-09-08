@@ -19,8 +19,8 @@
                  [com.stuartsierra/component "0.3.1"]
                  [datomic-schema "1.3.0"]
                  [inflections "0.12.2"]
-                 [org.clojure/clojure "1.9.0-alpha8"]
-                 [org.clojure/clojurescript "1.9.93"]
+                 [org.clojure/clojure "1.9.0-alpha11"]
+                 [org.clojure/clojurescript "1.9.229"]
                  [org.omcljs/om "1.0.0-alpha40"]
                  [org.clojure/data.json "0.2.6"]
 
