@@ -1,6 +1,5 @@
 (ns workflo.macros.query.om-next
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             [clojure.walk :refer [keywordize-keys]]
             #?(:cljs [workflo.macros.util.js :refer [resolve]])
             [workflo.macros.specs.om-query]

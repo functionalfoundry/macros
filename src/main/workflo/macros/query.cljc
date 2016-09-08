@@ -1,7 +1,5 @@
 (ns workflo.macros.query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.spec.impl.gen :as gen])
+  (:require [clojure.spec :as s]
             [workflo.macros.query.bind :as bind]
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.conforming-query]

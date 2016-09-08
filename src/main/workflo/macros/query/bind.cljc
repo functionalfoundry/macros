@@ -1,7 +1,6 @@
 (ns workflo.macros.query.bind
   (:refer-clojure :exclude [resolve var?])
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.specs.parsed-query]))

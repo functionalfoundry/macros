@@ -1,8 +1,6 @@
 (ns workflo.macros.query.util
-  (:require #?(:cljs [cljs.pprint :refer [pprint]]
-               :clj  [clojure.pprint :refer [pprint]])
-            #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.pprint :refer [pprint]]
+            [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.string :refer [capitalize]]))

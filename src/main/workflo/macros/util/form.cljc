@@ -1,6 +1,5 @@
 (ns workflo.macros.util.form
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.util.symbol]))

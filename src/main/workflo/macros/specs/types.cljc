@@ -1,7 +1,6 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])))
+  (:require [clojure.spec :as s]))
 
 ;;;; Helpers
 

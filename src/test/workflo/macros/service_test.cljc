@@ -1,15 +1,8 @@
 (ns workflo.macros.service-test
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
+  (:require [clojure.spec :as s]
+            [clojure.test :refer [deftest is]]
             [com.stuartsierra.component :as component]
-            #?(:cljs [workflo.macros.service
-                      :as service
-                      :refer-macros [defservice]]
-               :clj  [workflo.macros.service
-                      :as service
-                      :refer [defservice]])))
+            [workflo.macros.service :as service :refer [defservice]]))
 
 (deftest a-simple-service
   ;; Specs for email data

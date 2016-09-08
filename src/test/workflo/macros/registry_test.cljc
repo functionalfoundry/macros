@@ -1,10 +1,6 @@
 (ns workflo.macros.registry-test
-  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
-            #?(:cljs [workflo.macros.registry
-                      :refer-macros [defregistry]]
-               :clj  [workflo.macros.registry
-                      :refer [defregistry]])))
+  (:require [clojure.test :refer [deftest is]]
+            [workflo.macros.registry :refer [defregistry]]))
 
 (deftest defregistry-defines-all-expected-functions
   (defregistry view)

@@ -1,7 +1,6 @@
 (ns workflo.macros.spec-test
   (:require [clojure.string :as string]
-            #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
+            [clojure.test :refer [deftest is]]
             [clojure.spec :as s]
             [clojure.spec.test :as st]
             [workflo.macros.entity]
@@ -19,7 +18,8 @@
             [workflo.macros.view]))
 
 (def check-opts
-  {:clojure.spec.test.check/opts {:num-tests 10}})
+  {:clojure.spec.test.check/opts {:num-tests 10
+                                  :max-size 10}})
 
 (defn workflo-sym? [sym]
   (string/starts-with? (str sym) "workflo.macros."))

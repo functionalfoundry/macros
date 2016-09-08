@@ -1,10 +1,6 @@
 (ns workflo.macros.config-test
-  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
-            #?(:cljs [workflo.macros.config
-                      :refer-macros [defconfig]]
-               :clj  [workflo.macros.config
-                      :refer [defconfig]])))
+  (:require [clojure.test :refer [deftest is]]
+            [workflo.macros.config :refer [defconfig]]))
 
 (deftest defconfig-defines-all-expected-functions
   (defconfig view {})
