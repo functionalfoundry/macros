@@ -111,9 +111,7 @@
                                               vector
                                               conform-and-parse
                                               first)
-                             :join-target
-                             #?(:cljs target
-                                :clj  (second target))}])
+                             :join-target (second target)}])
     :properties-join     (let [[name target] (first query)]
                            [{:name (cond-> name (vector? name) first)
                              :type :join
@@ -121,9 +119,7 @@
                                               vector
                                               conform-and-parse
                                               first)
-                             :join-target
-                             #?(:cljs (conform-and-parse target)
-                                :clj  (parse target))}])
+                             :join-target (parse target)}])
     (if (vector? type)
       (parse subquery)
       (parse-subquery type))))

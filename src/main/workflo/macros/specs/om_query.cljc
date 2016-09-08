@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.om-query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.util :as util]))
@@ -34,7 +33,7 @@
         :join ::join))
 
 (s/def ::parameters
-  (s/map-of ::keyword ::s/any))
+  (s/map-of ::keyword any?))
 
 (s/def ::parameterized-property
   (s/spec (s/cat :list #{'clojure.core/list}
@@ -48,6 +47,6 @@
         :parameterized ::parameterized-property))
 
 (s/def ::query
-  (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property) 1 10)))
+  (s/coll-of ::property
+             :kind? vector? :min-count 1
+             :gen-max 10))

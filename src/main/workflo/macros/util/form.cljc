@@ -38,7 +38,7 @@
   :workflo.macros.util.symbol/unqualified-symbol)
 
 (s/def ::form-body
-  ::s/any)
+  any?)
 
 (s/def ::form-args
   vector?)
@@ -89,7 +89,7 @@
   :args (s/cat :form ::conforming-form)
   :ret  (s/cat :defn #{'defn}
                :name :workflo.macros.util.symbol/unqualified-symbol
-               :body (s/* ::s/any)))
+               :body (s/* any?)))
 
 (defn form->defn
   [form]

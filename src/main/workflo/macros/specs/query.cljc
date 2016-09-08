@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.util :as util]))
@@ -18,7 +17,7 @@
 ;;;; Links
 
 (s/def ::link-id
-  ::s/any)
+  any?)
 
 (s/def ::link
   (s/tuple ::property-name ::link-id))
@@ -35,12 +34,7 @@
     #(s/gen '#{User UserList Feature})))
 
 (s/def ::model-join
-  (s/with-gen
-    (s/and (s/map-of ::join-property ::model-name)
-           util/one-item?)
-    #(gen/map (s/gen ::join-property)
-              (s/gen ::model-name)
-              {:num-elements 1})))
+  (s/map-of ::join-property ::model-name :count 1))
 
 (s/def ::unlimited-recursion
   #{'... ''...})
@@ -53,17 +47,11 @@
         :limited ::limited-recursion))
 
 (s/def ::recursive-join
-  (s/with-gen
-    (s/and (s/map-of ::join-property ::recursion)
-           util/one-item?)
-    #(gen/map (s/gen ::join-property)
-              (s/gen ::recursion)
-              {:num-elements 1})))
+  (s/map-of ::join-property ::recursion :count 1))
 
 (s/def ::properties-join
   (s/with-gen
-    (s/and (s/map-of ::join-property ::query)
-           util/one-item?)
+    (s/map-of ::join-property ::query :count 1)
     #(gen/map (s/gen ::join-property)
               (s/gen '#{[user] [user [id name email]]})
               {:num-elements 1})))
@@ -81,9 +69,7 @@
         :join ::join))
 
 (s/def ::property-group
-  (s/with-gen
-    (s/and vector? (s/+ ::property))
-    #(gen/vector (s/gen ::property) 1 5)))
+  (s/coll-of ::property :kind vector? :min-count 1))
 
 (s/def ::nested-properties
   (s/cat :base ::property-name
@@ -98,15 +84,12 @@
 
 (s/def ::parameter-value
   (s/with-gen
-    ::s/any
+    any?
     gen/simple-type))
 
 (s/def ::parameters
-  (s/with-gen
-    (s/map-of ::parameter-name ::parameter-value)
-    #(gen/map (s/gen ::parameter-name)
-              (s/gen ::parameter-value)
-              {:max-elements 5})))
+  (s/map-of ::parameter-name ::parameter-value
+            :gen-max 5))
 
 (s/def ::parameterized-query
   (s/with-gen

@@ -15,7 +15,7 @@
                (s/gen symbol?))))
 
 (s/fdef var?
-  :args (s/cat :x ::s/any)
+  :args (s/cat :x any?)
   :ret  boolean?
   :fn   #(= (:ret %) (s/valid? ::var (-> % :args :x))))
 
@@ -31,7 +31,7 @@
      :clj  (s/coll-of ::var :kind vector?)))
 
 (s/fdef path?
-  :args (s/cat :x ::s/any)
+  :args (s/cat :x any?)
   :ret  boolean?
   :fn   #(= (:ret %) (s/valid? ::path (-> % :args :x))))
 
@@ -41,8 +41,8 @@
        (every? var? x)))
 
 (s/fdef denamespace
-  :args (s/cat :x ::s/any)
-  :ret  ::s/any
+  :args (s/cat :x any?)
+  :ret  any?
   :fn   (s/or :unnamed #(= (-> % :ret) (-> % :args :x))
               :symbol  (s/and #(symbol? (-> % :args :x))
                               #(= (-> % :ret)
@@ -58,8 +58,8 @@
     (symbol? x)  ((comp symbol name))))
 
 (s/fdef denamespace-keys
-  :args (s/cat :m (s/map-of ::s/any ::s/any))
-  :ret  (s/map-of ::s/any ::s/any)
+  :args (s/cat :m (s/map-of any? any?))
+  :ret  (s/map-of any? any?)
   :fn   (s/and #(= (set (keys (-> % :ret)))
                    (set (map denamespace
                              (keys (-> % :args :m)))))
@@ -76,8 +76,8 @@
     m))
 
 (s/fdef resolve-var
-  :args (s/cat :var ::var :m ::s/any)
-  :ret  ::s/any)
+  :args (s/cat :var ::var :m any?)
+  :ret  any?)
 
 (defn resolve-var
   [var m]
@@ -90,8 +90,8 @@
 
 (s/fdef resolve-path
   :args (s/cat :path ::path
-               :m ::s/any)
-  :ret  ::s/any)
+               :m any?)
+  :ret  any?)
 
 (defn resolve-path [path m]
   (loop [path path m m]
@@ -105,8 +105,8 @@
 (s/fdef resolve
   :args (s/cat :var-or-path (s/or :var ::var
                                   :path ::path)
-               :m ::s/any)
-  :ret  ::s/any)
+               :m any?)
+  :ret  any?)
 
 (defn resolve
   [var-or-path m]
