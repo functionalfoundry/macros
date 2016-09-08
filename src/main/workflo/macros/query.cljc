@@ -158,9 +158,7 @@
   (parse (conform query)))
 
 (s/def ::map-destructuring-keys
-  #?(:cljs (s/with-gen (s/and vector? (s/* symbol?))
-             #(gen/vector (s/gen symbol?)))
-     :clj  (s/coll-of symbol? :kind vector?)))
+  (s/coll-of symbol? :kind vector?))
 
 (s/fdef map-destructuring-keys
   :args (s/cat :props :workflo.macros.specs.parsed-query/query)

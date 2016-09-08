@@ -37,14 +37,10 @@
 
 (s/fdef url-segments
   :args (s/cat :s string?)
-  :ret  #?(:cljs (s/and vector?
-                        (s/* (s/or :string string?
-                                   :keyword keyword?
-                                   :typed ::typed-url-segment)))
-           :clj  (s/coll-of (s/or :string string?
-                                  :keyword keyword?
-                                  :typed ::typed-url-segment)
-                            :kind vector?)))
+  :ret  (s/coll-of (s/or :string string?
+                         :keyword keyword?
+                         :typed ::typed-url-segment)
+                   :kind vector?))
 
 (defn url-segments
   "Returns a vector of URL segments, converting keyword-like
