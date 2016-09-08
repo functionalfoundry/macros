@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.screen
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.specs.query]))
@@ -19,7 +18,7 @@
   symbol?)
 
 (s/def ::screen-form-body
-  ::s/any)
+  any?)
 
 (s/def ::screen-form
   (s/spec (s/cat :form-name ::screen-form-name
@@ -27,7 +26,7 @@
 
 (s/def ::layout-form
   (s/spec (s/cat :form-name #{'layout}
-                 :form-body (s/map-of keyword? ::s/any))))
+                 :form-body (s/map-of keyword? any?))))
 
 (s/def ::defscreen-args
   (s/cat :name ::screen-name
@@ -35,4 +34,4 @@
                                :url ::url-form
                                :forms (s/* ::screen-form)
                                :layout ::layout-form))
-         :env (s/? ::s/any)))
+         :env (s/? any?)))

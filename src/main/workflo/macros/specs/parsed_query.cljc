@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.parsed-query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.specs.query]))
@@ -79,7 +78,6 @@
   (s/multi-spec typed-property-spec :type))
 
 (s/def ::query
-  (s/with-gen
-    (s/and vector? (s/+ ::typed-property))
-    #(gen/vector (s/gen ::typed-property)
-                 1 10)))
+  (s/coll-of ::typed-property
+             :kind vector? :min-count 1
+             :gen-max 10))

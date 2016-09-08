@@ -49,7 +49,7 @@
 
 (defn deliver-to-services!
   [data]
-  {:pre [(s/valid? (s/map-of keyword? ::s/any) data)]}
+  {:pre [(s/valid? (s/map-of keyword? any?) data)]}
   (doseq [[service-kw service-data] data]
     (let [service-name (symbol (name service-kw))
           component    (try

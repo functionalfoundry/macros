@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.conforming-query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.util :as util]
@@ -25,37 +24,30 @@
            :workflo.macros.specs.query/model-join))
 
 (s/def ::limited-recursion
-  #?(:cljs :workflo.macros.specs.query/limited-recursion
-     :clj  (s/tuple #{:limited}
-                    :workflo.macros.specs.query/limited-recursion)))
+  (s/tuple #{:limited}
+           :workflo.macros.specs.query/limited-recursion))
 
 (s/def ::unlimited-recursion
-  #?(:cljs :workflo.macros.specs.query/unlimited-recursion
-     :clj  (s/tuple #{:unlimited}
-                    :workflo.macros.specs.query/unlimited-recursion)))
+  (s/tuple #{:unlimited}
+           :workflo.macros.specs.query/unlimited-recursion))
 
 (s/def ::recursion
   (s/or :limited ::limited-recursion
         :unlimited ::unlimited-recursion))
 
 (s/def ::recursive-join-value
-  (s/with-gen
-    (s/and (s/map-of :workflo.macros.specs.query/join-property
-                     ::recursion)
-           util/one-item?)
-    #(gen/map (s/gen :workflo.macros.specs.query/join-property)
-              (s/gen ::recursion)
-              {:num-elements 1})))
+  (s/map-of :workflo.macros.specs.query/join-property
+            ::recursion
+            :count 1))
 
 (s/def ::recursive-join
   (s/tuple #{:recursive-join} ::recursive-join-value))
 
 (s/def ::properties-join-value
   (s/with-gen
-    (s/and (s/map-of :workflo.macros.specs.query/join-property
-                     #?(:cljs :workflo.macros.specs.query/query
-                        :clj  ::query))
-           util/one-item?)
+    (s/map-of :workflo.macros.specs.query/join-property
+              ::query
+              :count 1)
     #(gen/map (s/gen :workflo.macros.specs.query/join-property)
               (s/gen #{[[:regular-query [:property [:simple 'foo]]]]})
               {:num-elements 1})))
@@ -86,10 +78,8 @@
   :workflo.macros.specs.query/property-name)
 
 (s/def ::children
-  (s/with-gen
-    (s/and vector? (s/+ ::property-value))
-    #(gen/vector (s/gen ::property-value)
-                 1 10)))
+  (s/coll-of ::property-value :kind vector?
+             :min-count 1 :gen-max 10))
 
 (s/def ::nested-properties-value
   (s/keys :req-un [::base ::children]))
@@ -116,10 +106,7 @@
   (s/tuple #{:parameterized-query} ::parameterized-query-value))
 
 (s/def ::query
-  (s/with-gen
-    (s/and vector?
-           (s/+ (s/alt :regular-query ::regular-query
-                       :parameterized-query ::parameterized-query)))
-    #(gen/vector (gen/one-of [(s/gen ::regular-query)
-                              (s/gen ::parameterized-query)])
-                 1 10)))
+  (s/coll-of (s/or :regular-query ::regular-query
+                   :parameterized-query ::parameterized-query)
+             :kind vector? :min-count 1
+             :gen-max 10))

@@ -55,7 +55,7 @@
          (rest (name x))))
 
 (s/fdef capitalized-symbol?
-  :args (s/cat :x ::s/any)
+  :args (s/cat :x any?)
   :ret boolean?
   :fn (s/or
        :capitalized-symbol

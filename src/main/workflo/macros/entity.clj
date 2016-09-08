@@ -59,7 +59,7 @@
 
 (s/fdef defentity*
   :args :workflo.macros.specs.entity/defentity-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defentity*
   ([name forms]

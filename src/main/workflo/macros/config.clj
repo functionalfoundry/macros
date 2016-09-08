@@ -4,11 +4,11 @@
 
 (s/def ::defconfig-args
   (s/cat :name symbol?
-         :options (s/map-of keyword? ::s/any)))
+         :options (s/map-of keyword? any?)))
 
 (s/fdef defconfig*
   :args ::defconfig-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defconfig*
   ([name options]

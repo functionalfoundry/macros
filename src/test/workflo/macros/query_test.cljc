@@ -46,6 +46,11 @@
                  :type :join
                  :join-source {:name baz :type :property}
                  :join-target 5}]))
+       (is (= (q/conform-and-parse '[{foo [bar]}])
+              '[{:name foo
+                 :type :join
+                 :join-source {:name foo :type :property}
+                 :join-target [{:name bar :type :property}]}]))
        (is (= (q/conform-and-parse '[{[foo _] [bar baz]}])
               '[{:name foo
                  :type :join

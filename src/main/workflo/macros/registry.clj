@@ -9,7 +9,7 @@
 
 (s/fdef defregistry*
   :args (s/cat :name symbol?)
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defregistry*
   "Defines a registry with the given name. The resulting registry

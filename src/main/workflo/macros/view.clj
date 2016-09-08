@@ -206,7 +206,7 @@
 
 (s/fdef defview*
   :args :workflo.macros.specs.view/defview-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defview*
   ([name forms]
