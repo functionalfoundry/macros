@@ -1,134 +1,165 @@
 (ns workflo.macros.specs.query
-  (:require [clojure.spec :as s]
-            #?(:cljs [cljs.spec.impl.gen :as gen]
-               :clj  [clojure.spec.gen :as gen])
-            [workflo.macros.query.util :as util]))
+  (:require [clojure.spec :as s]))
 
-;;;; Basics
+;;;; Simple properties
 
 (s/def ::property-name
   symbol?)
 
-;;;; Simple properties
-
-(s/def ::simple-property
-  ::property-name)
-
 ;;;; Links
 
-(s/def ::link-id
+(s/def ::link-target
   any?)
 
 (s/def ::link
-  (s/tuple ::property-name ::link-id))
+  (s/tuple ::property-name ::link-target))
 
 ;;;; Joins
 
-(s/def ::join-property
-  (s/or :property-name ::property-name
+;; Join source
+
+(s/def ::join-source
+  (s/or :simple ::property-name
         :link ::link))
 
-(s/def ::model-name
-  (s/with-gen
-    util/capitalized-symbol?
-    #(s/gen '#{User UserList Feature})))
+;; Recursive joins
 
-(s/def ::model-join
-  (s/map-of ::join-property ::model-name :count 1))
-
-(s/def ::unlimited-recursion
-  #{'... ''...})
-
-(s/def ::limited-recursion
-  (s/and integer? pos?))
-
-(s/def ::recursion
-  (s/or :unlimited ::unlimited-recursion
-        :limited ::limited-recursion))
+(s/def ::join-recursion
+  (s/or :unlimited #{'...}
+        :limited (s/and int? pos?)))
 
 (s/def ::recursive-join
-  (s/map-of ::join-property ::recursion :count 1))
+  (s/map-of ::join-source ::join-recursion
+            :count 1 :conform-keys true))
+
+;; Property joins
 
 (s/def ::properties-join
-  (s/with-gen
-    (s/map-of ::join-property ::query :count 1)
-    #(gen/map (s/gen ::join-property)
-              (s/gen '#{[user] [user [id name email]]})
-              {:num-elements 1})))
+  (s/map-of ::join-source ::query
+            :count 1 :conform-keys true))
+
+;; Model joins
+
+(s/def ::model-name
+  symbol?)
+
+(s/def ::join-model
+  (s/or :model ::model-name))
+
+(s/def ::model-join
+  (s/map-of ::join-source ::join-model
+            :count 1 :conform-keys true))
+
+;; All possible joins
 
 (s/def ::join
-  (s/or :model-join ::model-join
-        :recursive-join ::recursive-join
-        :properties-join ::properties-join))
+  (s/or :recursive ::recursive-join
+        :properties ::properties-join
+        :model ::model-join))
 
-;;;; Queries
+;;;; Individual properties, prefixed properties, aliased properties
 
 (s/def ::property
-  (s/or :simple ::simple-property
+  (s/or :simple ::property-name
         :link ::link
         :join ::join))
 
+(s/def ::prefixed-properties
+  (s/cat :base ::property-name
+         :children ::query))
+
 (s/def ::aliased-property
   (s/cat :property ::property
-         :alias (s/cat :as #{:as}
-                       :alias ::property-name)))
-
-(s/def ::property-or-aliased-property
-  (s/or :property ::property
-        :aliased-property ::aliased-property))
-
-(s/def ::property-group
-  (s/with-gen
-    (s/coll-of ::property-or-aliased-property
-               :kind vector? :min-count 1
-               :gen-max 5)
-    #(gen/fmap (fn [ps]
-                 (reduce (fn [res p]
-                           (if (sequential? p)
-                             (into res p)
-                             (conj res p)))
-                         [] ps))
-               (gen/vector
-                (s/gen ::property-or-aliased-property) 1 5))))
-
-(s/def ::nested-properties
-  (s/cat :base ::property-name
-         :children ::property-group))
+         :as #{:as}
+         :alias ::property-name))
 
 (s/def ::regular-query
-  (s/alt :property ::property-or-aliased-property
-         :nested-properties ::nested-properties))
-
-(s/def ::parameter-name
-  symbol?)
-
-(s/def ::parameter-value
-  (s/with-gen
-    any?
-    gen/simple-type))
+  (s/or :property ::property))
 
 (s/def ::parameters
-  (s/map-of ::parameter-name ::parameter-value
-            :gen-max 5))
+  (s/map-of symbol? any?))
 
-(s/def ::parameterized-query
-  (s/with-gen
-    (s/and list?
-           (s/cat :regular-query-value ::regular-query
-                  :parameters ::parameters))
-    #(gen/fmap (fn [[query parameters]]
-                 (apply list (conj query parameters)))
-               (gen/tuple (s/gen ::regular-query)
-                          (s/gen ::parameters)))))
+(s/def ::parameterization
+  (s/and list?
+         (s/cat :query ::regular-query
+                :parameters ::parameters)))
 
 (s/def ::query
-  (s/with-gen
-    (s/and vector?
-           (s/+ (s/alt :regular-query ::regular-query
-                       :parameterized-query ::parameterized-query)))
-    #(gen/fmap util/combine-properties-and-groups
-               (gen/vector (gen/one-of
-                            [(s/gen ::property)
-                             (s/gen ::nested-properties)
-                             (s/gen ::parameterized-query)])
-                           1 5))))
+  (s/and vector?
+         (s/+ (s/alt :property ::property
+                     :prefixed-properties ::prefixed-properties
+                     :aliased-property ::aliased-property
+                     :parameterization ::parameterization))))
+
+(comment
+  ;;;; Non-recursive queries
+
+  ;; Regular property
+  (s/conform ::query '[a])
+  (s/conform ::query '[a b])
+  (s/conform ::query '[a b c])
+
+  ;; Link property
+  (s/conform ::query '[[a _]])
+  (s/conform ::query '[[a _] [b 1]])
+  (s/conform ::query '[[a _] [b 1] [c :x]])
+
+  ;; Join with property source
+  (s/conform ::query '[{a [b]}])
+  (s/conform ::query '[{a [b c]}])
+  (s/conform ::query '[{a [b c]} d])
+  (s/conform ::query '[{a [b c]} {d [e f]}])
+  (s/conform ::query '[{a ...}])
+  (s/conform ::query '[{a 5}])
+  (s/conform ::query '[{a User}])
+
+  ;; Join with link source
+  (s/conform ::query '[{[a _] [b]}])
+  (s/conform ::query '[{[a 1] [b c]}])
+  (s/conform ::query '[{[a :x] [b c d]}])
+
+  ;; Properties
+  (s/conform ::query '[a [b]])
+  (s/conform ::query '[a [b c]])
+  (s/conform ::query '[a [b c] d])
+  (s/conform ::query '[a [b c] d [e f]])
+
+  ;; Aliased property
+  (s/conform ::query '[a :as b])
+  (s/conform ::query '[a :as b c :as d])
+
+  ;; Aliased link
+  (s/conform ::query '[[a _] :as b])
+  (s/conform ::query '[[a 1] :as b])
+  (s/conform ::query '[[a :x] :as b])
+  (s/conform ::query '[[a _] :as b [c _] :as d])
+
+  ;; Aliased join
+  (s/conform ::query '[{a [b]} :as c])
+  (s/conform ::query '[{a [b c]} :as d {e [f g]} :as h])
+
+  ;; Aliased properties
+  (s/conform ::query '[a [b :as c]])
+  (s/conform ::query '[a [b :as c d :as e]])
+
+  ;; Parameterization
+  (s/conform ::query '[(a {b c})])
+  (s/conform ::query '[(a {b c d e})])
+
+  ;;;; Recursive queries
+
+  ;; Join with sub-joins
+  (s/conform ::query '[{users [db [id]
+                               user [name]
+                               {friends [db [id]
+                                         user [name]]}]}])
+  (s/conform ::query '[{users [{friends [{friends [db [id]]}]}]}])
+
+  ;; Join with sub-links
+  (s/conform ::query '[{users [db [id] [current-user _]]}])
+  (s/conform ::query '[{users [user [name]
+                               {[current-user _] [user [name]]}]}])
+
+  ;; Join with sub-aliases
+  (s/conform ::query '[{[user 1] [db [id :as db-id]
+                                  name :as nm]}]))
