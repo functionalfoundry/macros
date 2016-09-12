@@ -18,6 +18,20 @@
       [:property [:simple c]]]
     '[a b c]))
 
+(deftest parsing-regular-properties
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name a :type :property}]
+    '[a]
+
+    '[{:name a :type :property}
+      {:name b :type :property}]
+    '[a b]
+
+    '[{:name a :type :property}
+      {:name b :type :property}
+      {:name c :type :property}]
+    '[a b c]))
+
 (deftest conforming-link-properties
   (are [out in] (= out (q/conform in))
     '[[:property [:link [a _]]]]
@@ -30,6 +44,20 @@
     '[[:property [:link [a _]]]
       [:property [:link [b 1]]]
       [:property [:link [c :x]]]]
+    '[[a _] [b 1] [c :x]]))
+
+(deftest parsing-link-properties
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name a :type :link :link-id _}]
+    '[[a _]]
+
+    '[{:name a :type :link :link-id _}
+      {:name b :type :link :link-id 1}]
+    '[[a _] [b 1]]
+
+    '[{:name a :type :link :link-id _}
+      {:name b :type :link :link-id 1}
+      {:name c :type :link :link-id :x}]
     '[[a _] [b 1] [c :x]]))
 
 (deftest conforming-joins-with-a-simple-property-source
@@ -69,7 +97,73 @@
                                  [:model User]}]]]]
     '[{a User}]))
 
+(deftest parsing-joins-with-a-simple-property-source
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}]}]
+    '[{a [b]}]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}
+                     {:name c :type :property}]}]
+    '[{a [b c]}]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}
+                     {:name c :type :property}]}
+      {:name d :type :property}]
+    '[{a [b c]} d]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}
+                     {:name c :type :property}]}
+      {:name d :type :join
+       :join-source {:name d :type :property}
+       :join-target [{:name e :type :property}
+                     {:name f :type :property}]}]
+    '[{a [b c]} {d [e f]}]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target ...}]
+    '[{a ...}]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target 5}]
+    '[{a 5}]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target User}]
+    '[{a User}]))
+
 (deftest conforming-joins-with-a-link-source
+  (are [out in] (= out (q/conform in))
+    '[[:property [:join [:properties {[:link [a _]]
+                                      [[:property [:simple b]]]}]]]]
+    '[{[a _] [b]}]
+
+    '[[:property [:join [:properties {[:link [a _]]
+                                      [[:property [:simple b]]]}]]]]
+    '[{[a _] [b]}]
+
+    '[[:property [:join [:properties {[:link [a 1]]
+                                      [[:property [:simple b]]
+                                       [:property [:simple c]]]}]]]]
+    '[{[a 1] [b c]}]
+
+    '[[:property [:join [:properties {[:link [a :x]]
+                                      [[:property [:simple b]]
+                                       [:property [:simple c]]
+                                       [:property [:simple d]]]}]]]]
+    '[{[a :x] [b c d]}]))
+
+(deftest parsing-joins-with-a-link-source
   (are [out in] (= out (q/conform in))
     '[[:property [:join [:properties {[:link [a _]]
                                       [[:property [:simple b]]]}]]]]
