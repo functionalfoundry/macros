@@ -118,7 +118,7 @@
   (s/conform ::query '[{[a 1] [b c]}])
   (s/conform ::query '[{[a :x] [b c d]}])
 
-  ;; Properties
+  ;; Prefixed properties
   (s/conform ::query '[a [b]])
   (s/conform ::query '[a [b c]])
   (s/conform ::query '[a [b c] d])

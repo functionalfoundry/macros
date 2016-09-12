@@ -110,10 +110,71 @@
     '[[:prefixed-properties {:base a
                              :children [[:property [:simple b]]
                                         [:property [:simple c]]]}]
-      [:prefixed-properties {:base d
-                             :children [[:property [:simple e]]
-                                        [:property [:simple f]]]}]]
+      [[:prefixed-properties {:base d
+                              :children [[:property [:simple e]]
+                                         [:property [:simple f]]]}]]]
     '[a [b c] d [e f]]))
+
+(deftest aliased-regular-properties
+  (are [out in] (= out (q/conform in))
+    '[[:aliased-property {:property [:simple a] :as :as :alias b}]]
+    '[a :as b]
+
+    '[[:aliased-property {:property [:simple a] :as :as :alias b}]
+      [:aliased-property {:property [:simple c] :as :as :alias d}]]
+    '[a :as b c :as d]))
+
+(deftest aliased-links
+  (are [out in] (= out (q/conform in))
+    '[[:aliased-property {:property [:link [a _]] :as :as :alias b}]]
+    '[[a _] :as b]
+
+    '[[:aliased-property {:property [:link [a 1]] :as :as :alias b}]]
+    '[[a 1] :as b]
+
+    '[[:aliased-property {:property [:link [a :x]] :as :as :alias b}]]
+    '[[a :x] :as b]
+
+    '[[:aliased-property {:property [:link [a _]] :as :as :alias b}]
+      [:aliased-property {:property [:link [c _]] :as :as :alias d}]]
+    '[[a _] :as b [c _] :as d]))
+
+(deftest aliased-joins
+  (are [out in] (= out (q/conform in))
+    '[[:aliased-property
+       {:property [:join [:properties {[:simple a]
+                                       [[:property [:simple b]]]}]]
+        :as :as :alias c}]]
+    '[{a [b]} :as c]
+
+    '[[:aliased-property
+       {:property [:join [:properties {[:simple a]
+                                       [[:property [:simple b]]
+                                        [:property [:simple c]]]}]]
+        :as :as :alias d}]
+      [:aliased-property
+       {:property [:join [:properties {[:simple e]
+                                       [[:property [:simple f]]
+                                        [:property [:simple g]]]}]]
+        :as :as :alias h}]]
+    '[{a [b c]} :as d {e [f g]} :as h]))
+
+(deftest aliased-prefixed-properties
+  (are [out in] (= out (q/conform in))
+    '[[:prefixed-properties {:base a
+                             :children [[:aliased-property
+                                         {:property [:simple b]
+                                          :as :as :alias c}]]}]]
+    '[a [b :as c]]
+
+    '[[:prefixed-properties {:base a
+                             :children [[:aliased-property
+                                         {:property [:simple b]
+                                          :as :as :alias c}]
+                                        [:aliased-property
+                                         {:property [:simple d]
+                                          :as :as :alias e}]]}]]
+    '[a [b :as c d :as e]]))
 
 ;; (deftest links
 ;;   (let [spec :workflo.macros.specs.query/link]
