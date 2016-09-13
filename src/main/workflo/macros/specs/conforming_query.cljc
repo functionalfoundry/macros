@@ -5,135 +5,126 @@
             [workflo.macros.query.util :as util]
             [workflo.macros.specs.query]))
 
-;;;; Simple properties
-
-(s/def ::simple-property
-  (s/tuple #{:simple}
-           :workflo.macros.specs.query/property-name))
-
-;;;; Links
+(s/def ::simple
+  (s/tuple #{:simple} :workflo.macros.specs.query/property-name))
 
 (s/def ::link
-  (s/tuple #{:link}
-           :workflo.macros.specs.query/link))
+  (s/tuple #{:link} :workflo.macros.specs.query/link))
 
-;;;; Joins
+(s/def ::join-source
+  (s/or :simple ::simple
+        :link ::link))
 
-(s/def ::model-join
-  (s/tuple #{:model-join}
-           :workflo.macros.specs.query/model-join))
-
-(s/def ::limited-recursion
-  (s/tuple #{:limited}
-           :workflo.macros.specs.query/limited-recursion))
-
-(s/def ::unlimited-recursion
-  (s/tuple #{:unlimited}
-           :workflo.macros.specs.query/unlimited-recursion))
-
-(s/def ::recursion
-  (s/or :limited ::limited-recursion
-        :unlimited ::unlimited-recursion))
-
-(s/def ::recursive-join-value
-  (s/map-of :workflo.macros.specs.query/join-property
-            ::recursion
-            :count 1))
-
-(s/def ::recursive-join
-  (s/tuple #{:recursive-join} ::recursive-join-value))
-
-(s/def ::properties-join-value
+(s/def ::join-properties-value
   (s/with-gen
-    (s/map-of :workflo.macros.specs.query/join-property
-              ::query
-              :count 1)
-    #(gen/map (s/gen :workflo.macros.specs.query/join-property)
-              (s/gen #{[[:regular-query [:property [:simple 'foo]]]]})
+    (s/map-of ::join-source ::query :count 1)
+    #(gen/map (s/gen ::join-source)
+              (gen/vector
+               (s/gen #{[:property [:simple 'a]]
+                        [:property [:simple 'b]]
+                        [:prefixed-properties
+                         {:base 'a
+                          :children [[:property [:simple 'b]]
+                                     [:property [:simple 'c]]]}]
+                        [:property [:link '[a _]]]})
+               1 10)
               {:num-elements 1})))
 
-(s/def ::properties-join
-  (s/tuple #{:properties-join}
-           ::properties-join-value))
+(s/def ::join-properties
+  (s/tuple #{:properties} ::join-properties-value))
+
+(s/def ::unlimited-join-recursion
+  (s/tuple #{:unlimited} #{'...}))
+
+(s/def ::limited-join-recursion
+  (s/tuple #{:limited} (s/and int? pos?)))
+
+(s/def ::join-recursion-value
+  (s/map-of ::join-source
+            (s/or :unlimited ::unlimited-join-recursion
+                  :limited ::limited-join-recursion)
+            :count 1))
+
+(s/def ::join-recursion
+  (s/tuple #{:recursive} ::join-recursion-value))
+
+(s/def ::join-model-value
+  (s/map-of ::join-source
+            (s/tuple #{:model} :workflo.macros.specs.query/model-name)
+            :count 1))
+
+(s/def ::join-model
+  (s/tuple #{:model} ::join-model-value))
 
 (s/def ::join
-  (s/tuple #{:join}
-           (s/or :model-join ::model-join
-                 :recursive-join ::recursive-join
-                 :properties-join ::properties-join)))
-
-;;;; Individual properties
+  (s/tuple #{:join} (s/or :properties ::join-properties
+                          :recursion ::join-recursion
+                          :model ::join-model)))
 
 (s/def ::property-value
-  (s/or :simple ::simple-property
-        :link   ::link
-        :join   ::join))
+  (s/or :simple ::simple
+        :link ::link
+        :join ::join))
 
-(s/def ::regular-property
+(s/def ::property
   (s/tuple #{:property} ::property-value))
 
-(s/def :alias/property
+(s/def :aliased-property-value/property
   ::property-value)
 
-(s/def :alias-info/as
-  #{:as})
-
-(s/def :alias-info/alias
+(s/def :aliased-property-value/alias
   :workflo.macros.specs.query/property-name)
 
-(s/def :alias/alias
-  (s/keys :req-un [:alias-info/as
-                   :alias-info/alias]))
+(s/def :aliased-property-value/as
+  #{:as})
 
 (s/def ::aliased-property-value
-  (s/keys :req-un [:alias/property
-                   :alias/alias]))
+  (s/keys :req-un [:aliased-property-value/property
+                   :aliased-property-value/alias]
+          :opt-un [:aliased-property-value/as]))
 
 (s/def ::aliased-property
   (s/tuple #{:aliased-property} ::aliased-property-value))
 
-(s/def ::property-or-aliased-property
-  (s/or :property ::regular-property
-        :aliased-property ::aliased-property))
-
-(s/def ::property
-  (s/tuple #{:property} ::property-or-aliased-property))
-
-;;;; Nested properties
-
-(s/def ::base
+(s/def :prefixed-properties-value/base
   :workflo.macros.specs.query/property-name)
 
-(s/def ::children
-  (s/coll-of ::property-value :kind vector?
-             :min-count 1 :gen-max 10))
+(s/def :prefixed-properties-value/children
+  (s/with-gen
+    ::query
+    #(gen/vector
+      (s/gen (s/or :property ::property
+                   :aliased-property ::aliased-property
+                   :parameterization ::parameterization))
+      1 10)))
 
-(s/def ::nested-properties-value
-  (s/keys :req-un [::base ::children]))
+(s/def ::prefixed-properties-value
+  (s/keys :req-un [:prefixed-properties-value/base
+                   :prefixed-properties-value/children]))
 
-(s/def ::nested-properties
-  (s/tuple #{:nested-properties} ::nested-properties-value))
+(s/def ::prefixed-properties
+  (s/tuple #{:prefixed-properties} ::prefixed-properties-value))
 
-;;;; Queries
-
-(s/def ::regular-query-value
+(s/def :parameterization-value/query
   (s/or :property ::property
-        :nested-properties ::nested-properties))
+        :aliased-property ::aliased-property))
 
-(s/def ::regular-query
-  (s/tuple #{:regular-query} ::regular-query-value))
-
-(s/def ::parameters
+(s/def :parameterization-value/parameters
   :workflo.macros.specs.query/parameters)
 
-(s/def ::parameterized-query-value
-  (s/keys :req-un [::regular-query-value ::parameters]))
+(s/def ::parameterizatio-value
+  (s/keys :req-un [:parameterization-value/query
+                   :parameterization-value/parameters]))
 
-(s/def ::parameterized-query
-  (s/tuple #{:parameterized-query} ::parameterized-query-value))
+(s/def ::parameterization
+  (s/tuple #{:parameterization} ::parameterizatio-value))
+
+(s/def ::query-value
+  (s/or :property ::property
+        :aliased-property ::aliased-property
+        :prefixed-properties ::prefixed-properties
+        :parameterization ::parameterization))
 
 (s/def ::query
-  (s/coll-of (s/or :regular-query ::regular-query
-                   :parameterized-query ::parameterized-query)
-             :kind vector? :min-count 1
-             :gen-max 10))
+  (s/coll-of ::query-value :kind vector?
+             :min-count 1 :gen-max 10))
