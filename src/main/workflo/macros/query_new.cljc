@@ -48,16 +48,19 @@
     (mapv #(assoc % :alias alias) (parse-subquery property))))
 
 (defmethod parse-subquery :prefixed-properties
-  [[_ q]]
-  (let [{:keys [base children]} q]
-    (letfn [(prefix-name [x]
-              (let [prefixed-name (symbol (str base) (str (:name x)))]
-                (assoc x :name prefixed-name)))]
-      (->> children
-           (map parse-subquery)
-           (apply concat)
-           (map prefix-name)
-           (into [])))))
+  [[_ {:keys [base children]}]]
+  (letfn [(prefix-name [x]
+            (let [prefixed-name (symbol (str base) (str (:name x)))]
+              (assoc x :name prefixed-name)))]
+    (->> children
+         (map parse-subquery)
+         (apply concat)
+         (map prefix-name)
+         (into []))))
+
+(defmethod parse-subquery :parameterization
+  [[_ {:keys [query parameters]}]]
+  (assoc-in (parse-subquery query) [0 :parameters] parameters))
 
 (defmethod parse-subquery :default
   [q]

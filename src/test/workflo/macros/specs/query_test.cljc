@@ -337,3 +337,60 @@
     '[{:name a/b :type :property :alias c}
       {:name a/d :type :property :alias e}]
     '[a [b :as c d :as e]]))
+
+(deftest conforming-parameterization
+  (are [out in] (= out (q/conform in))
+    '[[:parameterization {:query [:property [:simple a]]
+                          :parameters {b c}}]]
+    '[(a {b c})]
+
+    '[[:parameterization {:query [:property [:simple a]]
+                          :parameters {b c d e}}]]
+    '[(a {b c d e})]
+
+    '[[:parameterization
+       {:query [:property [:join [:properties {[:simple a]
+                                               [[:property [:simple b]]
+                                                [:property [:simple c]]]}]]]
+        :parameters {d e f g}}]]
+    '[({a [b c]} {d e f g})]
+
+    '[[:parameterization {:query [:aliased-property {:property [:simple a]
+                                                     :as :as :alias b}]
+                          :parameters {c d e f}}]]
+    '[(a :as b {c d e f})]
+
+    '[[:parameterization
+       {:query [:aliased-property
+                {:property [:join [:properties {[:simple a]
+                                                [[:property [:simple b]]
+                                                 [:property [:simple c]]]}]]
+                 :as :as :alias d}]
+        :parameters {e f g h}}]]
+    '[({a [b c]} :as d {e f g h})]))
+
+(deftest parsing-parameterization
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name a :type :property :parameters {b c}}]
+    '[(a {b c})]
+
+    '[{:name a :type :property :parameters {b c d e}}]
+    '[(a {b c d e})]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}
+                     {:name c :type :property}]
+       :parameters {d e f g}}]
+    '[({a [b c]} {d e f g})]
+
+    '[{:name a :type :property :alias b :parameters {c d e f}}]
+    '[(a :as b {c d e f})]
+
+    '[{:name a :type :join
+       :join-source {:name a :type :property}
+       :join-target [{:name b :type :property}
+                     {:name c :type :property}]
+       :alias d
+       :parameters {e f g h}}]
+    '[({a [b c]} :as d {e f g h})]))
