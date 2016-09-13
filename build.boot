@@ -9,6 +9,7 @@
                  [adzerk/bootlaces "0.1.13"]
                  [pandeiro/boot-http "0.7.3"]
                  [crisptrutski/boot-cljs-test "0.2.1"]
+                 [com.cemerick/piggieback "0.2.1"]
 
                  ;; Testing
                  [org.clojure/test.check "0.9.0" :scope "test"]
@@ -56,7 +57,8 @@
             :url "https://github.com/workfloapp/macros"
             :scm {:url "https://github.com/workfloapp/macros"}
             :license {"MIT License"
-                      "https://opensource.org/licenses/MIT"}})
+                      "https://opensource.org/licenses/MIT"}}
+ repl      {:middleware '[cemerick.piggieback/wrap-cljs-repl]})
 
 (deftask developing
   []
@@ -86,7 +88,8 @@
     (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)
     (target)
-    (serve :dir "target")))
+    (serve :dir "target")
+    (repl :server true)))
 
 (deftask docs
   []
