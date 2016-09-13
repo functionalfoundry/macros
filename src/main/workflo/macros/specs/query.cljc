@@ -74,7 +74,8 @@
          :alias ::property-name))
 
 (s/def ::regular-query
-  (s/or :property ::property))
+  (s/alt :property ::property
+         :aliased-property ::aliased-property))
 
 (s/def ::parameters
   (s/map-of symbol? any?))
