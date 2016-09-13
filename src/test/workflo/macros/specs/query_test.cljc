@@ -395,3 +395,67 @@
        :alias d
        :parameters {e f g h}}]
     '[({a [b c]} :as d {e f g h})]))
+
+(deftest conforming-joins-with-sub-joins
+  (are [out in] (= out (q/conform in))
+    '[[:property
+       [:join
+        [:properties
+         {[:simple users]
+          [[:prefixed-properties {:base db
+                                  :children [[:property [:simple id]]]}]
+           [:prefixed-properties {:base user
+                                  :children [[:property [:simple name]]]}]
+           [:property
+            [:join [:properties
+                    {[:simple friends]
+                     [[:prefixed-properties
+                       {:base db
+                        :children [[:property [:simple id]]]}]
+                      [:prefixed-properties
+                       {:base user
+                        :children [[:property [:simple name]]]}]]}]]]]}]]]]
+    '[{users [db [id]
+              user [name]
+              {friends [db [id]
+                        user [name]]}]}]
+
+    '[[:property
+       [:join
+        [:properties
+         {[:simple users]
+          [[:property
+            [:join
+             [:properties
+              {[:simple friends]
+               [[:property [:join
+                            [:properties
+                             {[:simple friends]
+                              [[:prefixed-properties
+                                {:base db
+                                 :children [[:property [:simple id]]]}]]}]]]]}]]]]}]]]]
+    '[{users [{friends [{friends [db [id]]}]}]}]))
+
+(deftest parsing-joins-with-sub-joins
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name users :type :join
+       :join-source {:name users :type :property}
+       :join-target [{:name db/id :type :property}
+                     {:name user/name :type :property}
+                     {:name friends :type :join
+                      :join-source {:name friends :type :property}
+                      :join-target [{:name db/id :type :property}
+                                    {:name user/name :type :property}]}]}]
+    '[{users [db [id]
+              user [name]
+              {friends [db [id]
+                        user [name]]}]}]
+
+    '[{:name users :type :join
+       :join-source {:name users :type :property}
+       :join-target [{:name friends :type :join
+                      :join-source {:name friends :type :property}
+                      :join-target [{:name friends :type :join
+                                     :join-source {:name friends :type :property}
+                                     :join-target [{:name db/id :type :property}]}]}]}]
+    '[{users [{friends [{friends [db [id]]}]}]}]))
