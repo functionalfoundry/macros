@@ -30,10 +30,10 @@
 (s/def ::join-target
   (s/with-gen
     (s/or :model :workflo.macros.specs.query/model-name
-          :recursion :workflo.macros.specs.query/recursion
+          :recursion :workflo.macros.specs.query/join-recursion
           :properties ::query)
     #(gen/one-of [(s/gen :workflo.macros.specs.query/model-name)
-                  (s/gen :workflo.macros.specs.query/recursion)
+                  (s/gen :workflo.macros.specs.query/join-recursion)
                   (s/gen '#{[{:type :property :name name}]
                             [{:type :property :name name}
                              {:type :property :name email}]
