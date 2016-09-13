@@ -1,8 +1,19 @@
 (ns workflo.macros.specs.query-test
   (:require [clojure.test :refer [are deftest is]]
             [clojure.spec :as s]
+            #?(:cljs [om.next])
             [workflo.macros.query-new :as q]
+            [workflo.macros.query.om-next :as om]
             [workflo.macros.specs.query]))
+
+;;;; Preparations for Om Next query generation in ClojureScript
+
+#?(:cljs (om.next/defui User
+           static om.next/IQuery
+           (query [this]
+             [:user/name :user/email])))
+
+;;;; Conforming, parsing, Om Next query generation
 
 (deftest conforming-regular-properties
   (are [out in] (= out (q/conform in))
@@ -32,6 +43,12 @@
       {:name c :type :property}]
     '[a b c]))
 
+(deftest om-next-query-for-regular-properties
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[:a] '[a]
+    '[:a :b] '[a b]
+    '[:a :b :c] '[a b c]))
+
 (deftest conforming-link-properties
   (are [out in] (= out (q/conform in))
     '[[:property [:link [a _]]]]
@@ -59,6 +76,12 @@
       {:name b :type :link :link-id 1}
       {:name c :type :link :link-id :x}]
     '[[a _] [b 1] [c :x]]))
+
+(deftest om-next-query-for-link-properties
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[[:a _]] '[[a _]]
+    '[[:a _] [:b 1]] '[[a _] [b 1]]
+    '[[:a _] [:b 1] [:c :x]] '[[a _] [b 1] [c :x]]))
 
 (deftest conforming-joins-with-a-simple-property-source
   (are [out in] (= out (q/conform in))
@@ -142,6 +165,17 @@
        :join-target User}]
     '[{a User}]))
 
+(deftest om-next-query-for-joins-with-a-simple-property-source
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{:a [:b]}] '[{a [b]}]
+    '[{:a [:b :c]}] '[{a [b c]}]
+    '[{:a [:b :c]} :d] '[{a [b c]} d]
+    '[{:a [:b :c]} {:d [:e :f]}] '[{a [b c]} {d [e f]}]
+    '[{:a '...}] '[{a ...}]
+    '[{:a 5}] '[{a 5}]
+    #?(:cljs '[{:a [:user/name :user/email]}]
+       :clj  '[{:a (om.next/get-query User)}]) '[{a User}]))
+
 (deftest conforming-joins-with-a-link-source
   (are [out in] (= out (q/conform in))
     '[[:property [:join [:properties {[:link [a _]]
@@ -178,6 +212,12 @@
                      {:name c :type :property}
                      {:name d :type :property}]}]
     '[{[a :x] [b c d]}]))
+
+(deftest om-next-query-for-joins-with-a-link-source
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{[:a _] [:b]}] '[{[a _] [b]}]
+    '[{[:a 1] [:b :c]}] '[{[a 1] [b c]}]
+    '[{[:a :x] [:b :c :d]}] '[{[a :x] [b c d]}]))
 
 (deftest conforming-prefixed-properties
   (are [out in] (= out (q/conform in))
@@ -224,6 +264,12 @@
      {:name d/f :type :property}]
    '[a [b c] d [e f]]))
 
+(deftest om-next-query-for-prefixed-properties
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[:a/b] '[a [b]]
+    '[:a/b :a/c] '[a [b c]]
+    '[:a/b :a/c :d/e :d/f] '[a [b c] d [e f]]))
+
 (deftest conforming-aliased-regular-properties
   (are [out in] (= out (q/conform in))
     '[[:aliased-property {:property [:simple a] :as :as :alias b}]]
@@ -241,6 +287,11 @@
     '[{:name a :type :property :alias b}
       {:name c :type :property :alias d}]
     '[a :as b c :as d]))
+
+(deftest om-next-query-for-aliased-regular-properties
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[:a] '[a :as b]
+    '[:a :c] '[a :as b c :as d]))
 
 (deftest conforming-aliased-links
   (are [out in] (= out (q/conform in))
@@ -271,6 +322,13 @@
     '[{:name a :type :link :link-id _ :alias b}
       {:name c :type :link :link-id _ :alias d}]
     '[[a _] :as b [c _] :as d]))
+
+(deftest om-next-query-for-aliased-links
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[[:a _]] '[[a _] :as b]
+    '[[:a 1]] '[[a 1] :as b]
+    '[[:a :x]] '[[a :x] :as b]
+    '[[:a _] [:c _]] '[[a _] :as b [c _] :as d]))
 
 (deftest conforming-aliased-joins
   (are [out in] (= out (q/conform in))
@@ -312,6 +370,11 @@
        :alias h}]
     '[{a [b c]} :as d {e [f g]} :as h]))
 
+(deftest om-next-query-for-aliased-joins
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{:a [:b]}] '[{a [b]} :as c]
+    '[{:a [:b :c]} {:e [:f :g]}] '[{a [b c]} :as d {e [f g]} :as h]))
+
 (deftest conforming-aliased-prefixed-properties
   (are [out in] (= out (q/conform in))
     '[[:prefixed-properties {:base a
@@ -337,6 +400,11 @@
     '[{:name a/b :type :property :alias c}
       {:name a/d :type :property :alias e}]
     '[a [b :as c d :as e]]))
+
+(deftest om-next-query-for-aliased-prefixed-properties
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[:a/b] '[a [b :as c]]
+    '[:a/b :a/d] '[a [b :as c d :as e]]))
 
 (deftest conforming-parameterization
   (are [out in] (= out (q/conform in))
@@ -393,6 +461,23 @@
                      {:name c :type :property}]
        :alias d
        :parameters {e f g h}}]
+    '[({a [b c]} :as d {e f g h})]))
+
+(deftest om-next-query-for-parameterizations
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[(clojure.core/list :a '{:b c})]
+    '[(a {b c})]
+
+    '[(clojure.core/list :a '{:b c :d e})]
+    '[(a {b c d e})]
+
+    '[(clojure.core/list {:a [:b :c]} '{:d e :f g})]
+    '[({a [b c]} {d e f g})]
+
+    '[(clojure.core/list :a '{:c d :e f})]
+    '[(a :as b {c d e f})]
+
+    '[(clojure.core/list {:a [:b :c]} '{:e f :g h})]
     '[({a [b c]} :as d {e f g h})]))
 
 (deftest conforming-joins-with-sub-joins
@@ -459,6 +544,17 @@
                                      :join-target [{:name db/id :type :property}]}]}]}]
     '[{users [{friends [{friends [db [id]]}]}]}]))
 
+(deftest om-next-query-for-joins-with-sub-joins
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{:users [:db/id :user/name {:friends [:db/id :user/name]}]}]
+    '[{users [db [id]
+              user [name]
+              {friends [db [id]
+                        user [name]]}]}]
+
+    '[{:users [{:friends [{:friends [:db/id]}]}]}]
+    '[{users [{friends [{friends [db [id]]}]}]}]))
+
 (deftest conforming-joins-with-sub-links
   (are [out in] (= out (q/conform in))
     '[[:property
@@ -468,8 +564,7 @@
           [[:prefixed-properties {:base db
                                   :children [[:property [:simple id]]]}]
            [:property [:link [current-user _]]]]}]]]]
-    '[{users [db [id]
-              [current-user _]]}]
+    '[{users [db [id] [current-user _]]}]
 
     '[[:property
        [:join
@@ -485,8 +580,7 @@
                [[:prefixed-properties
                  {:base user
                   :children [[:property [:simple name]]]}]]}]]]]}]]]]
-    '[{users [user [name]
-              {[current-user _] [user [name]]}]}]))
+    '[{users [user [name] {[current-user _] [user [name]]}]}]))
 
 (deftest parsing-joins-with-sub-links
   (are [out in] (= out (q/conform-and-parse in))
@@ -494,8 +588,7 @@
        :join-source {:name users :type :property}
        :join-target [{:name db/id :type :property}
                      {:name current-user :type :link :link-id _}]}]
-    '[{users [db [id]
-              [current-user _]]}]
+    '[{users [db [id] [current-user _]]}]
 
     '[{:name users :type :join
        :join-source {:name users :type :property}
@@ -503,8 +596,15 @@
                      {:name current-user :type :join
                       :join-source {:name current-user :type :link :link-id _}
                       :join-target [{:name user/name :type :property}]}]}]
-    '[{users [user [name]
-              {[current-user _] [user [name]]}]}]))
+    '[{users [user [name] {[current-user _] [user [name]]}]}]))
+
+(deftest om-next-query-for-joins-with-sub-links
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{:users [:db/id [:current-user _]]}]
+    '[{users [db [id] [current-user _]]}]
+
+    '[{:users [:user/name {[:current-user _] [:user/name]}]}]
+    '[{users [user [name] {[current-user _] [user [name]]}]}]))
 
 (deftest conforming-joins-with-sub-aliases
   (are [out in] (= out (q/conform in))
@@ -518,8 +618,7 @@
                                                :as :as :alias db-id}]]}]
            [:aliased-property {:property [:simple name]
                                :as :as :alias nm}]]}]]]]
-    '[{[user 1] [db [id :as db-id]
-                 name :as nm]}]))
+    '[{[user 1] [db [id :as db-id] name :as nm]}]))
 
 (deftest parsing-joins-with-sub-aliases
   (are [out in] (= out (q/conform-and-parse in))
@@ -527,5 +626,9 @@
        :join-source {:name user :type :link :link-id 1}
        :join-target [{:name db/id :type :property :alias db-id}
                      {:name name :type :property :alias nm}]}]
-    '[{[user 1] [db [id :as db-id]
-                 name :as nm]}]))
+    '[{[user 1] [db [id :as db-id] name :as nm]}]))
+
+(deftest om-next-query-for-joins-with-sub-aliases
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[{[:user 1] [:db/id :name]}]
+    '[{[user 1] [db [id :as db-id] name :as nm]}]))
