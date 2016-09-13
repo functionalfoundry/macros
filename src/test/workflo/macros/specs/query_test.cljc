@@ -505,3 +505,27 @@
                       :join-target [{:name user/name :type :property}]}]}]
     '[{users [user [name]
               {[current-user _] [user [name]]}]}]))
+
+(deftest conforming-joins-with-sub-aliases
+  (are [out in] (= out (q/conform in))
+    '[[:property
+       [:join
+        [:properties
+         {[:link [user 1]]
+          [[:prefixed-properties {:base db
+                                  :children [[:aliased-property
+                                              {:property [:simple id]
+                                               :as :as :alias db-id}]]}]
+           [:aliased-property {:property [:simple name]
+                               :as :as :alias nm}]]}]]]]
+    '[{[user 1] [db [id :as db-id]
+                 name :as nm]}]))
+
+(deftest parsing-joins-with-sub-aliases
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name user :type :join
+       :join-source {:name user :type :link :link-id 1}
+       :join-target [{:name db/id :type :property :alias db-id}
+                     {:name name :type :property :alias nm}]}]
+    '[{[user 1] [db [id :as db-id]
+                 name :as nm]}]))
