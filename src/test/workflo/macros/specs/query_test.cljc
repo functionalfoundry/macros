@@ -459,3 +459,50 @@
                                      :join-source {:name friends :type :property}
                                      :join-target [{:name db/id :type :property}]}]}]}]
     '[{users [{friends [{friends [db [id]]}]}]}]))
+
+(deftest conforming-joins-with-sub-links
+  (are [out in] (= out (q/conform in))
+    '[[:property
+       [:join
+        [:properties
+         {[:simple users]
+          [[:prefixed-properties {:base db
+                                  :children [[:property [:simple id]]]}]
+           [:property [:link [current-user _]]]]}]]]]
+    '[{users [db [id]
+              [current-user _]]}]
+
+    '[[:property
+       [:join
+        [:properties
+         {[:simple users]
+          [[:prefixed-properties
+            {:base user
+             :children [[:property [:simple name]]]}]
+           [:property
+            [:join
+             [:properties
+              {[:link [current-user _]]
+               [[:prefixed-properties
+                 {:base user
+                  :children [[:property [:simple name]]]}]]}]]]]}]]]]
+    '[{users [user [name]
+              {[current-user _] [user [name]]}]}]))
+
+(deftest parsing-joins-with-sub-links
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name users :type :join
+       :join-source {:name users :type :property}
+       :join-target [{:name db/id :type :property}
+                     {:name current-user :type :link :link-id _}]}]
+    '[{users [db [id]
+              [current-user _]]}]
+
+    '[{:name users :type :join
+       :join-source {:name users :type :property}
+       :join-target [{:name user/name :type :property}
+                     {:name current-user :type :join
+                      :join-source {:name current-user :type :link :link-id _}
+                      :join-target [{:name user/name :type :property}]}]}]
+    '[{users [user [name]
+              {[current-user _] [user [name]]}]}]))
