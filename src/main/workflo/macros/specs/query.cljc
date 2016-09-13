@@ -1,5 +1,8 @@
 (ns workflo.macros.specs.query
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec :as s]
+            #?(:cljs [cljs.spec.impl.gen :as gen]
+               :clj  [clojure.spec.gen :as gen])
+            [workflo.macros.query.util :as util]))
 
 ;;;; Simple properties
 
@@ -8,11 +11,11 @@
 
 ;;;; Links
 
-(s/def ::link-target
-  any?)
+(s/def ::link-id
+  (s/with-gen any? gen/simple-type))
 
 (s/def ::link
-  (s/tuple ::property-name ::link-target))
+  (s/tuple ::property-name ::link-id))
 
 ;;;; Joins
 
@@ -34,8 +37,16 @@
 
 ;; Property joins
 
+(s/def ::join-properties
+  (s/with-gen
+    ::query
+    #(s/gen '#{[user]
+               [db [id] user [name email]]
+               [[current-user _]]
+               [{users [user [name email]]}]})))
+
 (s/def ::properties-join
-  (s/map-of ::join-source ::query
+  (s/map-of ::join-source ::join-properties
             :count 1 :conform-keys true))
 
 ;; Model joins
@@ -64,33 +75,60 @@
         :link ::link
         :join ::join))
 
+(s/def ::prefixed-properties-value
+  (s/with-gen
+    ::query
+    #(s/gen '#{[id]
+               [name email]
+               [name email [current-user _]]})))
+
 (s/def ::prefixed-properties
   (s/cat :base ::property-name
-         :children ::query))
+         :children ::prefixed-properties-value))
 
 (s/def ::aliased-property
   (s/cat :property ::property
          :as #{:as}
          :alias ::property-name))
 
-(s/def ::regular-query
+(s/def ::parameterization-query
   (s/alt :property ::property
          :aliased-property ::aliased-property))
 
+(s/def ::parameter-name
+  symbol?)
+
+(s/def ::parameter-value
+  (s/with-gen any? gen/simple-type))
+
 (s/def ::parameters
-  (s/map-of symbol? any?))
+  (s/map-of ::parameter-name ::parameter-value
+            :gen-max 5))
 
 (s/def ::parameterization
-  (s/and list?
-         (s/cat :query ::regular-query
-                :parameters ::parameters)))
+  (s/with-gen
+    (s/and list?
+           (s/cat :query ::parameterization-query
+                  :parameters ::parameters))
+    #(gen/fmap (fn [[query parameters]]
+                 (apply list (conj query parameters)))
+               (gen/tuple (s/gen ::parameterization-query)
+                          (s/gen ::parameters)))))
 
 (s/def ::query
-  (s/and vector?
-         (s/+ (s/alt :property ::property
-                     :prefixed-properties ::prefixed-properties
-                     :aliased-property ::aliased-property
-                     :parameterization ::parameterization))))
+  (s/with-gen
+    (s/and vector?
+           (s/+ (s/alt :property ::property
+                       :prefixed-properties ::prefixed-properties
+                       :aliased-property ::aliased-property
+                       :parameterization ::parameterization)))
+    #(gen/fmap util/combine-properties-and-groups
+               (gen/vector (gen/one-of
+                            [(s/gen ::property)
+                             (s/gen ::prefixed-properties)
+                             (s/gen ::aliased-property)
+                             (s/gen ::parameterization)])
+                           1 1))))
 
 (comment
   ;;;; Non-recursive queries
