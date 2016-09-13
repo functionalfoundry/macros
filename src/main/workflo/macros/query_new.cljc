@@ -69,7 +69,6 @@
 
 (defn parse [query]
   (transduce (map (fn [q]
-                    (println "Q" q)
                     ;; Workaround for extra [] around
                     ;; [:aliased-property ...] in output of
                     ;; conform (JIRA issue CLJ-2003)
