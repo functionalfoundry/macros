@@ -417,23 +417,26 @@
     '[(a {b c d e})]
 
     '[[:parameterization
-       {:query [:property [:join [:properties {[:simple a]
-                                               [[:property [:simple b]]
-                                                [:property [:simple c]]]}]]]
+       {:query
+        [:property [:join [:properties {[:simple a]
+                                        [[:property [:simple b]]
+                                         [:property [:simple c]]]}]]]
         :parameters {d e f g}}]]
     '[({a [b c]} {d e f g})]
 
-    '[[:parameterization {:query [:aliased-property {:property [:simple a]
-                                                     :as :as :alias b}]
-                          :parameters {c d e f}}]]
+    '[[:parameterization
+       {:query [:aliased-property {:property [:simple a]
+                                   :as :as :alias b}]
+        :parameters {c d e f}}]]
     '[(a :as b {c d e f})]
 
     '[[:parameterization
-       {:query [:aliased-property
-                {:property [:join [:properties {[:simple a]
-                                                [[:property [:simple b]]
-                                                 [:property [:simple c]]]}]]
-                 :as :as :alias d}]
+       {:query
+        [:aliased-property
+         {:property [:join [:properties {[:simple a]
+                                         [[:property [:simple b]]
+                                          [:property [:simple c]]]}]]
+          :as :as :alias d}]
         :parameters {e f g h}}]]
     '[({a [b c]} :as d {e f g h})]))
 
@@ -486,19 +489,22 @@
        [:join
         [:properties
          {[:simple users]
-          [[:prefixed-properties {:base db
-                                  :children [[:property [:simple id]]]}]
-           [:prefixed-properties {:base user
-                                  :children [[:property [:simple name]]]}]
+          [[:prefixed-properties
+            {:base db
+             :children [[:property [:simple id]]]}]
+           [:prefixed-properties
+            {:base user
+             :children [[:property [:simple name]]]}]
            [:property
-            [:join [:properties
-                    {[:simple friends]
-                     [[:prefixed-properties
-                       {:base db
-                        :children [[:property [:simple id]]]}]
-                      [:prefixed-properties
-                       {:base user
-                        :children [[:property [:simple name]]]}]]}]]]]}]]]]
+            [:join
+             [:properties
+              {[:simple friends]
+               [[:prefixed-properties
+                 {:base db
+                  :children [[:property [:simple id]]]}]
+                [:prefixed-properties
+                 {:base user
+                  :children [[:property [:simple name]]]}]]}]]]]}]]]]
     '[{users [db [id]
               user [name]
               {friends [db [id]
@@ -512,24 +518,27 @@
             [:join
              [:properties
               {[:simple friends]
-               [[:property [:join
-                            [:properties
-                             {[:simple friends]
-                              [[:prefixed-properties
-                                {:base db
-                                 :children [[:property [:simple id]]]}]]}]]]]}]]]]}]]]]
+               [[:property
+                 [:join
+                  [:properties
+                   {[:simple friends]
+                    [[:prefixed-properties
+                      {:base db
+                       :children
+                       [[:property [:simple id]]]}]]}]]]]}]]]]}]]]]
     '[{users [{friends [{friends [db [id]]}]}]}]))
 
 (deftest parsing-joins-with-sub-joins
   (are [out in] (= out (q/conform-and-parse in))
     '[{:name users :type :join
        :join-source {:name users :type :property}
-       :join-target [{:name db/id :type :property}
-                     {:name user/name :type :property}
-                     {:name friends :type :join
-                      :join-source {:name friends :type :property}
-                      :join-target [{:name db/id :type :property}
-                                    {:name user/name :type :property}]}]}]
+       :join-target
+       [{:name db/id :type :property}
+        {:name user/name :type :property}
+        {:name friends :type :join
+         :join-source {:name friends :type :property}
+         :join-target [{:name db/id :type :property}
+                       {:name user/name :type :property}]}]}]
     '[{users [db [id]
               user [name]
               {friends [db [id]
@@ -537,11 +546,13 @@
 
     '[{:name users :type :join
        :join-source {:name users :type :property}
-       :join-target [{:name friends :type :join
-                      :join-source {:name friends :type :property}
-                      :join-target [{:name friends :type :join
-                                     :join-source {:name friends :type :property}
-                                     :join-target [{:name db/id :type :property}]}]}]}]
+       :join-target
+       [{:name friends :type :join
+         :join-source {:name friends :type :property}
+         :join-target
+         [{:name friends :type :join
+           :join-source {:name friends :type :property}
+           :join-target [{:name db/id :type :property}]}]}]}]
     '[{users [{friends [{friends [db [id]]}]}]}]))
 
 (deftest om-next-query-for-joins-with-sub-joins
@@ -561,8 +572,9 @@
        [:join
         [:properties
          {[:simple users]
-          [[:prefixed-properties {:base db
-                                  :children [[:property [:simple id]]]}]
+          [[:prefixed-properties
+            {:base db
+             :children [[:property [:simple id]]]}]
            [:property [:link [current-user _]]]]}]]]]
     '[{users [db [id] [current-user _]]}]
 
@@ -592,10 +604,11 @@
 
     '[{:name users :type :join
        :join-source {:name users :type :property}
-       :join-target [{:name user/name :type :property}
-                     {:name current-user :type :join
-                      :join-source {:name current-user :type :link :link-id _}
-                      :join-target [{:name user/name :type :property}]}]}]
+       :join-target
+       [{:name user/name :type :property}
+        {:name current-user :type :join
+         :join-source {:name current-user :type :link :link-id _}
+         :join-target [{:name user/name :type :property}]}]}]
     '[{users [user [name] {[current-user _] [user [name]]}]}]))
 
 (deftest om-next-query-for-joins-with-sub-links
@@ -612,10 +625,11 @@
        [:join
         [:properties
          {[:link [user 1]]
-          [[:prefixed-properties {:base db
-                                  :children [[:aliased-property
-                                              {:property [:simple id]
-                                               :as :as :alias db-id}]]}]
+          [[:prefixed-properties
+            {:base db
+             :children [[:aliased-property
+                         {:property [:simple id]
+                          :as :as :alias db-id}]]}]
            [:aliased-property {:property [:simple name]
                                :as :as :alias nm}]]}]]]]
     '[{[user 1] [db [id :as db-id] name :as nm]}]))
