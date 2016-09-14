@@ -219,16 +219,17 @@
                                   (s/explain-str args-spec
                                                  [name forms]))))
          forms          (:forms args)
+         fn-forms       (map second (:forms forms))
          props          (or (some-> forms :query :form-body q/parse)
                             [])
          computed       (or (some-> forms :computed :form-body q/parse)
                             [])
-         commands       (some-> (filter commands-form? (:forms forms))
+         commands       (some-> (filter commands-form? fn-forms)
                                 first :form-args)
          command-fns    (zipmap commands
                                 (map generate-command-fn
                                      commands))
-         fns-with-props (->> (cond-> (vec (:forms forms))
+         fns-with-props (->> (cond-> (vec fn-forms)
                                (:query forms)
                                (conj (transform-query-body
                                       (:query forms))))
