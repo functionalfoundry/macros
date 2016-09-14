@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.service
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.specs.query]))
@@ -13,15 +12,14 @@
 
 (s/def ::service-spec
   (s/with-gen
-    ::s/any
+    any?
     #(s/gen #{symbol? map? vector?})))
 
 (s/def ::service-dependencies
-  #?(:cljs (s/and vector? (s/* symbol?))
-     :clj  (s/coll-of symbol? :kind vector?)))
+  (s/coll-of symbol? :kind vector?))
 
 (s/def ::service-form-body
-  (s/* ::s/any))
+  (s/* any?))
 
 (s/def ::service-dependencies-form
   (s/spec (s/cat :form-name #{'dependencies}
@@ -57,4 +55,4 @@
                         :start (s/? ::service-start-form)
                         :stop (s/? ::service-stop-form)
                         :process (s/? ::service-process-form)))
-         :env (s/? ::s/any)))
+         :env (s/? any?)))

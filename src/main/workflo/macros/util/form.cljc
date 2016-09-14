@@ -1,6 +1,5 @@
 (ns workflo.macros.util.form
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.util.symbol]))
@@ -38,7 +37,7 @@
   :workflo.macros.util.symbol/unqualified-symbol)
 
 (s/def ::form-body
-  ::s/any)
+  any?)
 
 (s/def ::form-args
   vector?)
@@ -89,7 +88,7 @@
   :args (s/cat :form ::conforming-form)
   :ret  (s/cat :defn #{'defn}
                :name :workflo.macros.util.symbol/unqualified-symbol
-               :body (s/* ::s/any)))
+               :body (s/* any?)))
 
 (defn form->defn
   [form]

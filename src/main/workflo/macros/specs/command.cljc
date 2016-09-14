@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.command
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.specs.query]))
@@ -13,7 +12,7 @@
 
 (s/def ::command-spec
   (s/with-gen
-    ::s/any
+    any?
     #(s/gen #{symbol? map? vector?})))
 
 (s/def ::command-form-name
@@ -23,7 +22,7 @@
     #(s/gen '#{foo bar foo-bar})))
 
 (s/def ::command-form-body
-  (s/* ::s/any))
+  (s/* any?))
 
 (s/def ::command-form
   (s/spec (s/cat :form-name ::command-form-name
@@ -49,7 +48,7 @@
                         :spec (s/? ::command-spec-form)
                         :forms (s/* ::command-form)
                         :emit ::command-emit-form))
-         :env (s/? ::s/any)))
+         :env (s/? any?)))
 
 (s/def ::form-name
   ::command-form-name)

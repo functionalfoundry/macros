@@ -9,7 +9,7 @@
 
 (s/fdef defscreen*
   :args :workflo.macros.specs.screen/defscreen-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defscreen*
   ([name forms]

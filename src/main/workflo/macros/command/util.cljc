@@ -1,6 +1,5 @@
 (ns workflo.macros.command.util
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             [workflo.macros.query]
             [workflo.macros.specs.command]
             [workflo.macros.util.symbol]))

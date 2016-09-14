@@ -1,14 +1,7 @@
 (ns workflo.macros.entity.schema-test
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
-            #?(:cljs [workflo.macros.entity
-                      :refer [resolve-entity]
-                      :refer-macros [defentity]]
-               :clj  [workflo.macros.entity
-                      :refer [resolve-entity
-                              defentity]])
+  (:require [clojure.spec :as s]
+            [clojure.test :refer [deftest is]]
+            [workflo.macros.entity :refer [resolve-entity defentity]]
             [workflo.macros.entity.schema :as schema]
             [workflo.macros.specs.types]))
 

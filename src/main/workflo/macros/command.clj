@@ -52,7 +52,7 @@
 
 (s/fdef defcommand*
   :args :workflo.macros.specs.command/defcommand-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn defcommand*
   ([name forms]

@@ -59,7 +59,7 @@
 
 (defn deliver-to-services!
   [data]
-  {:pre [(s/valid? (s/map-of keyword? ::s/any) data)]}
+  {:pre [(s/valid? (s/map-of keyword? any?) data)]}
   (doseq [[service-kw service-data] data]
     (let [service-name (symbol (name service-kw))
           component    (try
@@ -73,7 +73,7 @@
 
 (s/fdef defservice*
   :args :workflo.macros.specs.service/defservice-args
-  :ret  ::s/any)
+  :ret  any?)
 
 (defn make-service-component
   [name args]

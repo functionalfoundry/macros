@@ -1,6 +1,6 @@
 (ns workflo.macros.service
   (:require-macros [workflo.macros.service])
-  (:require [cljs.spec :as s]
+  (:require [clojure.spec :as s]
             [workflo.macros.config :refer-macros [defconfig]]
             [workflo.macros.query :as q]
             [workflo.macros.registry :refer-macros [defregistry]]))
@@ -49,7 +49,7 @@
 
 (defn deliver-to-services!
   [data]
-  {:pre [(s/valid? (s/map-of keyword? ::s/any) data)]}
+  {:pre [(s/valid? (s/map-of keyword? any?) data)]}
   (doseq [[service-kw service-data] data]
     (let [service-name (symbol (name service-kw))
           component    (try

@@ -1,25 +1,22 @@
 (ns workflo.macros.query.om-next
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
+  (:require [clojure.spec :as s]
             [clojure.walk :refer [keywordize-keys]]
+            #?(:cljs [om.next])
             #?(:cljs [workflo.macros.util.js :refer [resolve]])
-            [workflo.macros.specs.om-query]
-            [workflo.macros.specs.parsed-query]))
+            [workflo.macros.specs.om-query :as om-query]
+            [workflo.macros.specs.parsed-query :as parsed-query]))
 
 (s/def ::property-query-from-parsed-property
   (s/and
    (s/or :keyword
          (s/and #(= :property (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/keyword
-                            (:ret %)))
+                #(s/conform ::om-query/keyword (:ret %)))
          :link
          (s/and #(= :link (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/link
-                            (:ret %)))
+                #(s/conform ::om-query/link (:ret %)))
          :join
          (s/and #(= :join (-> % :args :prop :type))
-                #(s/conform :workflo.macros.specs.om-query/join
-                            (:ret %))))
+                #(s/conform ::om-query/join (:ret %))))
    (s/or :regular
          #(not (contains? (-> % :args :prop) :parameters))
          :parameterized
@@ -31,9 +28,9 @@
                     (second (:ret %)))))))
 
 (s/fdef property-query
-  :args (s/cat :prop :workflo.macros.specs.parsed-query/property)
-  :ret  :workflo.macros.specs.om-query/property
-  :fn   ::property-query-from-parsed-property)
+  :args (s/cat :prop ::parsed-query/property)
+  :ret ::om-query/property
+  :fn ::property-query-from-parsed-property)
 
 (defn property-query
   "Generates an Om Next query for a parsed property query"
@@ -68,8 +65,8 @@
         (cond-> params parameterize))))
 
 (s/fdef query
-  :args (s/cat :parsed-query :workflo.macros.specs.parsed-query/query)
-  :ret  :workflo.macros.specs.om-query/query)
+  :args (s/cat :parsed-query ::parsed-query/query)
+  :ret ::om-query/query)
 
 (defn query
   "Generates an Om Next query from a parsed query."

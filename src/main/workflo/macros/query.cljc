@@ -1,158 +1,157 @@
 (ns workflo.macros.query
-  (:require #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.spec.impl.gen :as gen])
+  (:require [clojure.spec :as s]
+            #?(:cljs [cljs.spec.impl.gen :as gen]
+               :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.bind :as bind]
-            [workflo.macros.query.util :as util]
-            [workflo.macros.specs.conforming-query]
-            [workflo.macros.specs.parsed-query]
-            [workflo.macros.specs.query]))
+            [workflo.macros.specs.conforming-query :as conforming-query]
+            [workflo.macros.specs.parsed-query :as parsed-query]
+            [workflo.macros.specs.query :as q]))
 
-;;;; Properties specification parsing
+;;;; Query parsing
 
-(declare conform-and-parse)
-(declare parse)
+(s/fdef query-type
+  :args (s/cat :query (s/with-gen
+                        (s/and vector?
+                               (s/cat :first keyword?
+                                      :rest (s/* any?)))
+                        #(gen/vector (s/gen keyword?)
+                                     1 10)))
+  :ret keyword?
+  :fn #(= (:ret %) (:first (:query (:args %)))))
 
-(s/fdef conform
-  :args (s/cat :query :workflo.macros.specs.query/query)
-  :ret  :workflo.macros.specs.conforming-query/query)
-
-(defn conform
-  "Validates a query and returns the parsed, conforming result."
-  [query]
-  (s/conform :workflo.macros.specs.query/query query))
+(defn query-type [query]
+  (first query))
 
 (s/def ::subquery
-  (s/or :regular-query
-        :workflo.macros.specs.conforming-query/regular-query
-        :parameterized-query
-        :workflo.macros.specs.conforming-query/parameterized-query
-        :nested-properties
-        :workflo.macros.specs.conforming-query/nested-properties
-        :property :workflo.macros.specs.conforming-query/property
-        :simple :workflo.macros.specs.conforming-query/simple-property
-        :link :workflo.macros.specs.conforming-query/link
-        :join :workflo.macros.specs.conforming-query/join
-        :model-join :workflo.macros.specs.conforming-query/model-join
-        :recursive-join
-        :workflo.macros.specs.conforming-query/recursive-join
-        :properties-join
-        :workflo.macros.specs.conforming-query/properties-join))
-
-(s/fdef prefix-child-name
-  :args (s/cat :base symbol?
-               :child :workflo.macros.specs.parsed-query/typed-property)
-  :ret  :workflo.macros.specs.parsed-query/typed-property
-  :fn   (s/and #(= (-> % :ret :name)
-                   (symbol (name (-> % :args :base))
-                           (name (-> % :args :child :name))))
-               #(if (-> % :args :child :join-source :name)
-                  (= (-> % :ret :join-source :name)
-                     (symbol (name (-> % :args :base))
-                             (name (-> % :args :child
-                                       :join-source :name))))
-                  true)))
-
-(defn prefix-child-name
-  [base child]
-  (letfn [(prefix-sym [sym]
-            (symbol (name base) (name sym)))]
-    (cond-> child
-      (child :join-source) (update-in [:join-source :name] prefix-sym)
-      (child :name)        (update :name prefix-sym))))
+  (s/or :simple ::conforming-query/simple
+        :link ::conforming-query/link
+        :join ::conforming-query/join
+        :property ::conforming-query/property
+        :aliased-property ::conforming-query/aliased-property
+        :prefixed-properties ::conforming-query/prefixed-properties
+        :parameterization ::conforming-query/parameterization))
 
 (s/fdef parse-subquery
   :args (s/cat :query ::subquery)
-  :ret  :workflo.macros.specs.parsed-query/query)
+  :ret ::parsed-query/query)
 
-(defn parse-subquery
+(defmulti parse-subquery
   "Takes a subquery and returns a vector of parsed properties, each
    in one of the following forms:
 
-       {:name user/name :type :property}
+       {:name user/name :type :property :alias user-name}
        {:name user/email :type :property}
-       {:name user/friends :type :join :join-target User}
        {:name user/friends :type :join
+        :join-source {name user/friends :type :property}
+        :join-target User}
+       {:name user/friends :type :join
+        :join-source {:name user/friends :type :property}
         :join-target [{:name user/name :type :property}]}
        {:name current-user :type :link :link-id _}.
 
    Each of these may in addition contain an optional :parameters
-   key with a {symbol ?variable}-style map."
-  [[type query :as subquery]]
-  (case type
-    :regular-query       (parse-subquery query)
-    :parameterized-query (->> (:regular-query-value query)
-                              (parse-subquery)
-                              (mapv (fn [parsed]
-                                      (assoc parsed :parameters
-                                             (:parameters query)))))
-    :nested-properties   (let [{:keys [base children]} query]
-                           (->> children
-                                (map parse-subquery)
-                                (apply concat)
-                                (mapv (partial prefix-child-name base))))
-    :property            (parse-subquery query)
-    :simple              [{:name query :type :property}]
-    :link                (let [[name link-id] query]
-                           [{:name name :type :link :link-id link-id}])
-    :join                (parse-subquery query)
-    :model-join          (let [[name target] (first query)]
-                           [{:name (cond-> name (vector? name) first)
-                             :type :join
-                             :join-source (-> name
-                                              vector
-                                              conform-and-parse
-                                              first)
-                             :join-target target}])
-    :recursive-join      (let [[name target] (first query)]
-                           [{:name (cond-> name (vector? name) first)
-                             :type :join
-                             :join-source (-> name
-                                              vector
-                                              conform-and-parse
-                                              first)
-                             :join-target
-                             #?(:cljs target
-                                :clj  (second target))}])
-    :properties-join     (let [[name target] (first query)]
-                           [{:name (cond-> name (vector? name) first)
-                             :type :join
-                             :join-source (-> name
-                                              vector
-                                              conform-and-parse
-                                              first)
-                             :join-target
-                             #?(:cljs (conform-and-parse target)
-                                :clj  (parse target))}])
-    (if (vector? type)
-      (parse subquery)
-      (parse-subquery type))))
+   key with a {symbol ?variable}-style map and an :alias key
+   with a symbol to use when destructuring instead of the
+   original name."
+  query-type)
+
+(defmethod parse-subquery :simple
+  [[_ name]]
+  [{:name name :type :property}])
+
+(defmethod parse-subquery :link
+  [[_ [link-name link-id]]]
+  [{:name link-name :type :link :link-id link-id}])
+
+(defmethod parse-subquery :join
+  [[_ join]]
+  (let [[type value]    join
+        [source target] (first value)
+        join-source     (first (parse-subquery source))
+        res             [{:name (:name join-source)
+                          :type :join
+                          :join-source join-source}]]
+    (case type
+      :properties (assoc-in res [0 :join-target]
+                            (->> target
+                                 (map parse-subquery)
+                                 (apply concat)
+                                 (into [])))
+      :recursive  (assoc-in res [0 :join-target] (second target))
+      :view       (assoc-in res [0 :join-target] (second target)))))
+
+(defmethod parse-subquery :property
+  [[_ q]]
+  (parse-subquery q))
+
+(defmethod parse-subquery :aliased-property
+  [[_ q]]
+  (let [{:keys [property alias]} q]
+    (mapv #(assoc % :alias alias) (parse-subquery property))))
+
+(defmethod parse-subquery :prefixed-properties
+  [[_ {:keys [base children]}]]
+  (letfn [(prefixed-name [sym]
+            (symbol (str base) (str sym)))
+          (prefix-name [x]
+            (update x :name prefixed-name))
+          (prefix-join-source-name [x]
+            (cond-> x
+              (:join-source x)
+              (update-in [:join-source :name] prefixed-name)))]
+    (->> children
+         (map parse-subquery)
+         (apply concat)
+         (map prefix-name)
+         (map prefix-join-source-name)
+         (into []))))
+
+(defmethod parse-subquery :parameterization
+  [[_ {:keys [query parameters]}]]
+  (assoc-in (parse-subquery query) [0 :parameters] parameters))
+
+(defmethod parse-subquery :default
+  [q]
+  (if ;; Workaround for extra [] around
+      ;; [:aliased-property ...] in output of
+      ;; conform (JIRA issue CLJ-2003)
+      (and (vector? q)
+           (= 1 (count q))
+           (vector? (first q))
+           (keyword? (ffirst q)))
+    (parse-subquery (first q))
+    (let [msg (str "Unknown subquery: " q)]
+      (throw (new #?(:cljs js/Error :clj Exception) msg)))))
 
 (s/fdef parse
-  :args (s/cat :conforming-query
-               :workflo.macros.specs.conforming-query/query)
-  :ret  :workflo.macros.specs.parsed-query/query)
+  :args (s/cat :query ::conforming-query/query)
+  :ret ::parsed-query/query)
 
-(defn parse
-  [conforming-query]
-  (->> conforming-query
-       (map parse-subquery)
-       (apply concat)
-       (into [])))
+(defn parse [query]
+  (transduce (map parse-subquery)
+             (comp vec concat)
+             [] query))
+
+(s/fdef conform
+  :args (s/cat :query ::q/query)
+  :ret ::conforming-query/query)
+
+(defn conform [query]
+  (s/conform ::q/query query))
 
 (s/fdef conform-and-parse
-  :args (s/cat :props :workflo.macros.specs.query/query)
-  :ret :workflo.macros.specs.parsed-query/query)
+  :args (s/cat :query ::q/query)
+  :ret ::parsed-query/query)
 
 (defn conform-and-parse
   "Conforms and parses a query expression like
 
-       [user [name email {friends User}] [current-user _]]
+       [user [name :as nm email {friends User}] [current-user _]]
 
    into a flat vector of parsed properties with the following
    structure:
 
-       [{:name user/name :type :property}
+       [{:name user/name :type :property :alias nm}
         {:name user/email :type :property}
         {:name user/friends :type :join :join-target User}
         {:name current-user :type :link :link-id _}].
@@ -164,27 +163,18 @@
   (parse (conform query)))
 
 (s/def ::map-destructuring-keys
-  #?(:cljs (s/with-gen (s/and vector? (s/* symbol?))
-             #(gen/vector (s/gen symbol?)))
-     :clj  (s/coll-of symbol? :kind vector?)))
+  (s/coll-of symbol? :kind vector?))
 
 (s/fdef map-destructuring-keys
-  :args (s/cat :props :workflo.macros.specs.parsed-query/query)
-  :ret  ::map-destructuring-keys
-  :fn   (s/and #(= (into #{} (:ret %))
-                   (into #{} (map :name) (:props (:args %))))))
+  :args (s/cat :query ::parsed-query/query)
+  :ret ::map-destructuring-keys
+  :fn (s/and #(= (into #{} (:ret %))
+                 (into #{} (map :name) (:query (:args %))))))
 
 (defn map-destructuring-keys
-  "Generates keys for destructuring a map of properties from a parsed
-   properties specification."
-  [props]
-  (into [] (map :name) props))
-
-
-(s/fdef bind-query-parameters
-  :args (s/cat :query :workflo.macros.specs.parsed-query/query
-               :params map?)
-  :ret  :workflo.macros.specs.parsed-query/query)
+  "Generates keys for destructuring a map of query results."
+  [query]
+  (into [] (map :name) query))
 
 (defn bind-query-parameters
   "Takes a parsed query and a map of named parameters and their

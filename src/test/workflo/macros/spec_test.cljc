@@ -1,10 +1,8 @@
 (ns workflo.macros.spec-test
-  (:require #?(:cljs [cljs.test :refer-macros [deftest is]]
-               :clj  [clojure.test :refer [deftest is]])
-            #?(:cljs [cljs.spec :as s]
-               :clj  [clojure.spec :as s])
-            #?(:cljs [cljs.spec.test :as st]
-               :clj  [clojure.spec.test :as st])
+  (:require [clojure.string :as string]
+            [clojure.test :refer [deftest is]]
+            [clojure.spec :as s]
+            [clojure.spec.test :as st]
             [workflo.macros.entity]
             [workflo.macros.command]
             [workflo.macros.command.util]
@@ -19,25 +17,34 @@
             [workflo.macros.screen]
             [workflo.macros.view]))
 
-#?(:cljs (deftest test-specs
-           (doseq [v (s/speced-vars)]
-             (println "  Testing" v)
-             (when-not
-                 (some #{v}
-                       [#'workflo.macros.query/parse-subquery
-                        #'workflo.macros.query/parse
-                        #'workflo.macros.query.om-next/query
-                        #'workflo.macros.query.om-next/property-query
-                        #'workflo.macros.util.form/forms-map])
-               (let [result (st/check-var v :num-tests 10 :max-size 10)]
-                 (println "  >" result)
-                 (and (is (map? result))
-                      (is (true? (:result result)))))))))
+(def check-opts
+  {:clojure.spec.test.check/opts {:num-tests 10
+                                  :max-size 10}})
+
+(defn workflo-sym? [sym]
+  (string/starts-with? (str sym) "workflo.macros."))
+
+;; #?(:cljs (deftest test-specs
+;;            (doseq [sym (st/checkable-syms)]
+;;              (println "  Testing" sym)
+;;              (when-not
+;;                  (some #{sym}
+;;                        ['workflo.macros.query/parse-subquery
+;;                         'workflo.macros.query/parse
+;;                         'workflo.macros.query.om-next/query
+;;                         'workflo.macros.query.om-next/property-query
+;;                         'workflo.macros.util.form/forms-map])
+;;                (let [result (st/check sym check-opts)]
+;;                  (println "  >" result)
+;;                  (and (is (map? result))
+;;                       (is (true? (:result result)))))))))
 
 #?(:clj (deftest test-specs
-          (doseq [s (st/testable-syms)]
+          (doseq [s (->> (st/checkable-syms)
+                         (filter workflo-sym?))]
             (println "  Testing" s)
-            (let [result (first (st/test s {:clojure.spec.test.check/opts
-                                            {:num-tests 10}}))]
+            (let [result (first (st/check s check-opts))]
               (and (is (map? result))
-                   (is (true? (:result result))))))))
+                   (is (-> result :clojure.spec.test.check/ret))
+                   (is (-> result :clojure.spec.test.check/ret
+                           :result true?)))))))
