@@ -1,4 +1,4 @@
-(ns workflo.macros.query-new
+(ns workflo.macros.query
   (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
