@@ -174,7 +174,9 @@
     '[{:a '...}] '[{a ...}]
     '[{:a 5}] '[{a 5}]
     #?(:cljs '[{:a [:user/name :user/email]}]
-       :clj  '[{:a (om.next/get-query User)}]) '[{a User}]))
+       :clj  '[{:a (om.next/get-query
+                    workflo.macros.specs.query-test/User)}])
+    '[{a workflo.macros.specs.query-test/User}]))
 
 (deftest conforming-joins-with-a-link-source
   (are [out in] (= out (q/conform in))
@@ -468,19 +470,24 @@
 
 (deftest om-next-query-for-parameterizations
   (are [out in] (= out (-> in q/conform-and-parse om/query))
-    '[(clojure.core/list :a '{:b c})]
+    #?(:cljs '[(:a {:b c})]
+       :clj  '[(clojure.core/list :a '{:b c})])
     '[(a {b c})]
 
-    '[(clojure.core/list :a '{:b c :d e})]
+    #?(:cljs '[(:a {:b c :d e})]
+       :clj  '[(clojure.core/list :a '{:b c :d e})])
     '[(a {b c d e})]
 
-    '[(clojure.core/list {:a [:b :c]} '{:d e :f g})]
+    #?(:cljs '[({:a [:b :c]} {:d e :f g})]
+       :clj  '[(clojure.core/list {:a [:b :c]} '{:d e :f g})])
     '[({a [b c]} {d e f g})]
 
-    '[(clojure.core/list :a '{:c d :e f})]
+    #?(:cljs '[(:a {:c d :e f})]
+       :clj  '[(clojure.core/list :a '{:c d :e f})])
     '[(a :as b {c d e f})]
 
-    '[(clojure.core/list {:a [:b :c]} '{:e f :g h})]
+    #?(:cljs '[({:a [:b :c]} {:e f :g h})]
+       :clj  '[(clojure.core/list {:a [:b :c]} '{:e f :g h})])
     '[({a [b c]} :as d {e f g h})]))
 
 (deftest conforming-joins-with-sub-joins
