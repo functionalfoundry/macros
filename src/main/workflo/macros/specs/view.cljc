@@ -15,10 +15,24 @@
     (s/coll-of symbol? :kind vector? :min-count 1)
     #(s/gen '#{[this] [props] [this props]})))
 
-(s/def ::view-form
-  (s/spec (s/cat :form-name symbol?
+(s/def ::raw-view-form-name
+  (s/with-gen
+    (s/and symbol? #(= \. (first (str %))))
+    #(s/gen '#{.do-this .do-that})))
+
+(s/def ::raw-view-form
+  (s/spec (s/cat :form-name ::raw-view-form-name
+                 :form-args ::view-form-args
+                 :form-body (s/* any?))))
+
+(s/def ::regular-view-form
+  (s/spec (s/cat :form-name (s/and symbol? #(not= \. (first (str %))))
                  :form-args (s/? ::view-form-args)
                  :form-body (s/* any?))))
+
+(s/def ::view-form
+  (s/alt :raw-view-form ::raw-view-form
+         :regular-view-form ::regular-view-form))
 
 (s/def ::view-query-form
   (s/spec (s/cat :form-name #{'query}
