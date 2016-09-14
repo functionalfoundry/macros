@@ -39,7 +39,11 @@
 
 (s/def ::join-properties
   (s/with-gen
-    ::query
+    ;; NOTE: The s/and here is a hack to make looking up ::query
+    ;; work even though ::query is only defined later in this
+    ;; namespace. It *should* work without it but it may be the
+    ;; s/with-gen around it that makes it fail.
+    (s/and ::query)
     #(s/gen '#{[user]
                [db [id] user [name email]]
                [[current-user _]]
@@ -77,7 +81,11 @@
 
 (s/def ::prefixed-properties-value
   (s/with-gen
-    ::query
+    ;; NOTE: The s/and here is a hack to make looking up ::query
+    ;; work even though ::query is only defined later in this
+    ;; namespace. It *should* work without it but it may be the
+    ;; s/with-gen around it that makes it fail.
+    (s/and ::query)
     #(s/gen '#{[id]
                [name email]
                [name email [current-user _]]})))
