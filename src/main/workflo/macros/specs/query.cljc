@@ -28,7 +28,7 @@
 ;; Recursive joins
 
 (s/def ::join-recursion
-  (s/or :unlimited #{'...}
+  (s/or :unlimited #{'... ''...}
         :limited (s/and int? pos?)))
 
 (s/def ::recursive-join
