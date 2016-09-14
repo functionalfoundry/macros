@@ -34,7 +34,7 @@
   (s/tuple #{:properties} ::join-properties-value))
 
 (s/def ::unlimited-join-recursion
-  (s/tuple #{:unlimited} #{'...}))
+  (s/tuple #{:unlimited} #{'... ''...}))
 
 (s/def ::limited-join-recursion
   (s/tuple #{:limited} (s/and int? pos?)))
