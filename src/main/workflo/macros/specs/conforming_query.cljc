@@ -112,18 +112,28 @@
 (s/def :parameterization-value/parameters
   :workflo.macros.specs.query/parameters)
 
-(s/def ::parameterizatio-value
+(s/def ::parameterization-value
   (s/keys :req-un [:parameterization-value/query
                    :parameterization-value/parameters]))
 
 (s/def ::parameterization
-  (s/tuple #{:parameterization} ::parameterizatio-value))
+  (s/tuple #{:parameterization} ::parameterization-value))
+
+;; Workaround for extra [] around [:aliased-property ...] and
+;; [:prefixed-properties ...] in output of conform (JIRA issue
+;; CLJ-2003)
+(s/def ::bug-vector
+  (s/coll-of (s/or :property ::property
+                   :aliased-property ::aliased-property
+                   :prefixed-properties ::prefixed-properties)
+             :kind vector? :count 1))
 
 (s/def ::query-value
   (s/or :property ::property
         :aliased-property ::aliased-property
         :prefixed-properties ::prefixed-properties
-        :parameterization ::parameterization))
+        :parameterization ::parameterization
+        :bug-vector ::bug-vector))
 
 (s/def ::query
   (s/coll-of ::query-value :kind vector?
