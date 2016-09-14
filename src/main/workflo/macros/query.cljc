@@ -91,13 +91,19 @@
 
 (defmethod parse-subquery :prefixed-properties
   [[_ {:keys [base children]}]]
-  (letfn [(prefix-name [x]
-            (let [prefixed-name (symbol (str base) (str (:name x)))]
-              (assoc x :name prefixed-name)))]
+  (letfn [(prefixed-name [sym]
+            (symbol (str base) (str sym)))
+          (prefix-name [x]
+            (update x :name prefixed-name))
+          (prefix-join-source-name [x]
+            (cond-> x
+              (:join-source x)
+              (update-in [:join-source :name] prefixed-name)))]
     (->> children
          (map parse-subquery)
          (apply concat)
          (map prefix-name)
+         (map prefix-join-source-name)
          (into []))))
 
 (defmethod parse-subquery :parameterization
