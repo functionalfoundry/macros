@@ -2,6 +2,7 @@
   (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
+            [workflo.macros.specs.query :as q]
             [workflo.macros.query.util :as util]))
 
 (s/def ::keyword
@@ -20,7 +21,7 @@
 
 (s/def ::join-target
   (s/or :query ::query
-        :recursion :workflo.macros.specs.query/recursion
+        :recursion ::q/join-recursion
         :component ::component-query))
 
 (s/def ::join
