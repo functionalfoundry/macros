@@ -2,7 +2,7 @@
   (:require [clojure.test :refer [are deftest is]]
             [clojure.spec :as s]
             #?(:cljs [om.next])
-            [workflo.macros.query-new :as q]
+            [workflo.macros.query :as q]
             [workflo.macros.query.om-next :as om]
             [workflo.macros.specs.query]))
 
