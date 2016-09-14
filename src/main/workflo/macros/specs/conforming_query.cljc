@@ -48,18 +48,18 @@
 (s/def ::join-recursion
   (s/tuple #{:recursive} ::join-recursion-value))
 
-(s/def ::join-model-value
+(s/def ::join-view-value
   (s/map-of ::join-source
-            (s/tuple #{:model} :workflo.macros.specs.query/model-name)
+            (s/tuple #{:view} :workflo.macros.specs.query/view-name)
             :count 1))
 
-(s/def ::join-model
-  (s/tuple #{:model} ::join-model-value))
+(s/def ::join-view
+  (s/tuple #{:view} ::join-view-value))
 
 (s/def ::join
   (s/tuple #{:join} (s/or :properties ::join-properties
                           :recursion ::join-recursion
-                          :model ::join-model)))
+                          :view ::join-view)))
 
 (s/def ::property-value
   (s/or :simple ::simple

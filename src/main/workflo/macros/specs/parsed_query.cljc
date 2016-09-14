@@ -29,10 +29,10 @@
 
 (s/def ::join-target
   (s/with-gen
-    (s/or :model :workflo.macros.specs.query/model-name
+    (s/or :view :workflo.macros.specs.query/view-name
           :recursion :workflo.macros.specs.query/join-recursion
           :properties ::query)
-    #(gen/one-of [(s/gen :workflo.macros.specs.query/model-name)
+    #(gen/one-of [(s/gen :workflo.macros.specs.query/view-name)
                   (s/gen :workflo.macros.specs.query/join-recursion)
                   (s/gen '#{[{:type :property :name name}]
                             [{:type :property :name name}
