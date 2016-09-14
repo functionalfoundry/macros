@@ -116,8 +116,8 @@
                                      [:limited 5]}]]]]
     '[{a 5}]
 
-    '[[:property [:join [:model {[:simple a]
-                                 [:model User]}]]]]
+    '[[:property [:join [:view {[:simple a]
+                                 [:view User]}]]]]
     '[{a User}]))
 
 (deftest parsing-joins-with-a-simple-property-source

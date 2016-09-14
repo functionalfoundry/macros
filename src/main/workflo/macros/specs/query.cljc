@@ -53,16 +53,16 @@
   (s/map-of ::join-source ::join-properties
             :count 1 :conform-keys true))
 
-;; Model joins
+;; View joins
 
-(s/def ::model-name
+(s/def ::view-name
   symbol?)
 
-(s/def ::join-model
-  (s/or :model ::model-name))
+(s/def ::join-view
+  (s/or :view ::view-name))
 
-(s/def ::model-join
-  (s/map-of ::join-source ::join-model
+(s/def ::view-join
+  (s/map-of ::join-source ::join-view
             :count 1 :conform-keys true))
 
 ;; All possible joins
@@ -70,7 +70,7 @@
 (s/def ::join
   (s/or :recursive ::recursive-join
         :properties ::properties-join
-        :model ::model-join))
+        :view ::view-join))
 
 ;;;; Individual properties, prefixed properties, aliased properties
 

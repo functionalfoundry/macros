@@ -78,7 +78,7 @@
                                  (apply concat)
                                  (into [])))
       :recursive  (assoc-in res [0 :join-target] (second target))
-      :model      (assoc-in res [0 :join-target] (second target)))))
+      :view       (assoc-in res [0 :join-target] (second target)))))
 
 (defmethod parse-subquery :property
   [[_ q]]
