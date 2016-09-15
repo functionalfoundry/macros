@@ -7,6 +7,7 @@
                  [adzerk/boot-reload "0.4.12"]
                  [adzerk/boot-test "1.1.1"]
                  [adzerk/bootlaces "0.1.13"]
+                 [boot-codox "0.10.0" :scope "test"]
                  [pandeiro/boot-http "0.7.3"]
                  [crisptrutski/boot-cljs-test "0.2.1"]
                  [com.cemerick/piggieback "0.2.1"]
@@ -35,6 +36,7 @@
          '[adzerk.boot-test :refer :all]
          '[adzerk.bootlaces :refer :all]
          '[boot.git :refer [last-commit]]
+         '[codox.boot :refer [codox]]
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
@@ -73,13 +75,6 @@
           :compiler-options {:devcards true
                              :parallel-build true})))
 
-(deftask build-docs
-  []
-  (comp
-    (cljs :optimizations :advanced
-          :compiler-options {:devcards true
-                             :parallel-build true})))
-
 (deftask dev
   []
   (comp
@@ -91,15 +86,19 @@
     (serve :dir "target")
     (repl :server true)))
 
-(deftask docs
-  []
-  (comp
-    (build-docs)))
-
 (deftask testing
   []
   (merge-env! :source-paths #{"src/test"})
   identity)
+
+(deftask docs
+  []
+  (comp
+   (codox :name "workflo/macros"
+          :source-paths #{"src/main"}
+          :output-path "api-docs"
+          :metadata {:doc/format :markdown})
+   (target)))
 
 (deftask test-once
   []
