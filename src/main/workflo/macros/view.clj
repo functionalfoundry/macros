@@ -274,47 +274,49 @@
 (defmacro defview
   "Create a new view with the given name.
 
-   Takes an optional properties spec, an optional computed properties
-   spec and an arbitrary number of Om Next component functions (such
-   as ident, query, query-params, initLocalState or render) and
-   JavaScript object methods, without requiring their protocols or
-   argument bindings (like [this] or [props]) to be included in the
-   definition.
+   Takes an optional query, an optional computed properties \"query\"
+   and an arbitrary number of Om Next component functions (such
+   as `ident`, `query`, `query-params`, `initLocalState` or `render`)
+   and JavaScript object methods, without requiring their protocols or
+   argument bindings (like `[this]` or `[props]`) to be included in
+   the definition.
 
-   Based on the properties and computed properties spec, defview
-   will wrap the function bodies of all instance functions (ident,
-   render, lifecycle functions, any object methods) in a destructuring
-   let that makes the specified properties available inside these
-   functions.
+   `defview` will wrap the function bodies of all instance functions
+   (`ident`, `render`, lifecycle functions, any object methods) so that
+   the values in the query result and in computed properties are bound
+   to the names appearing in the queries.
 
    Usage:
 
-      (defview User
-        [name email address [street city zipcode]]
-        [clicked-fn]
-        (key name)
-        (validate ...)
-        (ident [:user/by-name name])
-        (render
-          (html
-            [:div.user {:onClick clicked-fn}
-             [:h2 name \"(\" email \")\"]
-             [:ul.address
-              [:li street]
-              [:li city]
-              [:li zipcode]]])))
+   ```
+   (defview User
+     [name email address [street city zipcode]]
+     [clicked-fn]
+     (key name)
+     (validate ...)
+     (ident [:user/by-name name])
+     (render
+       (html
+         [:div.user {:onClick clicked-fn}
+          [:h2 name \"(\" email \")\"]
+          [:ul.address
+           [:li street]
+           [:li city]
+           [:li zipcode]]])))
+   ```
 
    The above example would define the following:
 
-     * an Om Next component called User,
-     * a component factory called user, with a :keyfn, derived from
-       (key ...), and a :validator, derived from (validate ...).
+     * an Om Next component called `User`,
+     * a component factory called `user`, with a `:keyfn`,
+       derived from `(key ...)`, and a `:validator`, derived
+       from `(validate ...)`.
 
-   If the properties spec includes [db [id]], corresponding to
-   the Om Next query attribute :db/id, it is assumed that the
-   view represents data from DataScript or Datomic. In this case,
-   defview will automatically infer (ident ...) and
-   (key ...) functions based on the database ID. This behavior
-   can be overriden by specifically defining both, ident and key."
+   If the query includes `[db [id]]`, corresponding to the Om Next
+   query attribute `:db/id`, it is assumed that the view represents
+   data from DataScript or Datomic. In this case, `defview` will
+   automatically infer `(ident ...)` and `(key ...)` functions
+   based on the database ID. This behavior can be overriden by
+   specifically defining both, `ident` and `key`."
   [name & forms]
   (defview* name forms &env))
