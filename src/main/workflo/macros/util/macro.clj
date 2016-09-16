@@ -22,12 +22,3 @@
    will return `UserComponent`."
   [name]
   (symbol (str (record-symbol name) 'Component)))
-
-(defmacro with-destructured-query
-  "Takes a parsed query, query results and arbitrary code. Wraps
-   the code in let form that destructures the query results according
-   to the query."
-  [query result & body]
-  (let [keys (map-destructuring-keys query)]
-    `(let [{:keys [~@keys]} ~result]
-       ~@body)))
