@@ -62,7 +62,7 @@
                       "https://opensource.org/licenses/MIT"}}
  repl      {:middleware '[cemerick.piggieback/wrap-cljs-repl]})
 
-(deftask developing
+(deftask examples
   []
   (merge-env! :source-paths #{"src/examples"})
   identity)
@@ -85,7 +85,7 @@
 (deftask dev
   []
   (comp
-    (developing)
+    (examples)
     (watch)
     (reload :on-jsload 'workflo.macros.examples.screen-app/reload)
     (build-dev)
