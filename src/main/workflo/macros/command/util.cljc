@@ -1,19 +1,18 @@
 (ns workflo.macros.command.util
   (:require [clojure.spec :as s]
             [workflo.macros.query]
-            [workflo.macros.specs.command]
+            [workflo.macros.specs.command :as sc]
+            [workflo.macros.specs.parsed-query :as spq]
             [workflo.macros.util.symbol]))
 
 ;;;; Utilities
 
-(s/fdef bind-query-keys
-  :args (s/cat :form-body
-               (s/spec :workflo.macros.specs.command/command-form-body)
-               :query-keys
-               :workflo.macros.query/map-destructuring-keys)
-  :ret  :workflo.macros.specs.command/command-form-body)
+(s/fdef wrap-with-query-bindings
+  :args (s/cat :body (s/spec ::sc/command-form-body)
+               :query ::spq/query)
+  :ret  ::sc/command-form-body)
 
-(defn bind-query-keys
-  [form-body query-keys]
-  `((~'let [{:keys ~query-keys} ~'query-result]
-     ~@form-body)))
+(defn wrap-with-query-bindings
+  [body query]
+  `((~'workflo.macros.bind/with-query-bindings
+     ~query ~'query-result ~@body)))

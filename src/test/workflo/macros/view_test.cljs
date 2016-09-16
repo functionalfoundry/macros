@@ -16,7 +16,7 @@
     (catch js/Object e
       (println e))))
 
-(deftest view-definition-with-props
+(deftest view-definition-with-query
   (is (= (macroexpand-1
           '(defview View
              (query [user [name email]])
@@ -29,13 +29,15 @@
             (def view
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
-                          (let [{:keys [user/name
-                                        user/email]} props]
+                          (workflo.macros.bind/with-query-bindings
+                            [{:name user/name :type :property}
+                             {:name user/email :type :property}]
+                            props
                             name))}))
             (workflo.macros.view/register-view!
              'View {:view View :factory view})))))
 
-(deftest view-definition-with-computed-props
+(deftest view-definition-with-query-and-computed
   (is (= (macroexpand-1
           '(defview View
              (query [user [name email]])
@@ -50,9 +52,14 @@
               (workflo.macros.view/factory View
                 {:keyfn
                  (fn [props]
-                   (let [{:keys [user/name user/email]} props
-                         {:keys [on-click]} (om/get-computed props)]
-                     name))}))
+                   (workflo.macros.bind/with-query-bindings
+                     [{:name on-click :type :property}]
+                     (om.next/get-computed props)
+                     (workflo.macros.bind/with-query-bindings
+                       [{:name user/name :type :property}
+                        {:name user/email :type :property}]
+                       props
+                       name)))}))
             (workflo.macros.view/register-view!
              'View {:view View :factory view})))))
 
@@ -64,7 +71,9 @@
             (om.next/defui View
               static om.next/Ident
               (ident [this props]
-                (let [{:keys [db/id]} props]
+                (workflo.macros.bind/with-query-bindings
+                  [{:name db/id :type :property}]
+                  props
                   [:db/id id]))
               static om.next/IQuery
               (query [this]
@@ -72,7 +81,9 @@
             (def view
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
-                          (let [{:keys [db/id]} props]
+                          (workflo.macros.bind/with-query-bindings
+                            [{:name db/id :type :property}]
+                            props
                             id))}))
             (workflo.macros.view/register-view!
              'View {:view View :factory view})))))
@@ -114,7 +125,10 @@
             (om.next/defui View
               static om.next/Ident
               (ident [this props]
-                (let [{:keys [db/id user/name]} props]
+                (workflo.macros.bind/with-query-bindings
+                  [{:name db/id :type :property}
+                   {:name user/name :type :property}]
+                  props
                   [:user/by-name name]))
               static om.next/IQuery
               (query [this]
@@ -122,7 +136,10 @@
             (def view
               (workflo.macros.view/factory View
                 {:keyfn (fn [props]
-                          (let [{:keys [db/id user/name]} props]
+                          (workflo.macros.bind/with-query-bindings
+                            [{:name db/id :type :property}
+                             {:name user/name :type :property}]
+                            props
                             id))}))
             (workflo.macros.view/register-view!
              'View {:view View :factory view})))))
@@ -137,7 +154,9 @@
             (om.next/defui View
               Object
               (on-click [this]
-                (let [{:keys [user/name]} (om/props this)]
+                (workflo.macros.bind/with-query-bindings
+                  [{:name user/name :type :property}]
+                  (om.next/props this)
                   (js/alert name)))
               static om.next/IQuery
               (query [this]

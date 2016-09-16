@@ -1,6 +1,7 @@
 (ns workflo.macros.view
   (:require [om.next :as om]
             [om.dom]
+            [workflo.macros.bind]
             [workflo.macros.config :refer-macros [defconfig]]
             [workflo.macros.registry :refer-macros [defregistry]]))
 
