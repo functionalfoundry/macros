@@ -66,7 +66,6 @@
                                               [name forms]))))
          description (:description (:forms args))
          query       (some-> args :forms :query :form-body q/parse)
-         query-keys  (some-> query q/map-destructuring-keys)
          spec        (some-> args :forms :spec :form-body)
          name-sym    (unqualify name)
          forms       (cond-> (:forms (:forms args))
@@ -82,9 +81,10 @@
                           (map #(assoc % :form-args
                                        '[query-result data]))
                           (map #(cond-> %
-                                  query-keys (update :form-body
-                                                     util/bind-query-keys
-                                                     query-keys)))
+                                  (not (empty? query))
+                                  (update :form-body
+                                          util/wrap-with-query-bindings
+                                          query)))
                           (map f/form->defn))
          def-sym     (f/qualified-form-name 'definition name-sym)]
      `(do
