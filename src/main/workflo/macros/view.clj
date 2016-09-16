@@ -154,6 +154,11 @@
          (> (count form-body) 1))
     wrap-render))
 
+(defn wrap-with-query-bindings
+  [form-body query query-result]
+  `[(~'workflo.macros.bind/with-query-bindings
+     ~query ~query-result ~@form-body)])
+
 (defn bind-query-result
   "Wraps the body of a function, binding the values in
    props and computed props to the names used in the
@@ -168,14 +173,12 @@
           computed    `(~'om.next/get-computed ~props)]
       (cond-> f
         (not (empty? props-query))
-        (assoc :form-body
-               `[(~'workflo.macros.bind/with-query-bindings
-                  ~props-query ~props ~@form-body)])
+        (update :form-body wrap-with-query-bindings
+                props-query props)
 
         (not (empty? computed-query))
-        (assoc :form-body
-               `[(~'workflo.macros.bind/with-query-bindings
-                  ~computed-query ~computed ~@form-body)])))
+        (update :form-body wrap-with-query-bindings
+                computed-query computed)))
     f))
 
 (defn bind-commands
