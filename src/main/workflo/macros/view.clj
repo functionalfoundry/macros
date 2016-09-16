@@ -154,41 +154,43 @@
          (> (count form-body) 1))
     wrap-render))
 
-(defn inject-props
-  "Wrap the body of a function in a let expression that
-   destructures props, computed and command-fns."
-  [{:keys [form-body form-args] :as f} props computed command-fns]
-  (let [scope (fn-scope f)]
-    (if (not= scope :static)
-      (let [prop-keys         (q/map-destructuring-keys props)
-            computed-keys     (q/map-destructuring-keys computed)
-            this-index        (.indexOf form-args 'this)
-            props-index       (.indexOf form-args 'props)
-            actual-props      (if (>= props-index 0)
-                                (form-args props-index)
-                                (if (not= scope :static)
-                                  `(~'om/props ~(form-args this-index))
-                                  nil))
-            actual-computed   `(~'om/get-computed ~actual-props)
-            prop-bindings     (when-not (empty? prop-keys)
-                                `[{:keys [~@prop-keys]}
-                                  ~actual-props])
-            computed-bindings (when-not (empty? computed-keys)
-                                `[{:keys [~@computed-keys]}
-                                  ~actual-computed])
-            command-bindings  (when (and (>= this-index 0)
-                                         (not (empty? command-fns)))
-                                (apply concat (into [] command-fns)))]
-        (cond-> f
-          (or prop-bindings
-              computed-bindings
-              command-bindings)
-          (assoc :form-body
-                 `[(~'let [~@prop-bindings
-                           ~@computed-bindings
-                           ~@command-bindings]
-                    ~@form-body)])))
-      f)))
+(defn bind-query-result
+  "Wraps the body of a function, binding the values in
+   props and computed props to the names used in the
+   view query and computed query."
+  [{:keys [form-body form-args] :as f} props-query computed-query]
+  (if (not= :static (fn-scope f))
+    (let [this-index  (.indexOf form-args 'this)
+          props-index (.indexOf form-args 'props)
+          props       (if (>= props-index 0)
+                        (form-args props-index)
+                        `(~'om.next/props ~(form-args this-index)))
+          computed    `(~'om.next/get-computed ~props)]
+      (cond-> f
+        (not (empty? props-query))
+        (assoc :form-body
+               `[(~'workflo.macros.bind/with-query-bindings
+                  ~props-query ~props ~@form-body)])
+
+        (not (empty? computed-query))
+        (assoc :form-body
+               `[(~'workflo.macros.bind/with-query-bindings
+                  ~computed-query ~computed ~@form-body)])))
+    f))
+
+(defn bind-commands
+  "Wraps the body of a function in a let that makes the
+   view commands available to the body via their names."
+  [{:keys [form-body form-args] :as f} command-fns]
+  (if-not (= :static (fn-scope f))
+    (let [this-index   (.indexOf form-args 'this)
+          cmd-bindings (when (>= this-index 0)
+                         (apply concat (into [] command-fns)))]
+      (cond-> f
+        (not (empty? cmd-bindings))
+        (assoc :form-body
+               `[(~'let [~@cmd-bindings] ~@form-body)])))
+    f))
 
 (defn anonymous-fn
   "Make a function f anonymous by replacing its name with fn."
@@ -240,8 +242,8 @@
                              (map maybe-inject-fn-args)
                              (map normalize-fn-name)
                              (map maybe-wrap-render)
-                             (map #(inject-props % props computed
-                                                 command-fns)))
+                             (map #(bind-query-result % props computed))
+                             (map #(bind-commands % command-fns)))
          factory-fns    (filter #(= (fn-scope %) :factory)
                                 fns-with-props)
          factory-params (zipmap (map (comp keyword :form-name)
