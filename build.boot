@@ -75,6 +75,13 @@
           :compiler-options {:devcards true
                              :parallel-build true})))
 
+(deftask build-production
+  []
+  (comp
+   (cljs :optimizations :advanced
+         :compiler-options {:devcards true
+                            :parallel-build true})))
+
 (deftask build-docs
   []
   (comp
@@ -92,6 +99,14 @@
     (target)
     (serve :dir "target")
     (repl :server true)))
+
+(deftask production
+  []
+  (comp
+   (examples)
+   (watch)
+   (build-production)
+   (serve)))
 
 (deftask docs
   []
