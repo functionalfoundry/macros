@@ -23,7 +23,10 @@
   (is (= '(do
             (defn user-update-emit
               [query-result data]
-              (let [{:keys [user/name user/email]} query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name user/name :type :property}
+                 {:name user/email :type :property}]
+                query-result
                 {:some :data}))
             (def user-update-query
               '[{:name user/name :type :property}
@@ -66,11 +69,15 @@
   (is (= '(do
             (defn user-create-foo
               [query-result data]
-              (let [{:keys [db/id]} query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
                 [:bar]))
             (defn user-create-emit
               [query-result data]
-              (let [{:keys [db/id]} query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
                 :result))
             (def user-create-query
               '[{:name db/id :type :property}])
