@@ -1,6 +1,7 @@
 (ns workflo.macros.service
   (:require [clojure.spec :as s]
             [clojure.string :as string]
+            [workflo.macros.bind :refer [with-query-bindings]]
             [workflo.macros.command.util :as cutil]
             [workflo.macros.service.util :as util]
             [workflo.macros.query :as q]
@@ -9,8 +10,7 @@
             [workflo.macros.specs.service]
             [workflo.macros.util.macro :refer [component-record-symbol
                                                definition-symbol
-                                               record-symbol
-                                               with-destructured-query]]
+                                               record-symbol]]
             [workflo.macros.util.form :as f]
             [workflo.macros.util.string :refer [kebab->camel]]
             [workflo.macros.util.symbol :refer [unqualify]]))
@@ -126,7 +126,7 @@
          :process ~(when process
                      (if query
                        `(fn ~'[this query-result data]
-                          (with-destructured-query ~query ~'query-result
+                          (with-query-bindings ~query ~'query-result
                             ~@process))
                        `(fn ~'[this query-result data]
                           ~@process)))
