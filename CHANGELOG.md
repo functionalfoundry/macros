@@ -1,5 +1,41 @@
 # CHANGELOG workflo/macros
 
+## 0.2.15
+
+### Added
+
+* Add a `with-query-bindings` macro to automatically and deeply
+  destructure query results with the help of the query they
+  correspond to. Use this to wrap all function forms in `defview`,
+  `defcommand` and `defservice` in order to bind as many parts
+  of the query results to short names from the query itself as
+  possible.
+* Add documentation generation using Codox `via `boot docs`.
+* Add a `boot production` task to be able to test examples with
+  CLJS advanced optimizations.
+* Add support for CLJS REPLs in Cider.
+
+### Changed
+
+* Rewrite the query language and its specs to add support for
+  aliases (`:as`).
+* Rewrite query parsing from scratch to support the updated
+  query langauge and aliases in particular.
+* Bump Clojure and ClojureScript to 1.9.0-alpha11 and 1.9.229,
+  respectively; update all specs and tests accordingly and simplify
+  (:require ...) in ns expressions.
+
+### Removed
+
+* Remove now unused `with-destructured-query` macro.
+
+### Fixed
+
+* Fix the way `defjscomponents` resolves JS components to make it
+  work with advanced optimizations.
+* Don't return nil from `workflo.macros.util.string/camel->kebab`
+  when processing non-camel-case strings.
+
 ## 0.2.14
 
 ### Added
