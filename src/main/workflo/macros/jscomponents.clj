@@ -6,12 +6,12 @@
 
 (defn defjscomponent*
   [module name]
-  (let [fn-sym (symbol (camel->kebab name))
-        js-sym (symbol "js" (str module "." name))]
+  (let [fn-sym     (symbol (camel->kebab name))
+        module-sym (symbol "js" (str module))]
     `(defn ~fn-sym [props# & children#]
        (.apply ~(symbol "js" "React.createElement") nil
                (into-array
-                (cons ~js-sym
+                (cons (~'aget ~module-sym ~(str name))
                       (cons (~'clj->js props#)
                             children#)))))))
 
