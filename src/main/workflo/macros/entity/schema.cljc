@@ -1,4 +1,5 @@
 (ns workflo.macros.entity.schema
+  (:refer-clojure :exclude [keys])
   (:require [clojure.set :refer [intersection]]
             [clojure.spec :as s]
             [workflo.macros.entity :as e]
@@ -85,7 +86,7 @@
 
 (defn key-schemas
   [kspecs]
-  (zipmap (keys kspecs)
+  (zipmap (clojure.core/keys kspecs)
           (mapv value-spec-schema (vals kspecs))))
 
 (defn types-entity-spec-schema
@@ -146,26 +147,35 @@
 
 ;;;; Utilities
 
-(defn required-keys-spec-keys
+(defn keys-spec-keys
   [entity spec]
-  (val-after spec :req))
+  {:required (val-after spec :req)
+   :optional (val-after spec :opt)})
 
-(defn required-and-spec-keys
+(defn and-spec-keys
   [entity spec]
   (let [keys-spec (first (filter keys-spec? spec))]
     (when keys-spec
-      (required-keys-spec-keys entity keys-spec))))
+      (keys-spec-keys entity keys-spec))))
 
-(defn required-spec-keys
+(defn spec-keys
   [entity spec]
-  (cond
-    (type-spec? spec) []
-    (and-spec? spec)  (or (required-and-spec-keys entity spec) [])
-    (keys-spec? spec) (or (required-keys-spec-keys entity spec) [])))
+  (or (cond
+        (and-spec? spec)  (and-spec-keys entity spec)
+        (keys-spec? spec) (keys-spec-keys entity spec))
+      {:required [] :optional []}))
 
-(defn required-keys
+(defn keys
   [entity]
   (let [desc (cond-> (:spec entity)
                (not (type-spec? (:spec entity)))
                s/describe)]
-    (required-spec-keys entity desc)))
+    (spec-keys entity desc)))
+
+(defn required-keys
+  [entity]
+  (:required (keys entity)))
+
+(defn optional-keys
+  [entity]
+  (:optional (keys entity)))
