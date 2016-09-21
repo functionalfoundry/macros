@@ -1,6 +1,6 @@
 (ns workflo.macros.entity.schema-test
   (:require [clojure.spec :as s]
-            [clojure.test :refer [deftest is]]
+            [clojure.test :refer [are deftest is]]
             [workflo.macros.entity :refer [resolve-entity defentity]]
             [workflo.macros.entity.schema :as schema]
             [workflo.macros.specs.types]))
@@ -84,12 +84,34 @@
           :ui/search-text-with-extended-spec [:string]}
          (schema/matching-entity-schemas #"^(url|ui)/.*"))))
 
+(deftest all-keys
+  (are [x y] (= x (-> y resolve-entity schema/keys))
+    {:required [] :optional []} 'url/selected-user
+    {:required [] :optional []} 'ui/search-text
+    {:required [] :optional []} 'ui/search-text-with-extended-spec
+    {:required [:db/id
+                :user/name
+                :user/email
+                :user/role]
+     :optional [:user/bio]} 'user
+    {:required [:db/id
+                :user/name
+                :user/email
+                :user/role]
+     :optional [:user/bio]} 'user-with-extended-spec))
+
 (deftest required-keys
-  (and (is (= [] (-> 'url/selected-user resolve-entity
-                     schema/required-keys)))
-       (is (= [] (-> 'ui/search-text resolve-entity
-                     schema/required-keys)))
-       (is (= [] (-> 'ui/search-text-with-extended-spec
-                     resolve-entity schema/required-keys)))
-       (is (= [:db/id :user/name :user/email :user/role]
-              (-> 'user resolve-entity schema/required-keys)))))
+  (are [x y] (= x (-> y resolve-entity schema/required-keys))
+    [] 'url/selected-user
+    [] 'ui/search-text
+    [] 'ui/search-text-with-extended-spec
+    [:db/id :user/name :user/email :user/role] 'user
+    [:db/id :user/name :user/email :user/role] 'user-with-extended-spec))
+
+(deftest optional-keys
+  (are [x y] (= x (-> y resolve-entity schema/optional-keys))
+    [] 'url/selected-user
+    [] 'ui/search-text
+    [] 'ui/search-text-with-extended-spec
+    [:user/bio] 'user
+    [:user/bio] 'user-with-extended-spec))
