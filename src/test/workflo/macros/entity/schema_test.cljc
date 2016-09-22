@@ -3,10 +3,10 @@
             [clojure.test :refer [are deftest is]]
             [workflo.macros.entity :refer [resolve-entity defentity]]
             [workflo.macros.entity.schema :as schema]
-            [workflo.macros.specs.types]))
+            [workflo.macros.specs.types :as types]))
 
 (defentity url/selected-user
-  (spec :workflo.macros.specs.types/id))
+  (spec ::types/id))
 
 (deftest entity-with-value-spec-type-id
   (let [entity (resolve-entity 'url/selected-user)]
@@ -15,7 +15,7 @@
                 (schema/entity-schema entity))))))
 
 (defentity ui/search-text
-  (spec :workflo.macros.specs.types/string))
+  (spec ::types/string))
 
 (deftest entity-with-value-spec-type-string
   (let [entity (resolve-entity 'ui/search-text)]
@@ -25,17 +25,16 @@
 
 (defentity ui/search-text-with-extended-spec
   (spec
-   (s/and :workflo.macros.specs.types/string
+   (s/and ::types/string
           #(> (count %) 5))))
 
-(s/def :db/id :workflo.macros.specs.types/id)
-(s/def :user/email (s/and :workflo.macros.specs.types/string
-                          :workflo.macros.specs.types/unique-value
+(s/def :db/id ::types/id)
+(s/def :user/email (s/and ::types/string
+                          ::types/unique-value
                           #(> (count %) 5)))
-(s/def :user/name :workflo.macros.specs.types/string)
-(s/def :user/role (s/and :workflo.macros.specs.types/enum
-                         #{:user :admin :owner}))
-(s/def :user/bio :workflo.macros.specs.types/string)
+(s/def :user/name ::types/string)
+(s/def :user/role (s/and ::types/enum #{:user :admin :owner}))
+(s/def :user/bio ::types/string)
 
 (defentity user
   (spec
@@ -78,11 +77,15 @@
                  :user/bio [:string]}
                 (schema/entity-schema entity))))))
 
+;;;; Matching schemas
+
 (deftest matching-entity-schemas
   (is (= {:url/selected-user []
           :ui/search-text [:string]
           :ui/search-text-with-extended-spec [:string]}
          (schema/matching-entity-schemas #"^(url|ui)/.*"))))
+
+;;;; Keys, required keys, optional keys
 
 (deftest all-keys
   (are [x y] (= x (-> y resolve-entity schema/keys))
@@ -105,8 +108,14 @@
     [] 'url/selected-user
     [] 'ui/search-text
     [] 'ui/search-text-with-extended-spec
-    [:db/id :user/name :user/email :user/role] 'user
-    [:db/id :user/name :user/email :user/role] 'user-with-extended-spec))
+    [:db/id
+     :user/name
+     :user/email
+     :user/role] 'user
+    [:db/id
+     :user/name
+     :user/email
+     :user/role] 'user-with-extended-spec))
 
 (deftest optional-keys
   (are [x y] (= x (-> y resolve-entity schema/optional-keys))
@@ -115,3 +124,66 @@
     [] 'ui/search-text-with-extended-spec
     [:user/bio] 'user
     [:user/bio] 'user-with-extended-spec))
+
+;;;; Entity refs
+
+;;; Entities with refs between them
+
+(s/def :post/author (types/entity-ref 'author))
+(s/def :post/text ::types/string)
+(s/def :post/comments (types/entity-ref 'comment :many? true))
+
+(defentity post
+  (spec (s/keys :req [:post/author
+                      :post/text]
+                :opt [:post/comments])))
+
+(s/def :author/name ::types/string)
+
+(defentity author
+  (spec (s/keys :req [:author/name])))
+
+(s/def :comment/author (types/entity-ref 'author))
+(s/def :comment/text ::types/string)
+
+(defentity comment
+  (spec (s/keys :req [:comment/author
+                      :comment/text])))
+
+(deftest entity-ref-describe
+  (are [desc spec] (= desc (s/describe spec))
+    ;; Without options
+    '(entity-ref user) (types/entity-ref 'user)
+    '(entity-ref comment) (types/entity-ref 'comment)
+
+    ;; With options
+    '(entity-ref user :many? true)
+    (types/entity-ref 'user :many? true)))
+
+(deftest entity-with-entity-refs
+  (let [entity (resolve-entity 'post)]
+    (and (is (not (nil? entity)))
+         (is (= {:post/author [:ref]
+                 :post/text [:string]
+                 :post/comments [:ref :many]}
+                (schema/entity-schema entity))))))
+
+;;; Entities with a top-level entity-ref spec
+
+(defentity current-post
+  (spec (types/entity-ref 'post)))
+
+(defentity previous-posts
+  (spec (types/entity-ref 'post :many? true)))
+
+(deftest entity-with-entity-ref-spec
+  (let [entity (resolve-entity 'current-post)]
+    (and (is (not (nil? entity)))
+         (is (= {:current-post [:ref]}
+                (schema/entity-schema entity))))))
+
+(deftest entity-with-entity-ref-many-spec
+  (let [entity (resolve-entity 'previous-posts)]
+    (and (is (not (nil? entity)))
+         (is (= {:previous-posts [:ref :many]}
+                (schema/entity-schema entity))))))
