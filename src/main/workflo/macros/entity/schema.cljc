@@ -19,6 +19,8 @@
 (defn and-spec? [spec] (and (seq? spec) (= 'and (first spec))))
 (defn keys-spec? [spec] (and (seq? spec) (= 'keys (first spec))))
 (defn enum-spec? [spec] (= :workflo.macros.specs.types/enum spec))
+(defn entity-ref-spec? [spec]
+  (and (seq? spec) (= 'entity-ref (first spec))))
 
 ;;;; Schemas from value or type specs
 
@@ -69,6 +71,11 @@
     (cond-> schemas
       enum-values (conj enum-values))))
 
+(defn entity-ref-spec-schema
+  [spec]
+  (cond-> [:ref]
+    (val-after spec :many?) (conj :many)))
+
 (defn value-spec-schema
   [spec]
   (let [desc (cond-> spec
@@ -76,7 +83,8 @@
                s/describe)]
     (cond->> desc
       (type-spec? desc) (type-spec-schema)
-      (and-spec? desc) (and-spec-schema))))
+      (and-spec? desc) (and-spec-schema)
+      (entity-ref-spec? desc) (entity-ref-spec-schema))))
 
 ;;;;;; Schemas from entity specs
 
@@ -121,12 +129,17 @@
       type-specs (types-entity-spec-schema entity type-specs
                                            enum-values))))
 
+(defn entity-ref-entity-spec-schema
+  [entity spec]
+  {(keyword (:name entity)) (entity-ref-spec-schema spec)})
+
 (defn entity-spec-schema
   [entity spec]
   (cond
-    (type-spec? spec) (types-entity-spec-schema entity [spec])
-    (and-spec? spec)  (and-entity-spec-schema entity spec)
-    (keys-spec? spec) (keys-entity-spec-schema entity spec)))
+    (type-spec? spec)       (types-entity-spec-schema entity [spec])
+    (and-spec? spec)        (and-entity-spec-schema entity spec)
+    (keys-spec? spec)       (keys-entity-spec-schema entity spec)
+    (entity-ref-spec? spec) (entity-ref-entity-spec-schema entity spec)))
 
 ;;;; Schemas from entities
 
