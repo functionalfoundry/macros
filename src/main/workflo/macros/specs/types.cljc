@@ -1,6 +1,6 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec :as s :refer [Spec]]))
 
 ;;;; Helpers
 
@@ -53,10 +53,33 @@
 
 (s/def ::id any?)
 
-;;;; Reference types
+;;;; Simple reference types
 
 (s/def ::ref ::id)
 (s/def ::ref-many (s/coll-of ::id :kind vector?))
+
+;;;; Entity references
+
+(defn entity-ref-impl
+  [entity-sym opts gfn]
+  (let [subspec (s/spec (if (:many? opts) ::ref-many ::ref))]
+    (reify Spec
+      (conform* [_ x]
+        (s/conform* subspec x))
+      (unform* [_ x]
+        (s/unform* subspec x))
+      (explain* [_ path via in x]
+        (s/explain* subspec path via in x))
+      (gen* [_ overrides path rmap]
+        (if gfn (gfn) (s/gen* subspec overrides path rmap)))
+      (with-gen* [_ gfn]
+        (entity-ref-impl entity-sym opts gfn))
+      (describe* [_]
+        `(entity-ref ~entity-sym ~@(mapcat identity opts))))))
+
+(defn entity-ref
+  [entity-sym & {:keys [many?] :or {many false} :as opts}]
+  (entity-ref-impl entity-sym opts nil))
 
 ;;;; Type options
 
