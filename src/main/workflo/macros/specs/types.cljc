@@ -1,6 +1,7 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
-  (:require [clojure.spec :as s :refer [Spec]]))
+  (:require [clojure.spec :as s :refer [Spec]]
+            [workflo.macros.util.misc :refer [val-after]]))
 
 ;;;; Helpers
 
@@ -80,6 +81,18 @@
 (defn entity-ref
   [entity-sym & {:keys [many?] :or {many false} :as opts}]
   (entity-ref-impl entity-sym opts nil))
+
+(defn entity-ref-opts
+  [spec]
+  (->> (s/describe spec)
+       (drop-while (complement keyword?))
+       (partition 2 2)
+       (transduce (map vec) conj {})))
+
+(defn entity-ref-info
+  [spec]
+  (merge {:entity (val-after (s/describe spec) 'entity-ref)}
+         (entity-ref-opts spec)))
 
 ;;;; Type options
 

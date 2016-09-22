@@ -187,3 +187,15 @@
     (and (is (not (nil? entity)))
          (is (= {:previous-posts [:ref :many]}
                 (schema/entity-schema entity))))))
+
+;;;; Entity refs
+
+(deftest entity-refs
+  (are [joins entity] (= joins (-> entity resolve-entity
+                                   schema/entity-refs))
+    {:post/author {:entity 'author}
+     :post/comments {:entity 'comment :many? true}} 'post
+    {:comment/author {:entity 'author}} 'comment
+    {:entity 'post} 'current-post
+    {:entity 'post :many? true} 'previous-posts
+    nil 'ui/search-text))
