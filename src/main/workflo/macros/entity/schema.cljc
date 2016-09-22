@@ -3,17 +3,11 @@
   (:require [clojure.set :refer [intersection]]
             [clojure.spec :as s]
             [workflo.macros.entity :as e]
-            [workflo.macros.specs.entity]))
+            [workflo.macros.specs.entity]
+            [workflo.macros.specs.types :as types]
+            [workflo.macros.util.misc :refer [val-after]]))
 
 ;;;; Helpers
-
-(defn val-after
-  [coll x]
-  (loop [coll coll]
-    (if (= x (first coll))
-      (first (rest coll))
-      (when (not (empty? (rest coll)))
-        (recur (rest coll))))))
 
 (defn type-spec? [spec] (keyword? spec))
 (defn and-spec? [spec] (and (seq? spec) (= 'and (first spec))))
