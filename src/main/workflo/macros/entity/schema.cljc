@@ -203,3 +203,19 @@
 (defn optional-keys
   [entity]
   (or (:optional (keys entity)) []))
+
+;;;; Entity ref(erences)
+
+(defn entity-refs
+  [entity]
+  (if (simple-entity? entity)
+    (when (entity-ref-spec? (s/describe (:spec entity)))
+      (types/entity-ref-info (:spec entity)))
+    (letfn [(key-specs [entity]
+              (let [keys (mapcat second (keys entity))]
+                (zipmap keys (map s/get-spec keys))))]
+      (let [ref-specs (filter (comp entity-ref-spec? s/describe second)
+                              (key-specs entity))]
+        (zipmap (map first ref-specs)
+                (map (comp types/entity-ref-info second)
+                     ref-specs))))))
