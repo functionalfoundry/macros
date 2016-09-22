@@ -16,6 +16,20 @@
 (defn entity-ref-spec? [spec]
   (and (seq? spec) (= 'entity-ref (first spec))))
 
+(defn simple-entity?
+  "Returns true if the entity is is simple, that is, its spec
+   refers to a single value, not a map with keys."
+  [entity]
+  (let [desc (cond-> (:spec entity)
+               (not (type-spec? (:spec entity)))
+               s/describe)]
+    (or (type-spec? desc)
+        (entity-ref-spec? desc)
+        (and (and-spec? desc)
+             (empty? (filter keys-spec? desc)))
+        (and (and-spec? desc)
+             (empty? (filter keys-spec? desc))))))
+
 ;;;; Schemas from value or type specs
 
 (defn type-spec-schema
@@ -114,12 +128,12 @@
 
 (defn and-entity-spec-schema
   [entity spec]
-  (let [keys-spec  (first (filter keys-spec? spec))
+  (let [keys-spec (first (filter keys-spec? spec))
         type-specs (filter type-spec? spec)
         enum-values (when (some enum-spec? type-specs)
                       (enum-values-from-and-spec spec))]
     (cond
-      keys-spec  (keys-entity-spec-schema entity keys-spec)
+      keys-spec (keys-entity-spec-schema entity keys-spec)
       type-specs (types-entity-spec-schema entity type-specs
                                            enum-values))))
 
@@ -130,9 +144,9 @@
 (defn entity-spec-schema
   [entity spec]
   (cond
-    (type-spec? spec)       (types-entity-spec-schema entity [spec])
-    (and-spec? spec)        (and-entity-spec-schema entity spec)
-    (keys-spec? spec)       (keys-entity-spec-schema entity spec)
+    (type-spec? spec) (types-entity-spec-schema entity [spec])
+    (and-spec? spec) (and-entity-spec-schema entity spec)
+    (keys-spec? spec) (keys-entity-spec-schema entity spec)
     (entity-ref-spec? spec) (entity-ref-entity-spec-schema entity spec)))
 
 ;;;; Schemas from entities
@@ -152,25 +166,28 @@
        (map entity-schema)
        (apply merge)))
 
-;;;; Utilities
+;;;; Required, optional and all keys in the entity
 
 (defn keys-spec-keys
   [entity spec]
-  {:required (val-after spec :req)
-   :optional (val-after spec :opt)})
+  (let [req (val-after spec :req)
+        opt (val-after spec :opt)]
+    (cond-> {}
+      req (assoc :required req)
+      opt (assoc :optional opt))))
 
 (defn and-spec-keys
   [entity spec]
   (let [keys-spec (first (filter keys-spec? spec))]
-    (when keys-spec
-      (keys-spec-keys entity keys-spec))))
+    (some->> keys-spec
+      (keys-spec-keys entity))))
 
 (defn spec-keys
   [entity spec]
   (or (cond
-        (and-spec? spec)  (and-spec-keys entity spec)
+        (and-spec? spec) (and-spec-keys entity spec)
         (keys-spec? spec) (keys-spec-keys entity spec))
-      {:required [] :optional []}))
+      {}))
 
 (defn keys
   [entity]
@@ -181,8 +198,8 @@
 
 (defn required-keys
   [entity]
-  (:required (keys entity)))
+  (or (:required (keys entity)) []))
 
 (defn optional-keys
   [entity]
-  (:optional (keys entity)))
+  (or (:optional (keys entity)) []))

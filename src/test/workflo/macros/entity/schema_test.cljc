@@ -89,9 +89,9 @@
 
 (deftest all-keys
   (are [x y] (= x (-> y resolve-entity schema/keys))
-    {:required [] :optional []} 'url/selected-user
-    {:required [] :optional []} 'ui/search-text
-    {:required [] :optional []} 'ui/search-text-with-extended-spec
+    {} 'url/selected-user
+    {} 'ui/search-text
+    {} 'ui/search-text-with-extended-spec
     {:required [:db/id
                 :user/name
                 :user/email
