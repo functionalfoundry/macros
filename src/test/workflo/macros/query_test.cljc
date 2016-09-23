@@ -469,24 +469,24 @@
 
 (deftest om-next-query-for-parameterizations
   (are [out in] (= out (-> in q/conform-and-parse om/query))
-    #?(:cljs '[(:a {:b c})]
-       :clj  '[(clojure.core/list :a '{:b c})])
+    #?(:cljs '[(:a {:b 'c})]
+       :clj  '[(:a {:b 'c})])
     '[(a {b c})]
 
-    #?(:cljs '[(:a {:b c :d e})]
-       :clj  '[(clojure.core/list :a '{:b c :d e})])
+    #?(:cljs '[(:a {:b 'c :d 'e})]
+       :clj  '[(:a {:b 'c :d 'e})])
     '[(a {b c d e})]
 
-    #?(:cljs '[({:a [:b :c]} {:d e :f g})]
-       :clj  '[(clojure.core/list {:a [:b :c]} '{:d e :f g})])
+    #?(:cljs '[({:a [:b :c]} {:d 'e :f 'g})]
+       :clj  '[({:a [:b :c]} {:d 'e :f 'g})])
     '[({a [b c]} {d e f g})]
 
-    #?(:cljs '[(:a {:c d :e f})]
-       :clj  '[(clojure.core/list :a '{:c d :e f})])
+    #?(:cljs '[(:a {:c 'd :e 'f})]
+       :clj  '[(:a {:c 'd :e 'f})])
     '[(a :as b {c d e f})]
 
-    #?(:cljs '[({:a [:b :c]} {:e f :g h})]
-       :clj  '[(clojure.core/list {:a [:b :c]} '{:e f :g h})])
+    #?(:cljs '[({:a [:b :c]} {:e 'f :g 'h})]
+       :clj  '[({:a [:b :c]} {:e 'f :g 'h})])
     '[({a [b c]} :as d {e f g h})]))
 
 (deftest conforming-joins-with-sub-joins
