@@ -104,7 +104,7 @@
   [f]
   (update f :form-body
           (fn [query]
-            [(om-query/query (q/parse query))])))
+            [(om-query/query (q/parse query) :clj->cljs)])))
 
 (defn raw-fn?
   "Returns true if f is a raw function, that is if its name
