@@ -4,6 +4,8 @@
             [clojure.string :as str]
             [workflo.macros.util.string :refer [camel->kebab]]))
 
+(def camelize-keys workflo.macros.util.string/camelize-keys)
+
 (defn defjscomponent*
   [module name]
   (let [fn-sym     (symbol (camel->kebab name))
@@ -12,7 +14,9 @@
        (.apply ~(symbol "js" "React.createElement") nil
                (into-array
                 (cons (~'aget ~module-sym ~(str name))
-                      (cons (~'clj->js props#)
+                      (cons (-> props#
+                                workflo.macros.jscomponents/camelize-keys
+                                ~'clj->js)
                             children#)))))))
 
 (defn defjscomponents*

@@ -1,6 +1,7 @@
 (ns workflo.macros.util.string
   (:require [clojure.spec :as s]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.walk :refer [walk]]))
 
 (s/fdef camel->kebab
   :args (s/cat :s string?)
@@ -27,3 +28,14 @@
     (apply str
            (cons (first words)
                  (map string/capitalize (rest words))))))
+
+(defn camelize-keys
+  "Convert a Clojure map to a map where all keys are
+   camel-cased strings that can be accessed like object
+   properties in JS/React."
+  [m]
+  (walk (fn [[k v]]
+          [(kebab->camel (name k))
+           (cond-> v (map? v) camelize-keys)])
+        identity
+        m))
