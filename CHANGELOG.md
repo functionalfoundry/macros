@@ -1,5 +1,18 @@
 # CHANGELOG workflo/macros
 
+## 0.2.17
+
+### Added
+
+* Add a `camelize-keys` function to recursively convert keys in
+  a map to camel-case.
+
+### Changed
+
+* Change `defjscomponents`, so the keys in props are converted
+  to camel-case using `camelize-keys` before they are passed to
+  the JS components.
+
 ## 0.2.16
 
 ### Added
