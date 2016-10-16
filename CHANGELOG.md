@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.18
+
+### Fixed
+
+* Fix alias for `camelize-keys` in `workflo.macros.jscomponents`.
+
 ## 0.2.17
 
 ### Added
