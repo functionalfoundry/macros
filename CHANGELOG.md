@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.19
+
+### Fixed
+
+* Only build snapshot/release JARs once when deploying them
+  to Clojars.
+
 ## 0.2.18
 
 ### Fixed
