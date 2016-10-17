@@ -144,7 +144,6 @@
   (comp
     (pom)
     (jar)
-    (build-jar)
     (push-snapshot)))
 
 (deftask deploy-release
@@ -152,5 +151,4 @@
   (comp
     (pom)
     (jar)
-    (build-jar)
     (push-release)))
