@@ -6,13 +6,12 @@
             [goog.dom :as gdom]
             [om.next :as om]
             [om.dom :as dom]
-            [workflo.macros.command :as c :refer-macros [defcommand]]
-            [workflo.macros.screen :refer-macros [defscreen]]
+            [workflo.macros.command :as c :refer [defcommand]]
+            [workflo.macros.screen :refer [defscreen]]
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen.om-next :as so]
-            [workflo.macros.service :as service
-             :refer-macros [defservice]]
-            [workflo.macros.view :refer-macros [defview]]))
+            [workflo.macros.service :as service :refer [defservice]]
+            [workflo.macros.view :refer [defview]]))
 
 ;;;; Setup
 

@@ -5,9 +5,7 @@
             [workflo.macros.screen.bidi :as sb]
             [workflo.macros.screen :as scr]
             [workflo.macros.util.string :refer [kebab->camel]]
-            [workflo.macros.view
-             :refer [resolve-view]
-             :refer-macros [defview]]))
+            [workflo.macros.view :refer [defview resolve-view]]))
 
 ;;;; Remember the active screen
 

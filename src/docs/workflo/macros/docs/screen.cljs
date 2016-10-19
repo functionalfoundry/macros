@@ -1,12 +1,10 @@
 (ns workflo.macros.docs.screen
   (:require [bidi.bidi :as bidi]
             [cljs.pprint :refer [pprint]]
-            [devcards.core :refer-macros [defcard defcard-doc dom-node]]
-            [workflo.macros.screen :as screen
-             :refer-macros [defscreen]]
+            [devcards.core :refer [defcard defcard-doc dom-node]]
+            [workflo.macros.screen :as screen :refer [defscreen]]
             [workflo.macros.screen.bidi :as screen-bidi]
-            [workflo.macros.view :as view
-             :refer-macros [defview]]))
+            [workflo.macros.view :as view :refer [defview]]))
 
 (defcard-doc
   "# `defscreen` macro")
