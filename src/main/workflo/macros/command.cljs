@@ -1,5 +1,5 @@
 (ns workflo.macros.command
-  (:require-macros [workflo.macros.command])
+  (:require-macros [workflo.macros.command :refer [defcommand]])
   (:require [clojure.spec :as s]
             [workflo.macros.bind]
             [workflo.macros.config :refer-macros [defconfig]]

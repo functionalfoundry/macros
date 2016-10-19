@@ -1,5 +1,5 @@
 (ns workflo.macros.registry
-  (:require-macros [workflo.macros.registry]))
+  (:require-macros [workflo.macros.registry :refer [defregistry]]))
 
 (defn throw-registry-error
   [msg]

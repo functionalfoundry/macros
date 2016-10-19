@@ -1,4 +1,5 @@
 (ns workflo.macros.view
+  (:require-macros [workflo.macros.view :refer [defview]])
   (:require [om.next :as om]
             [om.dom]
             [workflo.macros.bind]
