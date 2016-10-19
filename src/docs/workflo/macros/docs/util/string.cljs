@@ -1,5 +1,5 @@
 (ns workflo.macros.docs.util.string
-  (:require [devcards.core :refer-macros [defcard defcard-doc]]
+  (:require [devcards.core :refer [defcard defcard-doc]]
             [om.dom :as dom]
             [workflo.macros.util.string :refer [camel->kebab
                                                 kebab->camel]]))

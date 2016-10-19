@@ -1,7 +1,6 @@
 (ns workflo.macros.screen-test
-  (:require [cljs.test :refer-macros [deftest is]]
-            [workflo.macros.screen :as screen
-             :refer-macros [defscreen]]))
+  (:require [cljs.test :refer [deftest is]]
+            [workflo.macros.screen :as screen :refer [defscreen]]))
 
 (deftest minimal-defscreen
   (is (= '(do

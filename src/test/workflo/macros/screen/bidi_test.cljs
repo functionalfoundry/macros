@@ -1,6 +1,6 @@
 (ns workflo.macros.screen.bidi-test
-  (:require [cljs.test :refer-macros [deftest is use-fixtures]]
-            [workflo.macros.screen :as screen :refer-macros [defscreen]]
+  (:require [cljs.test :refer [deftest is use-fixtures]]
+            [workflo.macros.screen :as screen :refer [defscreen]]
             [workflo.macros.screen.bidi :as screen-bidi]))
 
 (defn empty-screen-registry [f]

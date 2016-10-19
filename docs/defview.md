@@ -158,7 +158,7 @@ Inside the view, this function can now be called with
 
 ```clojure
 (ns foo.bar
-  (:require [workflo.macros.view :refer-macros [defview]]))
+  (:require [workflo.macros.view :refer [defview]]))
 
 (defview User
   [user [name email address {friends ...}]]

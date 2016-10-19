@@ -25,7 +25,7 @@
                  [inflections "0.12.2"]
                  [org.clojure/clojure "1.9.0-alpha11"]
                  [org.clojure/clojurescript "1.9.229"]
-                 [org.omcljs/om "1.0.0-alpha45"]
+                 [org.omcljs/om "1.0.0-alpha46"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
