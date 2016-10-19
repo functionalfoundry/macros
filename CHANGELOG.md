@@ -1,5 +1,17 @@
 # CHANGELOG workflo/macros
 
+## 0.2.20
+
+### Fixed
+
+* Fix availability of our macros in ClojureScript by requiring
+  them with :require-macros.
+
+### Changed
+
+* Use `:refer` instead of `:refer-macros` in ClojureScript
+  wherever we can.
+
 ## 0.2.19
 
 ### Fixed
