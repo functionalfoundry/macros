@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.21
+
+### Added
+
+* Add support for generating Datomic schemas from entities
+  with attributes that have mixed namespaces.
+* Add a `merge-schemas` function to merge Datomic schemas.
+
 ## 0.2.20
 
 ### Fixed
