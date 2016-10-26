@@ -11,7 +11,7 @@
 (deftest entity-with-value-spec-type-id
   (let [entity (resolve-entity 'url/selected-user)]
     (and (is (not (nil? entity)))
-         (is (= {:url/selected-user []}
+         (is (= {:url/selected-user [:long]}
                 (schema/entity-schema entity))))))
 
 (defentity ui/search-text
@@ -28,7 +28,7 @@
    (s/and ::types/string
           #(> (count %) 5))))
 
-(s/def :db/id ::types/id)
+(s/def :base/id (s/and ::types/uuid ::types/unique-identity))
 (s/def :user/email (s/and ::types/string
                           ::types/unique-value
                           #(> (count %) 5)))
@@ -38,13 +38,13 @@
 
 (defentity user
   (spec
-   (s/keys :req [:db/id :user/name :user/email :user/role]
+   (s/keys :req [:base/id :user/name :user/email :user/role]
            :opt [:user/bio])))
 
 (deftest entity-with-keys-spec
   (let [entity (resolve-entity 'user)]
     (and (is (not (nil? entity)))
-         (is (= {:db/id []
+         (is (= {:base/id [:uuid :unique-identity]
                  :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/role [:enum [:admin :user :owner]]
@@ -53,14 +53,14 @@
 
 (defentity user-with-extended-spec
   (spec
-   (s/and (s/keys :req [:db/id :user/name :user/email :user/role]
+   (s/and (s/keys :req [:base/id :user/name :user/email :user/role]
                   :opt [:user/bio])
           #(> (count (:user/name %)) 5))))
 
 (deftest entity-with-and-keys-spec
   (let [entity (resolve-entity 'user-with-extended-spec)]
     (and (is (not (nil? entity)))
-         (is (= {:db/id []
+         (is (= {:base/id [:uuid :unique-identity]
                  :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/role [:enum [:admin :user :owner]]
@@ -70,7 +70,7 @@
 (deftest entity-with-and-value-spec
   (let [entity (resolve-entity 'user-with-extended-spec)]
     (and (is (not (nil? entity)))
-         (is (= {:db/id []
+         (is (= {:base/id [:uuid :unique-identity]
                  :user/email [:string :unique-value]
                  :user/name [:string]
                  :user/role [:enum [:admin :user :owner]]
@@ -80,7 +80,7 @@
 ;;;; Matching schemas
 
 (deftest matching-entity-schemas
-  (is (= {:url/selected-user []
+  (is (= {:url/selected-user [:long]
           :ui/search-text [:string]
           :ui/search-text-with-extended-spec [:string]}
          (schema/matching-entity-schemas #"^(url|ui)/.*"))))
@@ -92,12 +92,12 @@
     {} 'url/selected-user
     {} 'ui/search-text
     {} 'ui/search-text-with-extended-spec
-    {:required [:db/id
+    {:required [:base/id
                 :user/name
                 :user/email
                 :user/role]
      :optional [:user/bio]} 'user
-    {:required [:db/id
+    {:required [:base/id
                 :user/name
                 :user/email
                 :user/role]
@@ -108,11 +108,11 @@
     [] 'url/selected-user
     [] 'ui/search-text
     [] 'ui/search-text-with-extended-spec
-    [:db/id
+    [:base/id
      :user/name
      :user/email
      :user/role] 'user
-    [:db/id
+    [:base/id
      :user/name
      :user/email
      :user/role] 'user-with-extended-spec))
