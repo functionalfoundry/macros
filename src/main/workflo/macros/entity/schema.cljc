@@ -36,7 +36,7 @@
   [spec]
   (case spec
     ;; Types
-    :workflo.macros.specs.types/id []
+    :workflo.macros.specs.types/id [:long]
     :workflo.macros.specs.types/keyword [:keyword]
     :workflo.macros.specs.types/string [:string]
     :workflo.macros.specs.types/boolean [:boolean]

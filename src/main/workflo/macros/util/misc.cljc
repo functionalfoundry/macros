@@ -7,3 +7,9 @@
       (first (rest coll))
       (when (not (empty? (rest coll)))
         (recur (rest coll))))))
+
+(defn drop-keys
+  [m ks]
+  (letfn [(drop-kv? [[k v]]
+            (some #{k} ks))]
+    (into {} (remove drop-kv?) m)))
