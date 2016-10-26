@@ -1,6 +1,7 @@
 (ns workflo.macros.entity.datomic
   (:require [datomic-schema.schema :as ds]
-            [workflo.macros.entity.schema :as es]))
+            [workflo.macros.entity.schema :as es]
+            [workflo.macros.util.misc :refer [drop-keys]]))
 
 (defn split-schema
   "Takes an entity schema and splits it into multiple
@@ -54,3 +55,44 @@
                              (split-schema))
         datomic-schemas (map datomic-schema prefix-schemas)]
     (ds/generate-schema datomic-schemas)))
+
+(defn normalize-attr
+  "Normalizes a Datomic schema attribute by converting
+   it to a map if it's of the form `[:db/add ...]`."
+  [attr]
+  (if (vector? attr)
+    (do
+      (assert (= :db/add (first attr)))
+      (let [kvs (into [:db/id] (rest attr))]
+        (apply hash-map kvs)))
+    attr))
+
+(defn- merge-attr-schema
+  "\"Merges\" two schemas for an attribute with the same name
+   by throwing an exception if they are different and the
+   first is not nil, and otherwise picking the second."
+  [a b]
+  (if (nil? a)
+    b
+    (let [a-without-id (drop-keys a [:db/id])
+          b-without-id (drop-keys b [:db/id])]
+      (if (= a-without-id b-without-id)
+        b
+        (throw (Exception.
+                (str "Conflicting schemas for attribute: "
+                     (pr-str a-without-id) " != "
+                     (pr-str b-without-id))))))))
+
+(defn merge-schemas
+  "Merge multiple Datomic schemas so that there are no
+   conflicting attributes. The default behavior is to throw
+   an exception if two schemas for the same attribute are
+   different."
+  ([schemas]
+   (merge-schemas schemas merge-attr-schema))
+  ([schemas merge-fn]
+   (transduce (map normalize-attr)
+              (completing (fn [ret attr]
+                            (update ret (:db/ident attr) merge-fn attr))
+                          vals)
+              {} (apply concat schemas))))

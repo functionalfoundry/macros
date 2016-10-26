@@ -59,6 +59,15 @@
                 (-> entity datomic-schema/entity-schema
                     datomic-attrs))))))
 
+(deftest schema-merging
+  (let [entities (map resolve-entity '[user user-with-extended-spec])
+        schemas (map datomic-schema/entity-schema entities)]
+    (is (= #{:base/id :user/email :user/name
+             :user/role :user/bio :user/address
+             :user.role/user :user.role/admin :user.role/owner}
+           (-> schemas datomic-schema/merge-schemas
+               datomic-attrs)))))
+
 ;;;; Entity refs
 
 ;;; Entities with refs between them
