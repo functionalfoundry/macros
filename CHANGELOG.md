@@ -1,5 +1,15 @@
 # CHANGELOG workflo/macros
 
+## 0.2.22
+
+### Changed
+
+* Update all dependencies to their latest versions.
+
+### Fixed
+
+* Always refer to devcard macros with `:refer-macros`.
+
 ## 0.2.21
 
 ### Added
