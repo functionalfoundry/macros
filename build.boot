@@ -3,34 +3,35 @@
 (set-env!
  :resource-paths #{"resources" "src/main" "src/docs"}
  :dependencies '[;; Boot setup
-                 [adzerk/boot-cljs "1.7.228-1"]
-                 [adzerk/boot-reload "0.4.12"]
-                 [adzerk/boot-test "1.1.2"]
-                 [adzerk/bootlaces "0.1.13"]
-                 [boot-codox "0.10.0" :scope "test"]
-                 [pandeiro/boot-http "0.7.3"]
-                 [crisptrutski/boot-cljs-test "0.2.1"]
+                 [adzerk/boot-cljs "1.7.228-2" :scope "test"]
+                 [adzerk/boot-reload "0.4.13" :scope "test"]
+                 [adzerk/boot-test "1.1.2" :scope "test"]
+                 [adzerk/bootlaces "0.1.13" :scope "test"]
+                 [boot-codox "0.10.1" :scope "test" :scope "test"]
+                 [pandeiro/boot-http "0.7.3" :scope "test"]
+                 [crisptrutski/boot-cljs-test "0.2.1" :scope "test"]
                  [com.cemerick/piggieback "0.2.1"
-                  :exclusions [com.google.guava/guava]]
+                  :exclusions [com.google.guava/guava]
+                  :scope "test"]
 
                  ;; Testing
                  [org.clojure/test.check "0.9.0" :scope "test"]
 
                  ;; Library dependencies
-                 [bidi "2.0.10"]
-                 [com.datomic/datomic-free "0.9.5394" :scope "test"
+                 [bidi "2.0.13"]
+                 [com.datomic/datomic-free "0.9.5407" :scope "test"
                   :exclusions [com.google.guava/guava]]
                  [com.stuartsierra/component "0.3.1"]
                  [datomic-schema "1.3.0"]
                  [inflections "0.12.2"]
                  [org.clojure/clojure "1.9.0-alpha11"]
-                 [org.clojure/clojurescript "1.9.229"]
-                 [org.omcljs/om "1.0.0-alpha46"]
+                 [org.clojure/clojurescript "1.9.293"]
+                 [org.omcljs/om "1.0.0-alpha47"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
-                 [devcards "0.2.1-7"]
-                 [datascript "0.15.3"]])
+                 [devcards "0.2.2" :scope "test"]
+                 [datascript "0.15.4" :scope "test"]])
 
 
 (require '[adzerk.boot-cljs :refer [cljs]]
