@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.23
+
+### Added
+
+* Add a `merge-schemas` function to merge DataScript schemas
+  and detect conflicting attribute schemas.
+
 ## 0.2.22
 
 ### Changed

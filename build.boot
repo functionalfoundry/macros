@@ -1,5 +1,8 @@
 #!/usr/bin/env boot
 
+(def +project+ 'workflo/macros)
+(def +version+ "0.2.23")
+
 (set-env!
  :resource-paths #{"resources" "src/main" "src/docs"}
  :dependencies '[;; Boot setup
@@ -43,9 +46,7 @@
          '[crisptrutski.boot-cljs-test :refer [test-cljs exit!]]
          '[pandeiro.boot-http :refer [serve]])
 
-(def version "0.2.22")
-
-(bootlaces! version :dont-modify-paths? true)
+(bootlaces! +version+ :dont-modify-paths? true)
 
 (task-options!
  test-cljs {:js-env :phantom
@@ -55,9 +56,9 @@
             :ensure-branch "master"
             :ensure-clean true
             :ensure-tag (last-commit)
-            :ensure-version version}
- pom       {:project 'workflo/macros
-            :version version
+            :ensure-version +version+}
+ pom       {:project +project+
+            :version +version+
             :description "Clojure macros for web and mobile development"
             :url "https://github.com/workfloapp/macros"
             :scm {:url "https://github.com/workfloapp/macros"}
