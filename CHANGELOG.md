@@ -1,5 +1,19 @@
 # CHANGELOG workflo/macros
 
+## 0.2.24
+
+### Added
+
+* Add an optional `context` parameter to `run-commands!`,
+  `deliver-to-services!` and `deliver-to-service-component!`
+  that is then passed on to the `:query` and `:process-emit`
+  hooks as well as the `process` implementation of services.
+
+### Fixed
+
+* Fix not querying for the `:db/id` in a view in the
+  screen-based example app.
+
 ## 0.2.23
 
 ### Added
