@@ -123,7 +123,7 @@
    (dom/h2 nil (str "User " id ": " name))))
 
 (defview UserTitle
-  (query [({user [user [name]]} {db/id ?user-id})])
+  (query [({user [db [id] user [name]]} {db/id ?user-id})])
   (render
    (user-title-view user)))
 
