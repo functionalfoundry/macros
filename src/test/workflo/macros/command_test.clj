@@ -108,11 +108,11 @@
 ;;; Define example query and run emits
 
 (defn example-query
-  [query]
+  [query _]
   {:db/id 15})
 
 (defn example-process-emit
-  [data]
+  [data _]
   data)
 
 (defcommand user/create
