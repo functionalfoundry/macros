@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.25
+
+### Added
+
+* Add a `(replay? <bool>)` form to `defservice`. This can be
+  used in command/event sourced systems to mark services to be
+  skipped when replaying commands/events.
+
 ## 0.2.24
 
 ### Added
