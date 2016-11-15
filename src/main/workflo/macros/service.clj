@@ -113,6 +113,7 @@
         start              (some-> forms :start :form-body)
         stop               (some-> forms :stop :form-body)
         process            (some-> forms :process :form-body)
+        replay?            (some-> forms :replay? :form-body)
         ctor-sym           (symbol (str "map->" (record-symbol
                                                  service-name)))
         component-ctor-sym (symbol (str "map->" (component-record-symbol
@@ -122,6 +123,7 @@
         {:name '~service-name
          :description ~(-> forms :description)
          :dependencies '~(-> forms :dependencies :form-body)
+         :replay? ~replay?
          :query '~query
          :spec ~(some-> forms :spec :form-body)
          :start ~(when start
