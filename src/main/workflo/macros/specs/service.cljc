@@ -25,6 +25,10 @@
   (s/spec (s/cat :form-name #{'dependencies}
                  :form-body ::service-dependencies)))
 
+(s/def ::service-replay?-form
+  (s/spec (s/cat :form-name #{'replay?}
+                 :form-body boolean?)))
+
 (s/def ::service-query-form
   (s/spec (s/cat :form-name #{'query}
                  :form-body :workflo.macros.specs.query/query)))
@@ -50,6 +54,7 @@
          :forms
          (s/spec (s/cat :description (s/? ::service-description)
                         :dependencies (s/? ::service-dependencies-form)
+                        :replay? (s/? ::service-replay?-form)
                         :query (s/? ::service-query-form)
                         :spec (s/? ::service-spec-form)
                         :start (s/? ::service-start-form)
