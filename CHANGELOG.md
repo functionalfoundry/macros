@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.26
+
+### Added
+
+* Add a `:process-output` hook to `defservice` to allow
+  further processing of the data returned by services from
+  their `process` implementations.
+
 ## 0.2.25
 
 ### Added
