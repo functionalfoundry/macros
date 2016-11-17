@@ -243,7 +243,18 @@
       [[:prefixed-properties {:base d
                               :children [[:property [:simple e]]
                                          [:property [:simple f]]]}]]]
-    '[a [b c] d [e f]]))
+    '[a [b c] d [e f]]
+
+    ;; JIRA issue CLJ-2003
+    '[[:prefixed-properties {:base a
+                             :children [[:property [:simple b]]
+                                        [:property [:simple c]]]}]
+      [[:prefixed-properties {:base d
+                              :children [[:property [:simple e]]
+                                         [:property [:simple f]]]}]
+       [:prefixed-properties {:base h
+                              :children [[:property [:simple i]]]}]]]
+    '[a [b c] d [e f] h [i]]))
 
 (deftest parsing-prefixed-properties
  (are [out in] (= out (q/conform-and-parse in))
