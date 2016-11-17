@@ -1,5 +1,14 @@
 # CHANGELOG workflo/macros
 
+## 0.2.27
+
+### Changed
+
+* Allow fully qualified names to be used for entities, commands,
+  services etc. Examples include: `foo.bar`, `foo.bar/baz`.
+* Simplify binding names like `foo.bar` to `bar` in the binding
+  utilities that we use to bind query results.
+
 ## 0.2.26
 
 ### Added
