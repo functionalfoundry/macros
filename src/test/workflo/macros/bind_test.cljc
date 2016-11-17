@@ -3,14 +3,14 @@
             [workflo.macros.bind :refer [with-query-bindings]]))
 
 (deftest regular-properties
-  (with-query-bindings [a b]
-    {:a :aval :b :bval}
-    (is (= [a b] [:aval :bval]))))
+  (with-query-bindings [a b b/c c.d c.d/e]
+    {:a :aval :b :bval :b/c :bcval :c.d :cdval :c.d/e :cdeval}
+    (is (= [a b c d e] [:aval :bval :bcval :cdval :cdeval]))))
 
 (deftest links
-  (with-query-bindings [[a _] [b 1] [c :x]]
-    {:a :aval :b :bval :c :cval}
-    (is (= [a b c] [:aval :bval :cval]))))
+  (with-query-bindings [[a _] [b 1] [c :x] [c/d _] [d.e _] [e.f/g _]]
+    {:a :aval :b :bval :c :cval :c/d :cdval :d.e :deval :e.f/g :efgval}
+    (is (= [a b c d e g] [:aval :bval :cval :cdval :deval :efgval]))))
 
 (deftest joins-with-property-sources
   (with-query-bindings [{a [b c]} {d ...} {e 5}]
@@ -24,9 +24,9 @@
     (is (= [a b c d] [{:b :bval :c :cval} :bval :cval :dval]))))
 
 (deftest prefixed-properties
-  (with-query-bindings [a [b c] d [e f]]
-    {:a/b :abval :a/c :acval :d/e :deval :d/f :dfval}
-    (is (= [b c e f] [:abval :acval :deval :dfval]))))
+  (with-query-bindings [a [b c] d [e f] g.h [i]]
+    {:a/b :abval :a/c :acval :d/e :deval :d/f :dfval :g.h/i :ghival}
+    (is (= [b c e f i] [:abval :acval :deval :dfval :ghival]))))
 
 (deftest aliased-regular-properties
   (with-query-bindings [a :as b b :as c]
