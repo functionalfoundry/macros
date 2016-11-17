@@ -4,6 +4,7 @@
             [clojure.spec :as s]
             [clojure.spec.gen :as gen]
             [clojure.spec.test :as st]
+            [clojure.string :as string]
             [workflo.macros.query :as q]
             [workflo.macros.specs.bind :as sb]
             [workflo.macros.specs.parsed-query :as spq]
@@ -64,6 +65,15 @@
              (cond-> query
                (s/valid? ::sq/query query) q/conform-and-parse)))
 
+(s/fdef simplified-name
+  :args (s/cat :sym-or-kw (s/or :sym symbol?
+                                :kw keyword?))
+  :ret string?)
+
+(defn simplified-name
+  [sym-or-kw]
+  (last (string/split (name sym-or-kw) #"\.")))
+
 (s/fdef path-bindings
   :args (s/cat :path ::sb/path)
   :ret ::core-specs/map-bindings)
@@ -79,8 +89,8 @@
    allowing to destructure a map like {:d {:b/c {:a <val>}}}
    and bind a to <val>."
   [[leaf & path]]
-  (loop [form {(or (some-> leaf :alias name symbol)
-                   (some-> leaf :name name symbol))
+  (loop [form {(or (some-> leaf :alias simplified-name symbol)
+                   (some-> leaf :name simplified-name symbol))
                (keyword (:name leaf))}
          path path]
     (if (empty? path)
