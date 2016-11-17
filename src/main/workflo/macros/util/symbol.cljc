@@ -15,10 +15,6 @@
 
 (defn unqualify
   "Take a symbol and generate a non-namespaced version of
-   it by replacing slashes (/) with dashes (-)."
+   it by replacing slashes (/) and dots (.) with dashes (-)."
   [x]
-  (let [x-ns   (namespace x)
-        x-name (string/replace (name x) "/" "")]
-    (if x-ns
-      (symbol (str x-ns "-" x-name))
-      (symbol x-name))))
+  (symbol (string/replace (str x) #"[\./]" "-")))
