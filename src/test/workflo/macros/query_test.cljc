@@ -26,7 +26,12 @@
     '[[:property [:simple a]]
       [:property [:simple b]]
       [:property [:simple c]]]
-    '[a b c]))
+    '[a b c]
+
+    '[[:property [:simple a/b]]
+      [:property [:simple b.c]]
+      [:property [:simple b.c/d]]]
+    '[a/b b.c b.c/d]))
 
 (deftest parsing-regular-properties
   (are [out in] (= out (q/conform-and-parse in))
@@ -40,13 +45,19 @@
     '[{:name a :type :property}
       {:name b :type :property}
       {:name c :type :property}]
-    '[a b c]))
+    '[a b c]
+
+    '[{:name a/b :type :property}
+      {:name b.c :type :property}
+      {:name b.c/d :type :property}]
+    '[a/b b.c b.c/d]))
 
 (deftest om-next-query-for-regular-properties
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[:a] '[a]
     '[:a :b] '[a b]
-    '[:a :b :c] '[a b c]))
+    '[:a :b :c] '[a b c]
+    '[:a/b :b.c :b.c/d] '[a/b b.c b.c/d]))
 
 (deftest conforming-link-properties
   (are [out in] (= out (q/conform in))
@@ -60,7 +71,11 @@
     '[[:property [:link [a _]]]
       [:property [:link [b 1]]]
       [:property [:link [c :x]]]]
-    '[[a _] [b 1] [c :x]]))
+    '[[a _] [b 1] [c :x]]
+
+    '[[:property [:link [a/b _]]]
+      [:property [:link [a.b/c _]]]]
+    '[[a/b _] [a.b/c _]]))
 
 (deftest parsing-link-properties
   (are [out in] (= out (q/conform-and-parse in))
@@ -74,13 +89,18 @@
     '[{:name a :type :link :link-id _}
       {:name b :type :link :link-id 1}
       {:name c :type :link :link-id :x}]
-    '[[a _] [b 1] [c :x]]))
+    '[[a _] [b 1] [c :x]]
+
+    '[{:name a/b :type :link :link-id _}
+      {:name a.b/c :type :link :link-id _}]
+    '[[a/b _] [a.b/c _]]))
 
 (deftest om-next-query-for-link-properties
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[[:a _]] '[[a _]]
     '[[:a _] [:b 1]] '[[a _] [b 1]]
-    '[[:a _] [:b 1] [:c :x]] '[[a _] [b 1] [c :x]]))
+    '[[:a _] [:b 1] [:c :x]] '[[a _] [b 1] [c :x]]
+    '[[:a/b _] [:a.b/c _]] '[[a/b _] [a.b/c _]]))
 
 (deftest conforming-joins-with-a-simple-property-source
   (are [out in] (= out (q/conform in))
@@ -106,6 +126,12 @@
                                       [[:property [:simple e]]
                                        [:property [:simple f]]]}]]]]
     '[{a [b c]} {d [e f]}]
+
+    '[[:property [:join [:properties {[:simple a/b]
+                                      [[:property [:simple c]]]}]]]
+      [:property [:join [:properties {[:simple a.b/c]
+                                      [[:property [:simple d]]]}]]]]
+    '[{a/b [c]} {a.b/c [d]}]
 
     '[[:property [:join [:recursive {[:simple a]
                                      [:unlimited ...]}]]]]
@@ -149,6 +175,14 @@
                      {:name f :type :property}]}]
     '[{a [b c]} {d [e f]}]
 
+    '[{:name a/b :type :join
+       :join-source {:name a/b :type :property}
+       :join-target [{:name c :type :property}]}
+      {:name a.b/c :type :join
+       :join-source {:name a.b/c :type :property}
+       :join-target [{:name d :type :property}]}]
+    '[{a/b [c]} {a.b/c [d]}]
+
     '[{:name a :type :join
        :join-source {:name a :type :property}
        :join-target ...}]
@@ -170,6 +204,7 @@
     '[{:a [:b :c]}] '[{a [b c]}]
     '[{:a [:b :c]} :d] '[{a [b c]} d]
     '[{:a [:b :c]} {:d [:e :f]}] '[{a [b c]} {d [e f]}]
+    '[{:a/b [:c]} {:a.b/c [:d]}] '[{a/b [c]} {a.b/c [d]}]
     '[{:a '...}] '[{a ...}]
     '[{:a 5}] '[{a 5}]
     #?(:cljs '[{:a [:user/name :user/email]}]
@@ -192,7 +227,15 @@
                                       [[:property [:simple b]]
                                        [:property [:simple c]]
                                        [:property [:simple d]]]}]]]]
-    '[{[a :x] [b c d]}]))
+    '[{[a :x] [b c d]}]
+
+    '[[:property [:join [:properties {[:link [a/b _]]
+                                      [[:property [:simple c]]]}]]]]
+    '[{[a/b _] [c]}]
+
+    '[[:property [:join [:properties {[:link [a.b/c _]]
+                                      [[:property [:simple d]]]}]]]]
+    '[{[a.b/c _] [d]}]))
 
 (deftest parsing-joins-with-a-link-source
   (are [out in] (= out (q/conform-and-parse in))
@@ -212,13 +255,25 @@
        :join-target [{:name b :type :property}
                      {:name c :type :property}
                      {:name d :type :property}]}]
-    '[{[a :x] [b c d]}]))
+    '[{[a :x] [b c d]}]
+
+    '[{:name a/b :type :join
+       :join-source {:name a/b :type :link :link-id _}
+       :join-target [{:name c :type :property}]}]
+    '[{[a/b _] [c]}]
+
+    '[{:name a.b/c :type :join
+       :join-source {:name a.b/c :type :link :link-id _}
+       :join-target [{:name d :type :property}]}]
+    '[{[a.b/c _] [d]}]))
 
 (deftest om-next-query-for-joins-with-a-link-source
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[{[:a _] [:b]}] '[{[a _] [b]}]
     '[{[:a 1] [:b :c]}] '[{[a 1] [b c]}]
-    '[{[:a :x] [:b :c :d]}] '[{[a :x] [b c d]}]))
+    '[{[:a :x] [:b :c :d]}] '[{[a :x] [b c d]}]
+    '[{[:a/b _] [:c]}] '[{[a/b _] [c]}]
+    '[{[:a.b/c _] [:d]}] '[{[a.b/c _] [d]}]))
 
 (deftest conforming-prefixed-properties
   (are [out in] (= out (q/conform in))
@@ -243,7 +298,22 @@
       [[:prefixed-properties {:base d
                               :children [[:property [:simple e]]
                                          [:property [:simple f]]]}]]]
-    '[a [b c] d [e f]]))
+    '[a [b c] d [e f]]
+
+    '[[:prefixed-properties {:base a.b
+                             :children [[:property [:simple c]]]}]]
+    '[a.b [c]]
+
+    ;; JIRA issue CLJ-2003
+    '[[:prefixed-properties {:base a
+                             :children [[:property [:simple b]]
+                                        [:property [:simple c]]]}]
+      [[:prefixed-properties {:base d
+                              :children [[:property [:simple e]]
+                                         [:property [:simple f]]]}]
+       [:prefixed-properties {:base h
+                              :children [[:property [:simple i]]]}]]]
+    '[a [b c] d [e f] h [i]]))
 
 (deftest parsing-prefixed-properties
  (are [out in] (= out (q/conform-and-parse in))
@@ -263,13 +333,17 @@
      {:name a/c :type :property}
      {:name d/e :type :property}
      {:name d/f :type :property}]
-   '[a [b c] d [e f]]))
+   '[a [b c] d [e f]]
+
+   '[{:name a.b/c :type :property}]
+   '[a.b [c]]))
 
 (deftest om-next-query-for-prefixed-properties
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[:a/b] '[a [b]]
     '[:a/b :a/c] '[a [b c]]
-    '[:a/b :a/c :d/e :d/f] '[a [b c] d [e f]]))
+    '[:a/b :a/c :d/e :d/f] '[a [b c] d [e f]]
+    '[:a.b/c] '[a.b [c]]))
 
 (deftest conforming-aliased-regular-properties
   (are [out in] (= out (q/conform in))
@@ -278,7 +352,13 @@
 
     '[[:aliased-property {:property [:simple a] :as :as :alias b}]
       [:aliased-property {:property [:simple c] :as :as :alias d}]]
-    '[a :as b c :as d]))
+    '[a :as b c :as d]
+
+    '[[:aliased-property {:property [:simple a/b] :as :as :alias c}]]
+    '[a/b :as c]
+
+    '[[:aliased-property {:property [:simple a.b/c] :as :as :alias d}]]
+    '[a.b/c :as d]))
 
 (deftest parsing-aliased-regular-properties
   (are [out in] (= out (q/conform-and-parse in))
@@ -287,12 +367,20 @@
 
     '[{:name a :type :property :alias b}
       {:name c :type :property :alias d}]
-    '[a :as b c :as d]))
+    '[a :as b c :as d]
+
+    '[{:name a/b :type :property :alias c}]
+    '[a/b :as c]
+
+    '[{:name a.b/c :type :property :alias d}]
+    '[a.b/c :as d]))
 
 (deftest om-next-query-for-aliased-regular-properties
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[:a] '[a :as b]
-    '[:a :c] '[a :as b c :as d]))
+    '[:a :c] '[a :as b c :as d]
+    '[:a/b] '[a/b :as c]
+    '[:a.b/c] '[a.b/c :as d]))
 
 (deftest conforming-aliased-links
   (are [out in] (= out (q/conform in))
@@ -307,7 +395,13 @@
 
     '[[:aliased-property {:property [:link [a _]] :as :as :alias b}]
       [:aliased-property {:property [:link [c _]] :as :as :alias d}]]
-    '[[a _] :as b [c _] :as d]))
+    '[[a _] :as b [c _] :as d]
+
+    '[[:aliased-property {:property [:link [a/b _]] :as :as :alias c}]]
+    '[[a/b _] :as c]
+
+    '[[:aliased-property {:property [:link [a.b/c _]] :as :as :alias d}]]
+    '[[a.b/c _] :as d]))
 
 (deftest parsing-aliased-links
   (are [out in] (= out (q/conform-and-parse in))
@@ -322,14 +416,22 @@
 
     '[{:name a :type :link :link-id _ :alias b}
       {:name c :type :link :link-id _ :alias d}]
-    '[[a _] :as b [c _] :as d]))
+    '[[a _] :as b [c _] :as d]
+
+    '[{:name a/b :type :link :link-id _ :alias c}]
+    '[[a/b _] :as c]
+
+    '[{:name a.b/c :type :link :link-id _ :alias d}]
+    '[[a.b/c _] :as d]))
 
 (deftest om-next-query-for-aliased-links
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[[:a _]] '[[a _] :as b]
     '[[:a 1]] '[[a 1] :as b]
     '[[:a :x]] '[[a :x] :as b]
-    '[[:a _] [:c _]] '[[a _] :as b [c _] :as d]))
+    '[[:a _] [:c _]] '[[a _] :as b [c _] :as d]
+    '[[:a/b _]] '[[a/b _] :as c]
+    '[[:a.b/c _]] '[[a.b/c _] :as d]))
 
 (deftest conforming-aliased-joins
   (are [out in] (= out (q/conform in))
@@ -349,7 +451,19 @@
                                        [[:property [:simple f]]
                                         [:property [:simple g]]]}]]
         :as :as :alias h}]]
-    '[{a [b c]} :as d {e [f g]} :as h]))
+    '[{a [b c]} :as d {e [f g]} :as h]
+
+    '[[:aliased-property
+       {:property [:join [:properties {[:simple a/b]
+                                       [[:property [:simple c]]]}]]
+        :as :as :alias d}]]
+    '[{a/b [c]} :as d]
+
+    '[[:aliased-property
+       {:property [:join [:properties {[:simple a.b/c]
+                                       [[:property [:simple d]]]}]]
+        :as :as :alias e}]]
+    '[{a.b/c [d]} :as e]))
 
 (deftest parsing-aliased-joins
   (are [out in] (= out (q/conform-and-parse in))
@@ -369,12 +483,26 @@
        :join-target [{:name f :type :property}
                      {:name g :type :property}]
        :alias h}]
-    '[{a [b c]} :as d {e [f g]} :as h]))
+    '[{a [b c]} :as d {e [f g]} :as h]
+
+    '[{:name a/b :type :join
+       :join-source {:name a/b :type :property}
+       :join-target [{:name c :type :property}]
+       :alias d}]
+    '[{a/b [c]} :as d]
+
+    '[{:name a.b/c :type :join
+       :join-source {:name a.b/c :type :property}
+       :join-target [{:name d :type :property}]
+       :alias e}]
+    '[{a.b/c [d]} :as e]))
 
 (deftest om-next-query-for-aliased-joins
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[{:a [:b]}] '[{a [b]} :as c]
-    '[{:a [:b :c]} {:e [:f :g]}] '[{a [b c]} :as d {e [f g]} :as h]))
+    '[{:a [:b :c]} {:e [:f :g]}] '[{a [b c]} :as d {e [f g]} :as h]
+    '[{:a/b [:c]}] '[{a/b [c]} :as d]
+    '[{:a.b/c [:d]}] '[{a.b/c [d]} :as e]))
 
 (deftest conforming-aliased-prefixed-properties
   (are [out in] (= out (q/conform in))
@@ -391,7 +519,13 @@
                                         [:aliased-property
                                          {:property [:simple d]
                                           :as :as :alias e}]]}]]
-    '[a [b :as c d :as e]]))
+    '[a [b :as c d :as e]]
+
+    '[[:prefixed-properties {:base a.b
+                             :children [[:aliased-property
+                                         {:property [:simple c]
+                                          :as :as :alias d}]]}]]
+    '[a.b [c :as d]]))
 
 (deftest parsing-aliased-prefixed-properties
   (are [out in] (= out (q/conform-and-parse in))
@@ -400,12 +534,16 @@
 
     '[{:name a/b :type :property :alias c}
       {:name a/d :type :property :alias e}]
-    '[a [b :as c d :as e]]))
+    '[a [b :as c d :as e]]
+
+    '[{:name a.b/c :type :property :alias d}]
+    '[a.b [c :as d]]))
 
 (deftest om-next-query-for-aliased-prefixed-properties
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     '[:a/b] '[a [b :as c]]
-    '[:a/b :a/d] '[a [b :as c d :as e]]))
+    '[:a/b :a/d] '[a [b :as c d :as e]]
+    '[:a.b/c] '[a.b [c :as d]]))
 
 (deftest conforming-parameterization
   (are [out in] (= out (q/conform in))
@@ -439,7 +577,13 @@
                                           [:property [:simple c]]]}]]
           :as :as :alias d}]
         :parameters {e f g h}}]]
-    '[({a [b c]} :as d {e f g h})]))
+    '[({a [b c]} :as d {e f g h})]
+
+    '[[:parameterization
+       {:query [:aliased-property {:property [:simple a/b]
+                                   :as :as :alias c}]
+        :parameters {d e f g}}]]
+    '[(a/b :as c {d e f g})]))
 
 (deftest parsing-parameterization
   (are [out in] (= out (q/conform-and-parse in))
@@ -465,7 +609,10 @@
                      {:name c :type :property}]
        :alias d
        :parameters {e f g h}}]
-    '[({a [b c]} :as d {e f g h})]))
+    '[({a [b c]} :as d {e f g h})]
+
+    '[{:name a/b :type :property :alias c :parameters {d e f g}}]
+    '[(a/b :as c {d e f g})]))
 
 (deftest om-next-query-for-parameterizations
   (are [out in] (= out (-> in q/conform-and-parse om/query))
@@ -487,7 +634,10 @@
 
     #?(:cljs '[({:a [:b :c]} {:e 'f :g 'h})]
        :clj  '[({:a [:b :c]} {:e 'f :g 'h})])
-    '[({a [b c]} :as d {e f g h})]))
+    '[({a [b c]} :as d {e f g h})]
+
+    '[(:a/b {:d 'e :f 'g})]
+    '[(a/b :as c {d e f g})]))
 
 (deftest conforming-joins-with-sub-joins
   (are [out in] (= out (q/conform in))
@@ -670,4 +820,7 @@
               '[foo bar baz]))
        (is (= (-> '[foo [{bar Bar} [baz 123]]]
                   q/conform-and-parse q/map-destructuring-keys)
-              '[foo/bar foo/baz]))))
+              '[foo/bar foo/baz]))
+       (is (= (-> '[a/b a.b/c]
+                  q/conform-and-parse q/map-destructuring-keys)
+              '[a/b a.b/c]))))

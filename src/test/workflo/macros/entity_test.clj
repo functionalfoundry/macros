@@ -15,6 +15,18 @@
          (macroexpand-1 `(defentity macros/user
                            (~'spec ~'map?))))))
 
+(deftest fully-qualified-entity-name
+  (is (= '(do
+            (def my-ui-app-name 'my.ui/app)
+            (def my-ui-app-spec map?)
+            (def my-ui-app-definition
+              {:name pod/my-ui-app-name
+               :spec pod/my-ui-app-spec})
+            (workflo.macros.entity/register-entity!
+             'my.ui/app pod/my-ui-app-definition))
+         (macroexpand-1 `(defentity my.ui/app
+                           (~'spec ~'map?))))))
+
 (deftest defentity-with-auth
   (is (= '(do
             (def macros-user-name 'macros/user)

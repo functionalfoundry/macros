@@ -112,14 +112,24 @@
 
 (defmethod parse-subquery :default
   [q]
-  (if ;; Workaround for extra [] around
-      ;; [:aliased-property ...] in output of
-      ;; conform (JIRA issue CLJ-2003)
-      (and (vector? q)
-           (= 1 (count q))
-           (vector? (first q))
-           (keyword? (ffirst q)))
+  (cond
+    ;; Workaround for extra [] around
+    ;; [:aliased-property ...] in output of
+    ;; conform (JIRA issue CLJ-2003)
+    (and (vector? q)
+         (= 1 (count q))
+         (vector? (first q))
+         (keyword? (ffirst q)))
     (parse-subquery (first q))
+
+    ;; Again, JIRA issue CLJ-2003 probably, triggered by
+    ;; [a [b c] d [e f] h [i]]
+    (and (vector? q)
+         (every? vector? q)
+         (every? (comp keyword? first) q))
+    (vec (mapcat parse-subquery q))
+
+    :else
     (let [msg (str "Unknown subquery: " q)]
       (throw (new #?(:cljs js/Error :clj Exception) msg)))))
 
