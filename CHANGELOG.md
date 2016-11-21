@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.28
+
+### Changed
+
+* Allow for fully qualified commands to be bound in views.
+  Commands like `ui/foo` or `foo/baz` will be bound to `foo`
+  and `baz`, respectively.
+
 ## 0.2.27
 
 ### Changed
