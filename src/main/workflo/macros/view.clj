@@ -188,7 +188,9 @@
   (if-not (= :static (fn-scope f))
     (let [this-index   (.indexOf form-args 'this)
           cmd-bindings (when (>= this-index 0)
-                         (apply concat (into [] command-fns)))]
+                         (mapcat (fn [[cmd-name cmd-fn]]
+                                   [(symbol (name cmd-name)) cmd-fn])
+                                 command-fns))]
       (cond-> f
         (not (empty? cmd-bindings))
         (assoc :form-body
