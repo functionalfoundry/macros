@@ -6,6 +6,7 @@
             [clojure.spec.test :as st]
             [clojure.string :as string]
             [workflo.macros.query :as q]
+            [workflo.macros.query.util :as util]
             [workflo.macros.specs.bind :as sb]
             [workflo.macros.specs.parsed-query :as spq]
             [workflo.macros.specs.query :as sq]))
@@ -87,15 +88,24 @@
    E.g. for a property path (a b/c d) (simplified notation with
    only the property names), it would return {{{a :a} :b/c} :d},
    allowing to destructure a map like {:d {:b/c {:a <val>}}}
-   and bind a to <val>."
+   and bind a to <val>.
+
+   It treats backref properties like _b/c in joins special by
+   binding to b instead of c (the regular case) or _b."
   [[leaf & path]]
   (loop [form {(or (some-> leaf :alias simplified-name symbol)
-                   (some-> leaf :name simplified-name symbol))
-               (keyword (:name leaf))}
+                   (if (util/backref-attr? (:name leaf))
+                     (some-> leaf :name namespace (subs 1) simplified-name symbol)
+                     (some-> leaf :name simplified-name symbol)))
+               (if (util/backref-attr? (:name leaf))
+                 (util/transform-backref-attr (:name leaf))
+                 (keyword (:name leaf)))}
          path path]
     (if (empty? path)
       form
-      (recur {form (keyword (:name (first path)))}
+      (recur {form (let [kw (keyword (:name (first path)))]
+                     (cond-> kw
+                       (util/backref-attr? kw) util/transform-backref-attr))}
              (rest path)))))
 
 (s/fdef query-bindings
@@ -113,7 +123,7 @@
    would return {b :a, d :c/d, e :c/e, f :f, {{h :g} :f}}."
   [query]
   (let [paths    (binding-paths query)
-        bindings (map path-bindings paths)
+        bindings (mapv path-bindings paths)
         merge-fn (fn [a b]
                    (if (and (map? a) (map? b))
                      (merge a b)
