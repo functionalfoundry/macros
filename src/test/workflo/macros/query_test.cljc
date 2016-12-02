@@ -345,6 +345,42 @@
     '[:a/b :a/c :d/e :d/f] '[a [b c] d [e f]]
     '[:a.b/c] '[a.b [c]]))
 
+;;;; Backref joins
+
+(deftest conforming-backref-joins
+  (are [out in] (= out (q/conform in))
+    '[[:property
+       [:join
+        [:properties
+         {[:simple a]
+          [[:prefixed-properties
+            {:base _b
+             :children [[:property
+                         [:join
+                          [:properties
+                           {[:simple c]
+                            [[:property [:simple d]]]}]]]]}]]}]]]]
+    '[{a [_b [{c [d]}]]}]))
+
+(deftest parsing-backref-joins
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name a
+       :type :join
+       :join-source {:name a :type :property}
+       :join-target
+       [{:name _b/c
+         :type :join
+         :join-source {:name _b/c :type :property}
+         :join-target [{:name d :type :property}]}]}]
+    '[{a [_b [{c [d]}]]}]))
+
+(deftest om-next-query-for-backref-joins
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    [{:a [{:b/_c [:d]}]}]
+    '[{a [_b [{c [d]}]]}]))
+
+;;;; Aliases
+
 (deftest conforming-aliased-regular-properties
   (are [out in] (= out (q/conform in))
     '[[:aliased-property {:property [:simple a] :as :as :alias b}]]

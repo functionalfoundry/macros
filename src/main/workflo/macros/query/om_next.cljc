@@ -1,11 +1,13 @@
 (ns workflo.macros.query.om-next
   (:require [clojure.spec :as s]
+            [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
             #?(:cljs [om.next])
             #?(:cljs [workflo.macros.util.js :refer [resolve]])
             [workflo.macros.specs.om-query :as om-query]
             [workflo.macros.specs.parsed-query :as parsed-query]
-            [workflo.macros.query.bind :refer [path?]]))
+            [workflo.macros.query.bind :refer [path?]]
+            [workflo.macros.query.util :as util]))
 
 (s/def ::property-query-from-parsed-property
   (s/and
@@ -51,7 +53,8 @@
                          :cljs `(~query ~params)
                          :clj `(~query ~params)))]
     (-> (case (:type prop)
-          :property kw-name
+          :property (cond-> kw-name
+                      (util/backref-attr? kw-name) util/transform-backref-attr)
           :link     [kw-name (if (= '_ (:link-id prop))
                                '_
                                (:link-id prop))]
