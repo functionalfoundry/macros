@@ -1,7 +1,7 @@
 (ns workflo.macros.entity.schema-test
   (:require [clojure.spec :as s]
             [clojure.test :refer [are deftest is]]
-            [workflo.macros.entity :refer [resolve-entity]]
+            [workflo.macros.entity :refer [registered-entities resolve-entity]]
             [workflo.macros.entity.schema :as schema]
             [workflo.macros.entity.test-entities]
             [workflo.macros.specs.types :as types]))
@@ -56,7 +56,8 @@
   (is (= {:url/selected-user [:long]
           :ui/search-text [:string]
           :ui/search-text-with-extended-spec [:string]}
-         (schema/matching-entity-schemas #"^(url|ui)/.*"))))
+         (schema/matching-entity-schemas (registered-entities)
+                                         #"^(url|ui)/.*"))))
 
 ;;;; Keys, required keys, optional keys
 

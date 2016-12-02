@@ -20,6 +20,9 @@
    utility functions that are defined implicitly.
 
    (defregistry* 'command)
+   (defregistry* 'command
+                 (fn [event entity-name]
+                   ...))
 
    will result in the following functions to be defined:
 
@@ -29,8 +32,10 @@
    (defn reset-registered-commands! [] ...)
    (defn resolve-command [name] ...)."
   ([name]
-   (defregistry* name nil))
+   (defregistry* name nil nil))
   ([name env]
+   (defregistry* name nil nil))
+  ([name callback env]
    (let [registry-sym   (symbol (str "+" name "-registry+"))
          register-sym   (symbol (str "register-" name "!"))
          unregister-sym (symbol (str "unregister-" name "!"))
@@ -42,9 +47,13 @@
         (defonce ^:private ~registry-sym (atom (sorted-map)))
         (defn ~register-sym
           [~'name ~'def]
-          (swap! ~registry-sym assoc ~'name ~'def))
+          (swap! ~registry-sym assoc ~'name ~'def)
+          ~@(when callback
+              `((~callback :register ~'name))))
         (defn ~unregister-sym
           [~'name]
+          ~@(when callback
+              `((~callback :unregister ~'name)))
           (swap! ~registry-sym dissoc ~'name))
         (defn ~registered-sym
           []
@@ -64,5 +73,7 @@
 (defmacro defregistry
   "Defines a registry with the given name. See defregistry* for
    more information."
-  [name]
-  (defregistry* name &env))
+  ([name]
+   (defregistry* name &env))
+  ([name callback]
+   (defregistry* name callback &env)))
