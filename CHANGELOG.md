@@ -1,5 +1,26 @@
 # CHANGELOG workflo/macros
 
+## 0.2.29
+
+### Added
+
+* Add an optional callback to `defregistry` to allow reacting to
+  registration and unregistration events.
+* Add a global entity refmap to store references (refs) and
+  reverse references (backrefs) between registered entitiesk.
+  The refmap is automatically updated as entities are registered
+  and unregistered.
+* Add the functions `entity-refs` and `entity-backrefs` to access
+  the refs and backrefs of entities by entity name.
+
+### Changed
+
+* BREAKING: Make `matching-entity-schema` take a map of registered
+  entities rather than calling `registered-entities` inside the
+  function. This makes it more pure and allows to use the
+  `workflo.macros.entity.schema` namespace to be used in
+  `workflo.macros.entity`.
+
 ## 0.2.28
 
 ### Changed
