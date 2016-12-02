@@ -2,7 +2,6 @@
   (:refer-clojure :exclude [keys])
   (:require [clojure.set :refer [intersection]]
             [clojure.spec :as s]
-            [workflo.macros.entity :as e]
             [workflo.macros.specs.entity]
             [workflo.macros.specs.types :as types]
             [workflo.macros.util.misc :refer [val-after]]))
@@ -159,8 +158,8 @@
     (entity-spec-schema entity desc)))
 
 (defn matching-entity-schemas
-  [name-pattern]
-  (->> (e/registered-entities)
+  [entities-map name-pattern]
+  (->> entities-map
        (vals)
        (filter #(->> % :name str (re-matches name-pattern)))
        (map entity-schema)
