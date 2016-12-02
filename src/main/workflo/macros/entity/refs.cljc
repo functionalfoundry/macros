@@ -5,14 +5,13 @@
 
 (defn- add-ref-and-backref!
   [source-entity attr ref-info]
-  (let [target-entity (:entity ref-info)
-        many?         (or (:many? ref-info) false)]
+  (let [target-entity (:entity ref-info)]
     (swap! +refmap+ (fn [refmap]
                       (-> refmap
                           (assoc-in [source-entity :refs attr]
-                                    {:entity target-entity :many? many?})
+                                    {:entity target-entity :many? (:many ref-info)})
                           (assoc-in [target-entity :backrefs attr]
-                                    {:entity source-entity :many? many?}))))))
+                                    {:entity source-entity :many? true}))))))
 
 (defn remove-backrefs-to
   [entity-name backrefs]
