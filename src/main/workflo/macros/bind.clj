@@ -95,17 +95,13 @@
   [[leaf & path]]
   (loop [form {(or (some-> leaf :alias simplified-name symbol)
                    (if (util/backref-attr? (:name leaf))
-                     (some-> leaf :name namespace (subs 1) simplified-name symbol)
+                     (some-> leaf :name namespace simplified-name symbol)
                      (some-> leaf :name simplified-name symbol)))
-               (if (util/backref-attr? (:name leaf))
-                 (util/transform-backref-attr (:name leaf))
-                 (keyword (:name leaf)))}
+               (keyword (:name leaf))}
          path path]
     (if (empty? path)
       form
-      (recur {form (let [kw (keyword (:name (first path)))]
-                     (cond-> kw
-                       (util/backref-attr? kw) util/transform-backref-attr))}
+      (recur {form (keyword (:name (first path)))}
              (rest path)))))
 
 (s/fdef query-bindings
