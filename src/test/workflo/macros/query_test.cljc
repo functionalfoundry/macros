@@ -354,13 +354,13 @@
         [:properties
          {[:simple a]
           [[:prefixed-properties
-            {:base _b
+            {:base b
              :children [[:property
                          [:join
                           [:properties
-                           {[:simple c]
+                           {[:simple _c]
                             [[:property [:simple d]]]}]]]]}]]}]]]]
-    '[{a [_b [{c [d]}]]}]))
+    '[{a [b [{_c [d]}]]}]))
 
 (deftest parsing-backref-joins
   (are [out in] (= out (q/conform-and-parse in))
@@ -368,16 +368,16 @@
        :type :join
        :join-source {:name a :type :property}
        :join-target
-       [{:name _b/c
+       [{:name b/_c
          :type :join
-         :join-source {:name _b/c :type :property}
+         :join-source {:name b/_c :type :property}
          :join-target [{:name d :type :property}]}]}]
-    '[{a [_b [{c [d]}]]}]))
+    '[{a [b [{_c [d]}]]}]))
 
 (deftest om-next-query-for-backref-joins
   (are [out in] (= out (-> in q/conform-and-parse om/query))
     [{:a [{:b/_c [:d]}]}]
-    '[{a [_b [{c [d]}]]}]))
+    '[{a [b [{_c [d]}]]}]))
 
 ;;;; Aliases
 

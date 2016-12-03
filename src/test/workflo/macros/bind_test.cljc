@@ -96,7 +96,7 @@
             :acdval]))))
 
 (deftest backlink-joins
-  (with-query-bindings [{a [_b [{c [d]}]]}]
+  (with-query-bindings [{a [b [{_c [d]}]]}]
     {:a {:b/_c {:d :abcdval}}}
     (is (= [a b d]
            [{:b/_c {:d :abcdval}} {:d :abcdval} :abcdval]))))
