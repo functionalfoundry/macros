@@ -1,5 +1,19 @@
 # CHANGELOG workflo/macros
 
+## 0.2.30
+
+### Added
+
+* Add `backref-attr?` and `singular-backref-attr?` helpers to
+  identify backrefs in queries.
+* Add support for binding the results of backref joins in queries
+  to the backref namespace symbol.
+
+### Fixed
+
+* Fix derivation of cardinality information in the new global
+  entity refmap.
+
 ## 0.2.29
 
 ### Added
