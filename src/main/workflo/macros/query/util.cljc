@@ -4,7 +4,8 @@
             [clojure.string :as string]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
-            [clojure.string :refer [capitalize]]))
+            [clojure.string :refer [capitalize]]
+            [inflections.core :as inflections]))
 
 (s/fdef one-item?
   :args (s/cat :coll coll?)
@@ -91,3 +92,12 @@
   (let [ns (namespace attr)
         nm (name attr)]
     (and ns (string/starts-with? nm "_"))))
+
+(defn singular-backref-attr?
+  "Returns true if a backref attribute represents a singular (as
+   opposed to plural) result, that is, if the namespace is
+   singular."
+  [attr]
+  (let [ns (namespace attr)]
+    (and (backref-attr? attr)
+         (= ns (inflections/singular ns)))))
