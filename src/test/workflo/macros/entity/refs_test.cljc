@@ -31,8 +31,8 @@
   (is (nil? (e/entity-backrefs 'user-with-extended-spec)))
   (is (nil? (e/entity-backrefs 'post)))
 
-  (is (= {:post/author {:entity 'post :many? false}
-          :comment/author {:entity 'comment :many? false}}
+  (is (= {:post/author {:entity 'post :many? true}
+          :comment/author {:entity 'comment :many? true}}
          (e/entity-backrefs 'author)))
 
   (is (= {:post/comments {:entity 'post :many? true}}

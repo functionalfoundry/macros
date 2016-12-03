@@ -9,9 +9,11 @@
     (swap! +refmap+ (fn [refmap]
                       (-> refmap
                           (assoc-in [source-entity :refs attr]
-                                    {:entity target-entity :many? (:many ref-info)})
+                                    {:entity target-entity
+                                     :many? (or (:many? ref-info) false)})
                           (assoc-in [target-entity :backrefs attr]
-                                    {:entity source-entity :many? true}))))))
+                                    {:entity source-entity
+                                     :many? true}))))))
 
 (defn remove-backrefs-to
   [entity-name backrefs]
