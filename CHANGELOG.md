@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.31
+
+### Added
+
+* Add `:default-params` to the Bidi-based screen router.
+
 ## 0.2.30
 
 ### Added
