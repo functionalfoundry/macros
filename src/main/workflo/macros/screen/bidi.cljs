@@ -55,12 +55,15 @@
 
 (defn router
   [{:keys [default-screen
+           default-params
            mount-screen]
-    :or   {default-screen 'home}
+    :or   {default-screen 'home
+           default-params {}}
     :as   env}]
   (br/start-router! (routes)
                     {:on-navigate #(on-navigate env %)
-                     :default-location {:handler default-screen}}))
+                     :default-location {:handler default-screen
+                                        :route-params default-params}}))
 
 (defn goto!
   [router screen params]
