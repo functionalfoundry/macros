@@ -78,7 +78,6 @@
   ([data]
    (deliver-to-services! data nil))
   ([data context]
-   {:pre [(s/valid? (s/map-of keyword? any?) data)]}
    (doseq [[service-kw service-data] data]
      (let [service-name (symbol (name service-kw))
            component    (try
