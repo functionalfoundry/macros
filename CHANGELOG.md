@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.32
+
+### Changed
+
+* Allow commands to return data for services as a sequence or
+  vector of tuples instead of a map, to allow them to control the
+  order in which the data items are delivered to services.
+
 ## 0.2.31
 
 ### Added
