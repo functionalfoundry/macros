@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.33
+
+### Fixed
+
+* Add missing require statement for `workflo.macros.bind`.
+
 ## 0.2.32
 
 ### Changed
