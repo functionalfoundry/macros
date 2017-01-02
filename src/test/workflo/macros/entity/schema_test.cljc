@@ -101,6 +101,16 @@
     [:user/bio
      :user/address] 'user-with-extended-spec))
 
+;;;; Impersistent keys
+
+(deftest impersistent-keys
+  (are [x y] (= x (-> y resolve-entity schema/impersistent-keys))
+    [] 'url/selected-user
+    [] 'ui/search-text
+    [] 'ui/search-text-with-extended-spec
+    [] 'user
+    [:user/address] 'user-with-extended-spec))
+
 ;;;; Entity refs
 
 ;;; Entities with refs between them

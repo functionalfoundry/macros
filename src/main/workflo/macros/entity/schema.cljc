@@ -57,7 +57,10 @@
     :workflo.macros.specs.types/indexed [:indexed]
     :workflo.macros.specs.types/fulltext [:fulltext]
     :workflo.macros.specs.types/no-history [:nohistory]
-    :workflo.macros.specs.types/component [:component]))
+    :workflo.macros.specs.types/component [:component]
+
+    ;; Impersistent types
+    :workflo.macros.specs.types/impersistent []))
 
 (defn enum-values-from-and-spec
   [spec]
@@ -202,6 +205,33 @@
 (defn optional-keys
   [entity]
   (or (:optional (keys entity)) []))
+
+;;;; Impersistent keys
+
+(defn impersistent-type-spec?
+  [spec]
+  (= spec :workflo.macros.specs.types/impersistent))
+
+(defn impersistent-and-key-spec?
+  [spec]
+  (when-let [type-specs (filter type-spec? spec)]
+    (some impersistent-type-spec? type-specs)))
+
+(defn impersistent-key-spec?
+  [spec]
+  (cond
+    (and-spec? spec) (impersistent-and-key-spec? spec)
+    (type-spec? spec) (impersistent-type-spec? spec)
+    :else false))
+
+(defn impersistent-key?
+  [key]
+  (impersistent-key-spec? (s/describe (s/get-spec key))))
+
+(defn impersistent-keys
+  [entity]
+  (into [] (filter impersistent-key?)
+        (apply concat (vals (keys entity)))))
 
 ;;;; Entity ref(erences)
 
