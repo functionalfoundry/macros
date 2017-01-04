@@ -18,6 +18,12 @@
 (s/def ::command-form-name
   (s/with-gen
     (s/and symbol?
+           #(not (some #{%} '[description
+                              spec
+                              query
+                              auth-query
+                              auth
+                              emit]))
            #(not (some #{\/} (str %))))
     #(s/gen '#{foo bar foo-bar})))
 
@@ -28,13 +34,21 @@
   (s/spec (s/cat :form-name ::command-form-name
                  :form-body ::command-form-body)))
 
+(s/def ::command-spec-form
+  (s/spec (s/cat :form-name #{'spec}
+                 :form-body ::command-spec)))
+
 (s/def ::command-query-form
   (s/spec (s/cat :form-name #{'query}
                  :form-body :workflo.macros.specs.query/query)))
 
-(s/def ::command-spec-form
-  (s/spec (s/cat :form-name #{'spec}
-                 :form-body ::command-spec)))
+(s/def ::command-auth-query-form
+  (s/spec (s/cat :form-name #{'auth-query}
+                 :form-body any?)))
+
+(s/def ::command-auth-form
+  (s/spec (s/cat :form-name #{'auth}
+                 :form-body ::command-form-body)))
 
 (s/def ::command-emit-form
   (s/spec (s/cat :form-name #{'emit}
@@ -44,8 +58,10 @@
   (s/cat :name ::command-name
          :forms
          (s/spec (s/cat :description (s/? ::command-description)
-                        :query (s/? ::command-query-form)
                         :spec (s/? ::command-spec-form)
+                        :query (s/? ::command-query-form)
+                        :auth-query (s/? ::command-auth-query-form)
+                        :auth (s/? ::command-auth-form)
                         :forms (s/* ::command-form)
                         :emit ::command-emit-form))
          :env (s/? any?)))
