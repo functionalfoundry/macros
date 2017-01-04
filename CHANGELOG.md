@@ -1,5 +1,16 @@
 # CHANGELOG workflo/macros
 
+## 0.2.34
+
+### Added
+
+* Add `:workflo.macros.specs.types/non-persistent` hint for entity
+  attributes. This hint can be added to the specs of entity attributes
+  in order to indicate that these attributes are not to be persisted.
+* Add `non-persistent-key?`  and `non-persistent-keys` functions to
+  check whether a keyword corresponds to a non-persistent entity
+  attribute and to obtain all non-persistent keys for an entity.
+
 ## 0.2.33
 
 ### Fixed
