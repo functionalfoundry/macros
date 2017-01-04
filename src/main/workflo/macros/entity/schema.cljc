@@ -57,7 +57,10 @@
     :workflo.macros.specs.types/indexed [:indexed]
     :workflo.macros.specs.types/fulltext [:fulltext]
     :workflo.macros.specs.types/no-history [:nohistory]
-    :workflo.macros.specs.types/component [:component]))
+    :workflo.macros.specs.types/component [:component]
+
+    ;; Non-persistent types
+    :workflo.macros.specs.types/non-persistent []))
 
 (defn enum-values-from-and-spec
   [spec]
@@ -202,6 +205,33 @@
 (defn optional-keys
   [entity]
   (or (:optional (keys entity)) []))
+
+;;;; Non-persistent keys
+
+(defn non-persistent-type-spec?
+  [spec]
+  (= spec :workflo.macros.specs.types/non-persistent))
+
+(defn non-persistent-and-key-spec?
+  [spec]
+  (when-let [type-specs (filter type-spec? spec)]
+    (some non-persistent-type-spec? type-specs)))
+
+(defn non-persistent-key-spec?
+  [spec]
+  (cond
+    (and-spec? spec) (non-persistent-and-key-spec? spec)
+    (type-spec? spec) (non-persistent-type-spec? spec)
+    :else false))
+
+(defn non-persistent-key?
+  [key]
+  (non-persistent-key-spec? (s/describe (s/get-spec key))))
+
+(defn non-persistent-keys
+  [entity]
+  (into [] (filter non-persistent-key?)
+        (apply concat (vals (keys entity)))))
 
 ;;;; Entity ref(erences)
 

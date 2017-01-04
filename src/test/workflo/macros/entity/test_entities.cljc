@@ -27,7 +27,7 @@
    (s/keys :req [:base/id :user/name :user/email :user/role]
            :opt [:user/bio])))
 
-(s/def :user/address ::types/string)
+(s/def :user/address (s/and ::types/string ::types/non-persistent))
 
 (defentity user-with-extended-spec
   (spec

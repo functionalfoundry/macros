@@ -102,3 +102,7 @@
 (s/def ::fulltext any?)
 (s/def ::component any?)
 (s/def ::no-history any?)
+
+;;;; Types whose values are not to be persisted
+
+(s/def ::non-persistent any?)
