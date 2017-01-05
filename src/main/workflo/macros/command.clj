@@ -106,11 +106,15 @@
          description       (:description (:forms args))
          spec              (some-> args :forms :spec :form-body)
          query             (some-> args :forms :query :form-body q/parse)
-         auth-query        (some-> args :forms :auth-query :form-body)
-         parsed-auth-query (if (vector? auth-query)
-                             (q/conform-and-parse auth-query)
-                             `(workflo.macros.command/conform-and-parse ~auth-query))
-         auth              (some-> args :forms :auth :form-body)
+         target-cljs?      (boolean (:ns env))
+         auth-query        (when-not target-cljs?
+                             (some-> args :forms :auth-query :form-body))
+         parsed-auth-query (when (and auth-query (not target-cljs?))
+                             (if (vector? auth-query)
+                               (q/conform-and-parse auth-query)
+                               `(workflo.macros.command/conform-and-parse ~auth-query)))
+         auth              (when-not target-cljs?
+                             (some-> args :forms :auth :form-body))
          name-sym          (unqualify name)
          forms             (cond-> (:forms (:forms args))
                              true        (conj (:emit (:forms args)))
@@ -148,23 +152,26 @@
         ~@(when auth
             `(~(f/make-defn name-sym 'auth
                  '[query-result auth-query-result]
-                 [(cond
-                    (and query auth-query)
-                    `(workflo.macros.bind/with-query-bindings
-                       ~query ~'query-result
-                       (workflo.macros.bind/with-query-bindings
-                         ~parsed-auth-query ~'auth-query-result
-                         ~@auth))
+                 (cond
+                   (and query auth-query)
+                   `((workflo.macros.bind/with-query-bindings
+                        ~query ~'query-result
+                        (workflo.macros.bind/with-query-bindings
+                          ~parsed-auth-query ~'auth-query-result
+                          ~@auth)))
 
-                    auth-query
-                    `(workflo.macros.bind/with-query-bindings
-                       ~parsed-auth-query ~'auth-query-result
-                       ~@auth)
+                   auth-query
+                   `((workflo.macros.bind/with-query-bindings
+                        ~parsed-auth-query ~'auth-query-result
+                        ~@auth))
 
-                    query
-                    `(workflo.macros.bind/with-query-bindings
-                       ~query ~'query-result
-                       ~@auth))])))
+                   query
+                   `((workflo.macros.bind/with-query-bindings
+                        ~query ~'query-result
+                        ~@auth))
+
+                   :else
+                   auth))))
         ~@(when spec
             `(~(f/make-def name-sym 'spec spec)))
         ~(f/make-def name-sym 'definition
