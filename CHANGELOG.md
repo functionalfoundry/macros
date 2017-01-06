@@ -1,5 +1,35 @@
 # CHANGELOG workflo/macros
 
+## 0.2.35
+
+### Added
+
+* Add `auth` and `auth-query` forms to the `defcommand` macro. These
+  forms are omitted when generating for ClojureScript; this follows the
+  assumption that authorization will be performed server-side and that
+  there is no interest in leaking authorization logic into client code.
+* Add an `:auth-query` hook to the `defcommand` configuration.
+* Add `auth-query` form to the `defentity` macro. This form is omitted
+  when generating for ClojureScript.
+* Add an `authorized?` function for entities. This function can check
+  whether, given an entity definition, env, entity ID and viewer ID,
+  the viewer is authorized to access the entity, according to the
+  implementation of the `auth` form.
+
+### Changed
+
+* Include authorization logic in `run-command!`k.
+* Change the signature and behavior of the `auth` form of `defentity`
+  to be aligned with the same form in `defcommand`.
+* Change the signature of the `:auth-query` hook for `defentity`.
+* Change the order of forms in `defcommand` and `defentity` - first
+  `spec`, then `auth-query`, then `auth`.
+
+### Removed
+
+* Remove the `authenticate` function for entities. This is replaced by
+  the more aptly named and freshly implemented `authorized?` function.
+
 ## 0.2.34
 
 ### Added
