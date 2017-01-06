@@ -30,21 +30,26 @@
 (deftest defentity-with-auth
   (is (= '(do
             (def macros-user-name 'macros/user)
-            (defn macros-user-auth
-              [{:keys [foo bar]}]
-              (println foo bar))
+            (def macros-user-spec map?)
             (def macros-user-auth-query
               '[{:name foo :type :property}
                 {:name bar :type :property}])
-            (def macros-user-spec map?)
+            (defn macros-user-auth
+              [auth-query-result entity-id viewer-id]
+              (workflo.macros.bind/with-query-bindings
+                [{:name foo :type :property}
+                 {:name bar :type :property}]
+                auth-query-result
+                (println foo bar)))
             (def macros-user-definition
               {:name pod/macros-user-name
+               :spec pod/macros-user-spec
                :auth pod/macros-user-auth
-               :auth-query pod/macros-user-auth-query
-               :spec pod/macros-user-spec})
+               :auth-query pod/macros-user-auth-query})
             (workflo.macros.entity/register-entity!
              'macros/user pod/macros-user-definition))
          (macroexpand-1 `(defentity macros/user
-                           ~'(auth [foo bar]
-                               (println foo bar))
-                           ~'(spec map?))))))
+                           ~'(spec map?)
+                           ~'(auth-query [foo bar])
+                           ~'(auth
+                               (println foo bar)))))))

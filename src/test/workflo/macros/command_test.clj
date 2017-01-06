@@ -56,8 +56,8 @@
             (workflo.macros.command/register-command!
              'user/update pod/user-update-definition))
          (macroexpand-1 `(defcommand user/update
-                           (~'query ~'[user [name email]])
                            (~'spec ~'vector?)
+                           (~'query ~'[user [name email]])
                            (~'emit {:some :data}))))))
 
 (deftest defcommand-with-forms
@@ -107,39 +107,102 @@
             (workflo.macros.command/register-command!
              'user/create pod/user-create-definition))
          (macroexpand-1 `(defcommand user/create
-                           (~'query ~'[db [id]])
                            (~'spec ~'map?)
+                           (~'query ~'[db [id]])
                            (~'foo [:bar])
                            (~'emit :result))))))
 
-;;;; Exercise run-command!
+(deftest defcommand-with-query-and-auth
+  (is (= '(do
+            (defn user-update-emit
+              [query-result data]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                :result))
+            (def user-update-query
+              '[{:name db/id :type :property}])
+            (defn user-update-auth
+              [query-result auth-query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                :foo))
+            (def user-update-definition
+              {:emit pod/user-update-emit
+               :query pod/user-update-query
+               :auth pod/user-update-auth})
+            (workflo.macros.command/register-command!
+             'user/update pod/user-update-definition))
+         (macroexpand-1 `(defcommand user/update
+                           (~'query ~'[db [id]])
+                           (~'auth :foo)
+                           (~'emit :result))))))
 
-;;; Define a spec for the command data
+(deftest defcommand-with-query-and-auth-and-auth-query
+  (is (= '(do
+            (defn user-update-emit
+              [query-result data]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                :result))
+            (def user-update-query
+              '[{:name db/id :type :property}])
+            (def user-update-auth-query
+              '[{:name foo/bar :type :property}])
+            (defn user-update-auth
+              [query-result auth-query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                (workflo.macros.bind/with-query-bindings
+                  [{:name foo/bar :type :property}]
+                  auth-query-result
+                  :foo)))
+            (def user-update-definition
+              {:emit pod/user-update-emit
+               :query pod/user-update-query
+               :auth-query pod/user-update-auth-query
+               :auth pod/user-update-auth})
+            (workflo.macros.command/register-command!
+             'user/update pod/user-update-definition))
+         (macroexpand-1 `(defcommand user/update
+                           (~'query ~'[db [id]])
+                           (~'auth-query ~'[foo [bar]])
+                           (~'auth :foo)
+                           (~'emit :result))))))
 
-(s/def ::user-name string?)
-(s/def ::user-email string?)
-(s/def ::user-create-data
-  (s/keys :req-un [::user-name ::user-email]))
-
-;;; Define example query and run emits
-
-(defn example-query
-  [query _]
-  {:db/id 15})
-
-(defn example-process-emit
-  [data _]
-  data)
-
-(defcommand user/create
-  (query [db [id]])
-  (spec ::user-create-data)
-  (emit
-   {:cache {:db-id id}}))
-
-(c/configure-commands!
-  {:query example-query
-   :process-emit example-process-emit})
-
-(c/run-command! 'user/create {:user-name "Jeff"
-                              :user-email "jeff@jeff.org"})
+(deftest defcommand-with-query-and-auth-and-generated-auth-query
+  (is (= '(do
+            (defn user-update-emit
+              [query-result data]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                :result))
+            (def user-update-query
+              '[{:name db/id :type :property}])
+            (def user-update-auth-query
+              (workflo.macros.command/conform-and-parse (gen-query)))
+            (defn user-update-auth
+              [query-result auth-query-result]
+              (workflo.macros.bind/with-query-bindings
+                [{:name db/id :type :property}]
+                query-result
+                (workflo.macros.bind/with-query-bindings
+                  (workflo.macros.command/conform-and-parse (gen-query))
+                  auth-query-result
+                  :foo)))
+            (def user-update-definition
+              {:emit pod/user-update-emit
+               :query pod/user-update-query
+               :auth-query pod/user-update-auth-query
+               :auth pod/user-update-auth})
+            (workflo.macros.command/register-command!
+             'user/update pod/user-update-definition))
+         (macroexpand-1 `(defcommand user/update
+                           (~'query ~'[db [id]])
+                           (~'auth-query ~'(gen-query))
+                           (~'auth :foo)
+                           (~'emit :result))))))
