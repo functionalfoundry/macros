@@ -1,5 +1,15 @@
 # CHANGELOG workflo/macros
 
+## 0.2.36
+
+### Fixed
+
+* Fix preparing data for binding `defcommand` queries and auth queries.
+  The previous approach introduced in 0.2.35 threw an error when the
+  command data was not sequential. The new approach puts the command
+  data into a map under the `:data` key if it isn't already a map,
+  so that queries can bind to it via `?data`.
+
 ## 0.2.35
 
 ### Added
