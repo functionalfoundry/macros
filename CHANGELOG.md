@@ -1,11 +1,15 @@
 # CHANGELOG workflo/macros
 
-## 0.2.37
+## 0.2.38
 
 ### Added
 
 * Add `defpermission` macro to define permission with names, titles
   and optional descriptions.
+
+## 0.2.37
+
+BROKEN RELEASE.
 
 ## 0.2.36
 
