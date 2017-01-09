@@ -64,7 +64,9 @@
        (assert (s/valid? (:spec definition) data)
                (str "Command data is invalid:"
                     (s/explain-str (:spec definition) data))))
-     (let [bind-data         (merge context data)
+     (let [bind-data         (if (map? data)
+                               (merge context data)
+                               (merge context {:data data}))
            query-result      (when-let [query-hook (get-command-config :query)]
                                (some-> (:query definition)
                                        (q/bind-query-parameters bind-data)
