@@ -44,7 +44,9 @@
 
 (s/def ::command-auth-query-form
   (s/spec (s/cat :form-name #{'auth-query}
-                 :form-body any?)))
+                 :form-body (s/with-gen any?
+                              #(s/gen '#{[foo]
+                                         [foo [bar]]})))))
 
 (s/def ::command-auth-form
   (s/spec (s/cat :form-name #{'auth}

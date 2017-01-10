@@ -17,7 +17,9 @@
 
 (s/def ::entity-auth-query-form
   (s/spec (s/cat :form-name #{'auth-query}
-                 :form-body any?)))
+                 :form-body (s/with-gen any?
+                              #(s/gen '#{[foo]
+                                         [foo [bar]]})))))
 
 (s/def ::entity-auth-form
   (s/spec (s/cat :form-name #{'auth}
