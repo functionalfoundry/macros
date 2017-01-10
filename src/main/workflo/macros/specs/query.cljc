@@ -106,11 +106,18 @@
 (s/def ::parameter-name
   symbol?)
 
+(s/def ::parameter-path
+  (s/coll-of ::parameter-name :kind vector? :min-count 1 :gen-max 3))
+
+(s/def ::parameter-name-or-path
+  (s/or :parameter-name ::parameter-name
+        :parameter-path ::parameter-path))
+
 (s/def ::parameter-value
   (s/with-gen any? gen/simple-type))
 
 (s/def ::parameters
-  (s/map-of ::parameter-name ::parameter-value
+  (s/map-of ::parameter-name-or-path ::parameter-value
             :gen-max 5))
 
 (s/def ::parameterization

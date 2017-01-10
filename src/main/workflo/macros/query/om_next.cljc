@@ -42,7 +42,9 @@
         params       (when-not (empty? (:parameters prop))
                        (->> (:parameters prop)
                             (map (fn [[k v]]
-                                   [(keyword k)
+                                   [(if (vector? k)
+                                      (mapv keyword k)
+                                      (keyword k))
                                     (if (or (symbol? v) (path? v))
                                       `'~v v)]))
                             (into {})))

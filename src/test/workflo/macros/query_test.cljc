@@ -619,7 +619,11 @@
        {:query [:aliased-property {:property [:simple a/b]
                                    :as :as :alias c}]
         :parameters {d e f g}}]]
-    '[(a/b :as c {d e f g})]))
+    '[(a/b :as c {d e f g})]
+
+    '[[:parameterization {:query [:property [:simple a]]
+                          :parameters {[b c d] e}}]]
+    '[(a {[b c d] e})]))
 
 (deftest parsing-parameterization
   (are [out in] (= out (q/conform-and-parse in))
@@ -648,7 +652,10 @@
     '[({a [b c]} :as d {e f g h})]
 
     '[{:name a/b :type :property :alias c :parameters {d e f g}}]
-    '[(a/b :as c {d e f g})]))
+    '[(a/b :as c {d e f g})]
+
+    '[{:name a :type :property :parameters {[b c d] e}}]
+    '[(a {[b c d] e})]))
 
 (deftest om-next-query-for-parameterizations
   (are [out in] (= out (-> in q/conform-and-parse om/query))
@@ -673,7 +680,11 @@
     '[({a [b c]} :as d {e f g h})]
 
     '[(:a/b {:d 'e :f 'g})]
-    '[(a/b :as c {d e f g})]))
+    '[(a/b :as c {d e f g})]
+
+    #?(:cljs '[(:a {[:b :c :d] 'c})]
+       :clj  '[(:a {[:b :c :d] 'c})])
+    '[(a {[b c d] c})]))
 
 (deftest conforming-joins-with-sub-joins
   (are [out in] (= out (q/conform in))
