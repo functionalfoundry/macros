@@ -112,7 +112,7 @@
          auth-query        (when-not target-cljs?
                              (some-> args :forms :auth-query :form-body))
          parsed-auth-query (when (and auth-query (not target-cljs?))
-                             (if (vector? auth-query)
+                             (if (valid-query? auth-query)
                                (q/conform-and-parse auth-query)
                                `(workflo.macros.command/conform-and-parse ~auth-query)))
          auth              (when-not target-cljs?
