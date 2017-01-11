@@ -1,5 +1,28 @@
 # CHANGELOG workflo/macros
 
+## 0.2.39
+
+### Added
+
+* Extend the query language to allow parameter paths (e.g.
+  `[:user/account :db/id]`) to be used in addition to simple
+  keywords. This allows to express things such as "query only
+  the users that belong to the account with the given ID".
+
+### Changed
+
+* Log the full result of `clojure.spec.test/check` on failure. This
+  way we get to see what actually went wrong.
+* Require at least one variable in variable paths (e.g. `[?foo]`)
+  in query parameter maps.
+
+### Fixed
+
+* Fix random testing of `defcommand*` and `defentity*` by always
+  generating valid queries for the `auth-query` form.
+* Properly detect when an `auth-query` body is a valid query in
+  `defcommand` and `defentity`.
+
 ## 0.2.38
 
 ### Added
