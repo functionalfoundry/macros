@@ -46,5 +46,5 @@
             (let [result (first (st/check s check-opts))]
               (and (is (map? result))
                    (is (-> result :clojure.spec.test.check/ret))
-                   (is (-> result :clojure.spec.test.check/ret
-                           :result true?)))))))
+                   (is (-> result :clojure.spec.test.check/ret :result true?)
+                       (-> result :clojure.spec.test.check/ret)))))))
