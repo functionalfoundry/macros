@@ -49,10 +49,6 @@
   [query]
   (q/conform-and-parse query))
 
-(defn bind-query-parameters
-  [query & data-maps]
-  (q/bind-query-parameters query (apply merge data-maps)))
-
 ;;;; Command execution
 
 (defn run-command!

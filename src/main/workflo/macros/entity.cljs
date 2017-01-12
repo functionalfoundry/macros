@@ -45,6 +45,12 @@
   [entity-name]
   (refs/entity-backrefs entity-name))
 
+;;;; Query utilities
+
+(defn conform-and-parse
+  [query]
+  (q/conform-and-parse query))
+
 ;;;; Authorization
 
 (defn authorized?

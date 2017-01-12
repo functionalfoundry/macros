@@ -38,17 +38,9 @@
 
 ;;;; Query utilities
 
-(defn valid-query?
-  [query]
-  (s/valid? ::specs.query/query query))
-
 (defn conform-and-parse
   [query]
   (q/conform-and-parse query))
-
-(defn bind-query-parameters
-  [query & data-maps]
-  (q/bind-query-parameters query (apply merge data-maps)))
 
 ;;;; Command execution
 

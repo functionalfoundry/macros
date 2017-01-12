@@ -89,6 +89,10 @@
   [query]
   (s/valid? ::specs.query/query query))
 
+(defn conform-and-parse
+  [query]
+  (q/conform-and-parse query))
+
 ;;;; The defentity macro
 
 (s/fdef defentity*
