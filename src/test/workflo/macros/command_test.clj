@@ -172,37 +172,3 @@
                            (~'auth-query ~'[foo [bar]])
                            (~'auth :foo)
                            (~'emit :result))))))
-
-(deftest defcommand-with-query-and-auth-and-generated-auth-query
-  (is (= '(do
-            (defn user-update-emit
-              [query-result data]
-              (workflo.macros.bind/with-query-bindings
-                [{:name db/id :type :property}]
-                query-result
-                :result))
-            (def user-update-query
-              '[{:name db/id :type :property}])
-            (def user-update-auth-query
-              (workflo.macros.command/conform-and-parse (gen-query)))
-            (defn user-update-auth
-              [query-result auth-query-result]
-              (workflo.macros.bind/with-query-bindings
-                [{:name db/id :type :property}]
-                query-result
-                (workflo.macros.bind/with-query-bindings
-                  (workflo.macros.command/conform-and-parse (gen-query))
-                  auth-query-result
-                  :foo)))
-            (def user-update-definition
-              {:emit pod/user-update-emit
-               :query pod/user-update-query
-               :auth-query pod/user-update-auth-query
-               :auth pod/user-update-auth})
-            (workflo.macros.command/register-command!
-             'user/update pod/user-update-definition))
-         (macroexpand-1 `(defcommand user/update
-                           (~'query ~'[db [id]])
-                           (~'auth-query ~'(gen-query))
-                           (~'auth :foo)
-                           (~'emit :result))))))

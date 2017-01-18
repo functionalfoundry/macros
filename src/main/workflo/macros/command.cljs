@@ -36,12 +36,6 @@
 
 (defregistry command)
 
-;;;; Query utilities
-
-(defn conform-and-parse
-  [query]
-  (q/conform-and-parse query))
-
 ;;;; Command execution
 
 (defn run-command!
