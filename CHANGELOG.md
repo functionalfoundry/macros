@@ -1,5 +1,18 @@
 # CHANGELOG workflo/macros
 
+## 0.2.40
+
+### Changed
+
+* Changed the `auth-query` forms of `defentity` and `defcommand`
+  so that they require valid, regular queries as their body,
+  instead of allowing arbitrary, query-generating code. The latter
+  breaks query bindings in other forms of `defentity` and
+  `defcommand`.
+* Make the `resolve-<registry-name>` function (e.g. `resolve-entity`)
+  accept symbols and keywords alike, rather than always assuming
+  symbols.
+
 ## 0.2.39
 
 ### Added
