@@ -63,7 +63,8 @@
           (reset! ~registry-sym (sorted-map)))
         (defn ~resolve-sym
           [~'name]
-          (let [~'definition (get (~registered-sym) ~'name)]
+          (let [~'name-sym   (symbol (namespace ~'name) (name ~'name))
+                ~'definition (get (~registered-sym) ~'name-sym)]
             (when (nil? ~'definition)
               (let [~'msg (str "Failed to resolve " ~(str name)
                                " '" ~'name "'")]
