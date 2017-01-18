@@ -39,20 +39,6 @@
 
 (defregistry command)
 
-;;;; Query utilities
-
-(defn valid-query?
-  [query]
-  (s/valid? ::specs.query/query query))
-
-(defn conform-and-parse
-  [query]
-  (q/conform-and-parse query))
-
-(defn bind-query-parameters
-  [query & data-maps]
-  (q/bind-query-parameters query (apply merge data-maps)))
-
 ;;;; Command execution
 
 (defn run-command!
@@ -112,9 +98,7 @@
          auth-query        (when-not target-cljs?
                              (some-> args :forms :auth-query :form-body))
          parsed-auth-query (when (and auth-query (not target-cljs?))
-                             (if (valid-query? auth-query)
-                               (q/conform-and-parse auth-query)
-                               `(workflo.macros.command/conform-and-parse ~auth-query)))
+                             (q/parse auth-query))
          auth              (when-not target-cljs?
                              (some-> args :forms :auth :form-body))
          name-sym          (unqualify name)
@@ -148,29 +132,27 @@
                '~query)))
         ~@(when auth-query
             `((~'def ~(f/prefixed-form-name 'auth-query name-sym)
-               ~(if (vector? auth-query)
-                  `'~parsed-auth-query
-                  parsed-auth-query))))
+               '~parsed-auth-query)))
         ~@(when auth
             `(~(f/make-defn name-sym 'auth
                  '[query-result auth-query-result]
                  (cond
                    (and query auth-query)
                    `((workflo.macros.bind/with-query-bindings
-                        ~query ~'query-result
-                        (workflo.macros.bind/with-query-bindings
-                          ~parsed-auth-query ~'auth-query-result
-                          ~@auth)))
+                       ~query ~'query-result
+                       (workflo.macros.bind/with-query-bindings
+                         ~parsed-auth-query ~'auth-query-result
+                         ~@auth)))
 
                    auth-query
                    `((workflo.macros.bind/with-query-bindings
-                        ~parsed-auth-query ~'auth-query-result
-                        ~@auth))
+                       ~parsed-auth-query ~'auth-query-result
+                       ~@auth))
 
                    query
                    `((workflo.macros.bind/with-query-bindings
-                        ~query ~'query-result
-                        ~@auth))
+                       ~query ~'query-result
+                       ~@auth))
 
                    :else
                    auth))))

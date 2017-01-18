@@ -83,12 +83,6 @@
                         (:name entity)
                         (s/explain-str spec data)))))))
 
-;;;; Utilities
-
-(defn valid-query?
-  [query]
-  (s/valid? ::specs.query/query query))
-
 ;;;; The defentity macro
 
 (s/fdef defentity*
@@ -110,9 +104,7 @@
          auth-query        (when-not target-cljs?
                              (some-> args :forms :auth-query :form-body))
          parsed-auth-query (when (and auth-query (not target-cljs?))
-                             (if (valid-query? auth-query)
-                               (q/conform-and-parse auth-query)
-                               `(workflo.macros.entity/conform-and-parse ~auth-query)))
+                             (q/parse auth-query))
          auth              (when-not target-cljs?
                              (some-> args :forms :auth :form-body))
          validation        (:validation (:forms args))
@@ -133,16 +125,14 @@
         ~(f/make-def name-sym 'spec spec)
         ~@(when auth-query
             `((~'def ~(f/prefixed-form-name 'auth-query name-sym)
-               ~(if (vector? auth-query)
-                  `'~parsed-auth-query
-                  parsed-auth-query))))
+               '~parsed-auth-query)))
         ~@(when auth
             `(~(f/make-defn name-sym 'auth
                  '[auth-query-result entity-id viewer-id]
                  (if auth-query
                    `((workflo.macros.bind/with-query-bindings
-                        ~parsed-auth-query ~'auth-query-result
-                        ~@auth))
+                       ~parsed-auth-query ~'auth-query-result
+                       ~@auth))
                    auth))))
         ~@(when validation
             `(~(f/make-def name-sym 'validation

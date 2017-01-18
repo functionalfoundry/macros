@@ -44,9 +44,7 @@
 
 (s/def ::command-auth-query-form
   (s/spec (s/cat :form-name #{'auth-query}
-                 :form-body (s/with-gen any?
-                              #(s/gen '#{[foo]
-                                         [foo [bar]]})))))
+                 :form-body :workflo.macros.specs.query/query)))
 
 (s/def ::command-auth-form
   (s/spec (s/cat :form-name #{'auth}
