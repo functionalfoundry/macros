@@ -2,7 +2,7 @@
   (:require [clojure.spec :as s]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
-            [workflo.macros.specs.query]))
+            [workflo.macros.specs.query :as q]))
 
 ;;;; Specs for defentity arguments
 
@@ -17,9 +17,7 @@
 
 (s/def ::entity-auth-query-form
   (s/spec (s/cat :form-name #{'auth-query}
-                 :form-body (s/with-gen any?
-                              #(s/gen '#{[foo]
-                                         [foo [bar]]})))))
+                 :form-body ::q/query)))
 
 (s/def ::entity-auth-form
   (s/spec (s/cat :form-name #{'auth}
