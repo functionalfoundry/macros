@@ -113,6 +113,10 @@
          (map prefix-join-source-name)
          (into []))))
 
+(defmethod parse-subquery :fragment
+  [[_ q]]
+  (conform-and-parse (resolve-query-fragment q)))
+
 (defmethod parse-subquery :parameterization
   [[_ {:keys [query parameters]}]]
   (assoc-in (parse-subquery query) [0 :parameters] parameters))

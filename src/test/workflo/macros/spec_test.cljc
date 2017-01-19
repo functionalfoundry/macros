@@ -17,6 +17,8 @@
             [workflo.macros.screen]
             [workflo.macros.view]))
 
+(workflo.macros.query/register-query-fragment! :example-fragment '[foo bar])
+
 (def check-opts
   {:clojure.spec.test.check/opts {:num-tests 10
                                   :max-size 10}})
