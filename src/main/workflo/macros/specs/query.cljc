@@ -99,6 +99,11 @@
          :as #{:as}
          :alias ::property-name))
 
+(s/def ::fragment
+  (s/with-gen
+    (s/and keyword? #(not= :as %))
+    #(s/gen #{:example-fragment})))
+
 (s/def ::parameterization-query
   (s/alt :property ::property
          :aliased-property ::aliased-property))
@@ -136,14 +141,16 @@
            (s/+ (s/alt :property ::property
                        :prefixed-properties ::prefixed-properties
                        :aliased-property ::aliased-property
-                       :parameterization ::parameterization)))
+                       :parameterization ::parameterization
+                       :fragment ::fragment)))
     #(gen/fmap util/combine-properties-and-groups
                (gen/vector (gen/one-of
                             [(s/gen ::property)
                              (s/gen ::prefixed-properties)
                              (s/gen ::aliased-property)
-                             (s/gen ::parameterization)])
-                           1 1))))
+                             (s/gen ::parameterization)
+                             (s/gen ::fragment)])
+                           1 3))))
 
 (comment
   ;;;; Non-recursive queries

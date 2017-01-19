@@ -3,9 +3,16 @@
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.bind :as bind]
+            [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.conforming-query :as conforming-query]
             [workflo.macros.specs.parsed-query :as parsed-query]
             [workflo.macros.specs.query :as q]))
+
+(declare conform-and-parse)
+
+;;;; Registry for query fragments
+
+(defregistry query-fragment)
 
 ;;;; Query parsing
 
@@ -105,6 +112,10 @@
          (map prefix-name)
          (map prefix-join-source-name)
          (into []))))
+
+(defmethod parse-subquery :fragment
+  [[_ q]]
+  (conform-and-parse (resolve-query-fragment q)))
 
 (defmethod parse-subquery :parameterization
   [[_ {:keys [query parameters]}]]

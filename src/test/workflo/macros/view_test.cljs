@@ -103,8 +103,8 @@
 (deftest view-definition-with-overriden-query-and-keyfn
   (is (= (macroexpand-1
           '(defview View
-             (query [:custom :query])
-             (key :custom)))
+             (query [custom query])
+             (key custom)))
          '(do
             (om.next/defui View
               static om.next/IQuery
@@ -112,7 +112,12 @@
                 [:custom :query]))
             (def view
               (workflo.macros.view/factory View
-                {:keyfn (fn [props] :custom)}))
+                {:keyfn (fn [props]
+                          (workflo.macros.bind/with-query-bindings
+                            [{:name custom :type :property}
+                             {:name query :type :property}]
+                            props
+                            custom))}))
             (workflo.macros.view/register-view!
              'View {:view View :factory view})))))
 

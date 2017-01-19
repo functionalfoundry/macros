@@ -119,6 +119,9 @@
 (s/def ::parameterization
   (s/tuple #{:parameterization} ::parameterization-value))
 
+(s/def ::fragment
+  (s/tuple #{:fragment} :workflo.macros.specs.query/fragment))
+
 ;; Workaround for extra [] around [:aliased-property ...] and
 ;; [:prefixed-properties ...] in output of conform (JIRA issue
 ;; CLJ-2003)
@@ -133,6 +136,7 @@
         :aliased-property ::aliased-property
         :prefixed-properties ::prefixed-properties
         :parameterization ::parameterization
+        :fragment ::fragment
         :bug-vector ::bug-vector))
 
 (s/def ::query
