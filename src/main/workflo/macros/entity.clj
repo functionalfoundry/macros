@@ -111,12 +111,13 @@
          spec              (:form-body (:spec (:forms args)))
          name-sym          (unqualify name)
          forms             (-> (:forms args)
-                               (select-keys [:auth :spec])
+                               (select-keys [:spec])
                                (vals)
                                (cond->
                                    true        (conj {:form-name 'name})
                                    description (conj {:form-name 'description})
-                                   auth-query  (conj {:form-name 'auth-query})))
+                                   auth-query  (conj {:form-name 'auth-query})
+                                   auth        (conj {:form-name 'auth})))
          def-sym           (f/qualified-form-name 'definition name-sym)]
      `(do
         ~(f/make-def name-sym 'name `'~name)
