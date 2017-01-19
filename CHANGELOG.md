@@ -1,5 +1,29 @@
 # CHANGELOG workflo/macros
 
+## 0.2.41
+
+### Added
+
+* Add a query fragment registry in `workflo.macros.query`. This can be
+  used to register reusable query fragments.
+* Add the support for query fragments in queries. Query fragments can
+  be added as keywords (other than `:as`), e.g. `[foo :example bar]`.
+  During parsing they are then resolved into the actual queries using
+  the fragment registry. The result is then spliced into the parent
+  query, resulting in e.g. `[foo baz ruux bar]` if `:example` resolves
+  to `[baz ruux]`.
+* Add tests for the above.
+
+### Changed
+
+* Revert the `resolve-<registry name>` change made in 0.2.40.
+
+### Fixed
+
+* Add missing `defregistry` require expression for `defpermission`.
+* Fix only including the `(auth ...)` form in entities when generating
+  for Clojure.
+
 ## 0.2.40
 
 ### Changed
