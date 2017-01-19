@@ -581,6 +581,46 @@
     '[:a/b :a/d] '[a [b :as c d :as e]]
     '[:a.b/c] '[a.b [c :as d]]))
 
+(q/register-query-fragment! :properties-fragment '[foo bar])
+(q/register-query-fragment! :join-fragment '[{baz [ruux]}])
+(q/register-query-fragment! :prefixed-fragment '[base [child]])
+
+(deftest conforming-query-fragments
+  (are [out in] (= out (q/conform in))
+    '[[:fragment :properties-fragment]]
+    [:properties-fragment]
+
+    '[[:fragment :join-fragment]]
+    [:join-fragment]
+
+    '[[:fragment :prefixed-fragment]]
+    [:prefixed-fragment]))
+
+(deftest parsing-query-fragments
+  (are [out in] (= out (q/conform-and-parse in))
+    '[{:name foo :type :property}
+      {:name bar :type :property}]
+    [:properties-fragment]
+
+    '[{:name baz
+       :type :join
+       :join-source {:name baz :type :property}
+       :join-target [{:name ruux :type :property}]}]
+    [:join-fragment]
+
+    '[{:name base/child :type :property}]
+    [:prefixed-fragment]))
+
+(deftest parsing-non-existent-query-fragments
+  (is (thrown? #?(:cljs js/Error :clj Exception)
+               (q/conform-and-parse [:non-existent-fragment]))))
+
+(deftest om-next-query-for-query-fragments
+  (are [out in] (= out (-> in q/conform-and-parse om/query))
+    '[:foo :bar] [:properties-fragment]
+    '[{:baz [:ruux]}] [:join-fragment]
+    '[:base/child] [:prefixed-fragment]))
+
 (deftest conforming-parameterization
   (are [out in] (= out (q/conform in))
     '[[:parameterization {:query [:property [:simple a]]
