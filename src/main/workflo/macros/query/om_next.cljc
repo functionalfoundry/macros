@@ -30,7 +30,7 @@
                     (second (:ret %)))))))
 
 (s/fdef property-query
-  :args (s/cat :prop ::parsed-query/property
+  :args (s/cat :prop ::parsed-query/typed-property
                :gen-type #{:clj :cljs :clj->cljs})
   :ret ::om-query/property
   :fn ::property-query-from-parsed-property)
