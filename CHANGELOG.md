@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.42
+
+### Fixed
+
+* Fix the function spec of `workflo.macros.query.om-next/property-query`.
+
 ## 0.2.41
 
 ### Added
