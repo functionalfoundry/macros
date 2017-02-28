@@ -205,7 +205,7 @@
     '[{:a [:b :c]} :d] '[{a [b c]} d]
     '[{:a [:b :c]} {:d [:e :f]}] '[{a [b c]} {d [e f]}]
     '[{:a/b [:c]} {:a.b/c [:d]}] '[{a/b [c]} {a.b/c [d]}]
-    '[{:a '...}] '[{a ...}]
+    '[{:a ...}] '[{a ...}]
     '[{:a 5}] '[{a 5}]
     #?(:cljs '[{:a [:user/name :user/email]}]
        :clj  '[{:a (om.next/get-query

@@ -62,7 +62,11 @@
                           target (:join-target prop)]
                       {(property-query source gen-type)
                        (cond
-                         (some #{target} #{'... ''...}) ''...
+                         (some #{target} #{'... ''...})
+                         (case gen-type
+                           :clj->cljs ''...
+                           :cljs '...
+                           :clj '...)
                          (number? target) target
                          (vector? target)
                          (into []
