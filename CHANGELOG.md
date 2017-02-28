@@ -1,5 +1,14 @@
 # CHANGELOG workflo/macros
 
+## 0.2.43
+
+### Fixed
+
+* Fix quoting of `...` in Om Next query generation. We only want to
+  double-quote the `...` if we are generating code for CLJS from
+  CLJ (e.g. from within a macro). Otherwise, single-quoting is
+  sufficient.
+
 ## 0.2.42
 
 ### Fixed
