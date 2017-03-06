@@ -53,7 +53,7 @@
 
 (defn entity-backrefs
   "Returns all references to an entity from other entities. The result
-   is a map that maps attribute names (e.g. `:post/author`) to refernce
+   is a map that maps attribute names (e.g. `:post/author`) to reference
    infos (e.g. `{:entity 'post :many? true}`."
   [entity-name]
   (get-in @+refmap+ [entity-name :backrefs]))
