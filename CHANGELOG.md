@@ -1,5 +1,19 @@
 # CHANGELOG workflo/macros
 
+## 0.2.44
+
+### Added
+
+* Add a `:before-emit` hook to `defcommand`.
+
+### Changed
+
+* Log a more useful error when failing to resolve service components.
+
+### Fixed
+
+* Fix a typo in the `entity-backrefs` documentation.
+
 ## 0.2.43
 
 ### Fixed
