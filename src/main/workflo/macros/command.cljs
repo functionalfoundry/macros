@@ -22,6 +22,11 @@
   ;;               this function is used to query a cache for data that
   ;;               is needed to authorize the command execution.
   ;;
+  ;; :before-emit - a function that is called just before a command emit
+  ;;                implementation is executed; gets passed the command
+  ;;                name, the command query result and the command data; the
+  ;;                return value of this hook has no effect
+  ;;
   ;; :process-emit - a function that is called after a command has
   ;;                 been executed; it takes the data returned from
   ;;                 the command emit function as well as the context
@@ -30,6 +35,7 @@
   ;;                 whatever way is desirable.
   {:query nil
    :auth-query nil
+   :before-emit nil
    :process-emit nil})
 
 ;;;; Command registry
@@ -62,11 +68,14 @@
                                (auth-fn query-result auth-query-result)
                                true)]
        (if authorized?
-         (let [emit-output ((:emit definition) query-result data)]
-           (if (get-command-config :process-emit)
-             (-> (get-command-config :process-emit)
-                 (apply [emit-output context]))
-             emit-output))
+         (do
+           (some-> (get-command-config :before-emit)
+                   (apply [cmd-name query-result data]))
+           (let [emit-output ((:emit definition) query-result data)]
+             (if (get-command-config :process-emit)
+               (-> (get-command-config :process-emit)
+                   (apply [emit-output context]))
+               emit-output)))
          (throw (ex-info (str "Not authorized to run command: " cmd-name)
                          {:cmd-name cmd-name
                           :data data
