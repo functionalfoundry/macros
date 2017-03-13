@@ -73,8 +73,8 @@
      (let [service-name (symbol (name service-kw))
            component    (try
                           (resolve-service-component service-name)
-                          (catch js/Error e
-                            (println "WARN:" (.-message e))))]
+                          (catch js/Error error
+                            (js/console.warn "Failed to resolve service component:"
+                                             error)))]
        (some-> component
-               (deliver-to-service-component! service-data
-                                              context))))))
+               (deliver-to-service-component! service-data context))))))
