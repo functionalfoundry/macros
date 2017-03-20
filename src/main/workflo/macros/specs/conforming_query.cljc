@@ -91,7 +91,7 @@
 
 (s/def :prefixed-properties-value/children
   (s/with-gen
-    ::query
+    (s/and ::query)
     #(gen/vector
       (s/gen (s/or :property ::property
                    :aliased-property ::aliased-property
