@@ -1,7 +1,6 @@
 (ns workflo.macros.query.util
   (:require [clojure.pprint :refer [pprint]]
             [clojure.spec :as s]
-            [clojure.string :as string]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [clojure.string :refer [capitalize]]
@@ -91,7 +90,7 @@
   [attr]
   (let [ns (namespace attr)
         nm (name attr)]
-    (and ns (string/starts-with? nm "_"))))
+    (and ns (= (subs nm 0 1) "_"))))
 
 (defn singular-backref-attr?
   "Returns true if a backref attribute represents a singular (as

@@ -1,6 +1,5 @@
 (ns workflo.macros.specs.query
   (:require [clojure.spec :as s]
-            [clojure.string :as str]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.util :as util]))
@@ -102,7 +101,7 @@
 
 (s/def ::fragment
   (s/with-gen
-    (s/and symbol? #(str/starts-with? % "..."))
+    (s/and symbol? #(re-matches #"^[\.]{3}.+" (name %)))
     #(s/gen '#{...example-fragment})))
 
 (s/def ::parameterization-query
