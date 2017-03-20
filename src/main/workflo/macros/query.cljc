@@ -1,5 +1,6 @@
 (ns workflo.macros.query
   (:require [clojure.spec :as s]
+            [clojure.string :as str]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.bind :as bind]
@@ -115,7 +116,8 @@
 
 (defmethod parse-subquery :fragment
   [[_ q]]
-  (conform-and-parse (resolve-query-fragment q)))
+  (let [fragment-name (keyword (subs (name q) 3))]
+    (conform-and-parse (resolve-query-fragment fragment-name))))
 
 (defmethod parse-subquery :parameterization
   [[_ {:keys [query parameters]}]]

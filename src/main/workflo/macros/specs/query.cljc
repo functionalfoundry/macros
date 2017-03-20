@@ -1,5 +1,6 @@
 (ns workflo.macros.specs.query
   (:require [clojure.spec :as s]
+            [clojure.string :as str]
             #?(:cljs [cljs.spec.impl.gen :as gen]
                :clj  [clojure.spec.gen :as gen])
             [workflo.macros.query.util :as util]))
@@ -7,7 +8,7 @@
 ;;;; Simple properties
 
 (s/def ::property-name
-  symbol?)
+  (s/and symbol? #(not (re-matches #"^[\.]+.*" (name %)))))
 
 ;;;; Links
 
@@ -101,8 +102,8 @@
 
 (s/def ::fragment
   (s/with-gen
-    (s/and keyword? #(not= :as %))
-    #(s/gen #{:example-fragment})))
+    (s/and symbol? #(str/starts-with? % "..."))
+    #(s/gen '#{...example-fragment})))
 
 (s/def ::parameterization-query
   (s/alt :property ::property
