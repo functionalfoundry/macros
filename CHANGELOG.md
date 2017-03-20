@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.46
+
+### Changed
+
+* Add another parameter to the `:before-emit` hook: the command context.
+
 ## 0.2.45
 
 ### Changed

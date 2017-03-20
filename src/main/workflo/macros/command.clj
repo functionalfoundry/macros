@@ -27,8 +27,9 @@
   ;;
   ;; :before-emit - a function that is called just before a command emit
   ;;                implementation is executed; gets passed the command
-  ;;                name, the command query result and the command data; the
-  ;;                return value of this hook has no effect
+  ;;                name, the command query result, the command data and
+  ;;                the command context; the return value of this hook
+  ;;                has no effect
   ;;
   ;; :process-emit - a function that is called after a command has
   ;;                 been executed; it takes the data returned from
@@ -73,7 +74,7 @@
        (if authorized?
          (do
            (some-> (get-command-config :before-emit)
-                   (apply [cmd-name query-result data]))
+                   (apply [cmd-name query-result data context]))
            (let [emit-output ((:emit definition) query-result data)]
              (if (get-command-config :process-emit)
                (-> (get-command-config :process-emit)
