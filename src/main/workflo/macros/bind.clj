@@ -67,8 +67,8 @@
                (s/valid? ::sq/query query) q/conform-and-parse)))
 
 (s/fdef simplified-name
-  :args (s/cat :sym-or-kw (s/or :sym symbol?
-                                :kw keyword?))
+  :args (s/cat :sym-or-kw (s/or :sym (s/and symbol? #(not= "." (name %)))
+                                :kw (s/and keyword? #(not= "." (name %)))))
   :ret string?)
 
 (defn simplified-name
