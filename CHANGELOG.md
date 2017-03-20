@@ -1,5 +1,21 @@
 # CHANGELOG workflo/macros
 
+## 0.2.45
+
+### Changed
+
+* Bumped all dependencies to their latest versions, including Clojure
+  and ClojureScript.
+* Change syntax to reference query fragments from `:foo` to `...foo`. This
+  avoids parsing conflicts and ambiguity. It's also consistent with the
+  spreading syntax in JavaScript.
+
+### Fixed
+
+* Fix tests, particularly those involving query and function specs.
+* Avoid `clojure.string/starts-with?` in ClojureScript; it is broken in
+  PhantomJS. Use `subs` and `re-matches` instead.
+
 ## 0.2.44
 
 ### Added
