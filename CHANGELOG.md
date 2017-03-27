@@ -1,5 +1,11 @@
 # CHANGELOG workflo/macros
 
+## 0.2.47
+
+### Added
+
+* Add support for Om Next / React lifecycle function signatures in `defview`.
+
 ## 0.2.46
 
 ### Changed
