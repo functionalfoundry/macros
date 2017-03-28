@@ -27,6 +27,21 @@
          (macroexpand-1 `(defentity my.ui/app
                            (~'spec ~'map?))))))
 
+(deftest defentity-with-hints
+  (is (= '(do
+            (def x-foo-name 'x/foo)
+            (def x-foo-hints [:bar :baz])
+            (def x-foo-spec map?)
+            (def x-foo-definition
+              {:name pod/x-foo-name
+               :hints pod/x-foo-hints
+               :spec pod/x-foo-spec})
+            (workflo.macros.entity/register-entity!
+             'x/foo pod/x-foo-definition))
+         (macroexpand-1 `(defentity x/foo
+                           (~'hints [:bar :baz])
+                           (~'spec ~'map?))))))
+
 (deftest defentity-with-auth
   (is (= '(do
             (def macros-user-name 'macros/user)
