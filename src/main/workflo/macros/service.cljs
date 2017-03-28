@@ -17,6 +17,11 @@
   ;;          this function is used to query a data store for data
   ;;          that the service needs to process its input.
   ;;
+  ;; :deliver - a function that takes a service component, a query result,
+  ;;            the data that will be delivered to the service as well as
+  ;;            the context that that was passed to
+  ;;            `deliver-to-service-component!` or `deliver-to-services!`.
+  ;;
   ;; :process-output - a function that takes a service, the context
   ;;                   that was passed to `deliver-to-service-component!`
   ;;                   or `deliver-to-services!` by the caller, and
@@ -25,6 +30,7 @@
   ;;                   this function can be used to further process
   ;;                   the output of the service.
   {:query nil
+   :deliver nil
    :process-output nil})
 
 ;;;; Service registry
@@ -59,6 +65,8 @@
          qresult (when query
                    (some-> (get-service-config :query)
                            (apply [query context])))
+         _       (some-> (get-service-config :deliver)
+                         (apply [component qresult data context]))
          output  (process component qresult data context)]
      (cond->> output
        (fn? (get-service-config :process-output))
