@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.48
+
+### Added
+
+* Add `(hints [<kw> ...])` form to `defentity` and `defcommand`. This allows
+  to filter entities and commands by hints, e.g. to log or forward them to
+  additional services.
+
 ## 0.2.47
 
 ### Added
