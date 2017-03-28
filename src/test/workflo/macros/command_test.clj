@@ -35,6 +35,26 @@
                            (~'spec ~'vector?)
                            (~'emit (:foo :bar)))))))
 
+(deftest defcommand-with-hints
+  (is (= '(do
+            (defn my-user-create-emit
+              [query-result data]
+              (:foo :bar))
+            (def my-user-create-hints
+              [:bar :baz])
+            (def my-user-create-spec
+              vector?)
+            (def my-user-create-definition
+              {:spec pod/my-user-create-spec
+               :hints pod/my-user-create-hints
+               :emit pod/my-user-create-emit})
+            (workflo.macros.command/register-command!
+             'my.user/create pod/my-user-create-definition))
+         (macroexpand-1 `(defcommand my.user/create
+                           (~'hints [:bar :baz])
+                           (~'spec ~'vector?)
+                           (~'emit (:foo :bar)))))))
+
 (deftest defcommand-with-query
   (is (= '(do
             (defn user-update-emit

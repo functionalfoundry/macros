@@ -34,6 +34,13 @@
   (s/spec (s/cat :form-name ::command-form-name
                  :form-body ::command-form-body)))
 
+(s/def ::command-hints
+  (s/coll-of keyword? :kind vector? :min-count 1))
+
+(s/def ::command-hints-form
+  (s/spec (s/cat :form-name #{'hints}
+                 :form-body ::command-hints)))
+
 (s/def ::command-spec-form
   (s/spec (s/cat :form-name #{'spec}
                  :form-body ::command-spec)))
@@ -58,6 +65,7 @@
   (s/cat :name ::command-name
          :forms
          (s/spec (s/cat :description (s/? ::command-description)
+                        :hints (s/? ::command-hints-form)
                         :spec (s/? ::command-spec-form)
                         :query (s/? ::command-query-form)
                         :auth-query (s/? ::command-auth-query-form)

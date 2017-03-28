@@ -102,6 +102,7 @@
                                      (s/explain-str args-spec
                                                     [name forms]))))
          description       (:description (:forms args))
+         hints             (:form-body (:hints (:forms args)))
          spec              (some-> args :forms :spec :form-body)
          query             (some-> args :forms :query :form-body q/parse)
          target-cljs?      (boolean (:ns env))
@@ -115,6 +116,7 @@
          forms             (cond-> (:forms (:forms args))
                              true        (conj (:emit (:forms args)))
                              description (conj {:form-name 'description})
+                             hints       (conj {:form-name 'hints})
                              spec        (conj {:form-name 'spec})
                              query       (conj {:form-name 'query})
                              auth-query  (conj {:form-name 'auth-query})
@@ -137,6 +139,8 @@
         ~@form-fns
         ~@(when description
             `(~(f/make-def name-sym 'description description)))
+        ~@(when hints
+            `(~(f/make-def name-sym 'hints hints)))
         ~@(when query
             `((~'def ~(f/prefixed-form-name 'query name-sym)
                '~query)))
