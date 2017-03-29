@@ -1,5 +1,14 @@
 # CHANGELOG workflo/macros
 
+## 0.2.49
+
+### Added
+
+* Add `defhooks` macro and use it for services and commands. This allows
+  an arbitrary number of hooks of every kind to be registered. A reduce
+  is then applied to all of them to allow all hooks to shape the data
+  further.
+
 ## 0.2.48
 
 ### Added
