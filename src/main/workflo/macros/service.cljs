@@ -62,10 +62,11 @@
                    (-> (process-service-hooks :query {:query query
                                                       :context context})
                        (get :query-result)))
-         _       (process-service-hooks :deliver {:component component
-                                                  :query-result qresult
-                                                  :data data
-                                                  :context context})
+         data    (-> (process-service-hooks :deliver {:component component
+                                                      :query-result qresult
+                                                      :data data
+                                                      :context context})
+                     (get :data))
          output  (process component qresult data context)]
      (-> (process-service-hooks :process-output {:service (:service component)
                                                  :output output
