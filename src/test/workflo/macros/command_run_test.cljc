@@ -10,7 +10,7 @@
 
 ;; Example query, auth-query and process-emit hooks
 (defn example-query-hook
-  [query context]
+  [{:keys [query context] :as data}]
   ;; Verify the query is what we'd expect
   (is (= [{:name 'user
            :type :join
@@ -20,13 +20,13 @@
            :parameters {'user/name (:user context)}}]
          query))
   ;; Simulate running the query
-  {:user (first (filter (fn [user-counter]
-                          (= (:user/name user-counter)
-                             (:user context)))
-                        @user-counters))})
+  (assoc data :query-result {:user (first (filter (fn [user-counter]
+                                                    (= (:user/name user-counter)
+                                                       (:user context)))
+                                                  @user-counters))}))
 
 (defn example-auth-query-hook
-  [query context]
+  [{:keys [query context] :as data}]
   ;; Verify the auth query is what we'd expect
   (is (= '[{:name permissions
             :type :join
@@ -34,26 +34,25 @@
             :join-target [{:name name :type :property}]}]
          query))
   ;; Simulate running the auth query, returning permissions only for jeff
-  (if (= :jeff (:user context))
-    {:permissions [{:name :update}]}
-    {:permissions []}))
+  (assoc data :query-result (if (= :jeff (:user context))
+                              {:permissions [{:name :update}]}
+                              {:permissions []})))
 
 (defn example-process-emit-hook
-  [emit-output context]
+  [{:keys [output context]}]
   (swap! user-counters
          (fn [user-counters]
            (mapv (fn [user-counter]
                    (cond-> user-counter
-                     (= (:user/name emit-output)
+                     (= (:user/name output)
                         (:user/name user-counter))
-                     (assoc :user/counter (:user/counter emit-output))))
+                     (assoc :user/counter (:user/counter output))))
                  user-counters))))
 
 (deftest exercise-run-command-with-authorization
-  (c/configure-commands!
-   {:query example-query-hook
-    :auth-query example-auth-query-hook
-    :process-emit example-process-emit-hook})
+  (c/register-command-hook! :query example-query-hook)
+  (c/register-command-hook! :auth-query example-auth-query-hook)
+  (c/register-command-hook! :process-emit example-process-emit-hook)
 
   ;; Define a spec for the command data
   (s/def :update-user-counter/user keyword?)
