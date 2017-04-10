@@ -1,5 +1,22 @@
 # CHANGELOG workflo/macros
 
+## 0.2.50
+
+### Added
+
+* Add an `entity-for-data` function to guess an entity definition
+  from any map (typically an entity instance), based on the keys in
+  the map. Use memoization to make this function fast.
+
+### Changed
+
+* Allow `:deliver` hooks to alter the data delivered to services.
+
+### Fixed
+
+* Update the command running tests to the new command hooks.
+* Pass the right query (the auth query) to `:auth-query` command hooks.
+
 ## 0.2.49
 
 ### Added
