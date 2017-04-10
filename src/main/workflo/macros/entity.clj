@@ -4,6 +4,7 @@
             [workflo.macros.bind]
             [workflo.macros.config :refer [defconfig]]
             [workflo.macros.entity.refs :as refs]
+            [workflo.macros.entity.schema :as schema]
             [workflo.macros.query :as q]
             [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.entity]
@@ -50,6 +51,20 @@
   [entity-name]
   (refs/entity-backrefs entity-name))
 
+;;;; Validation
+
+(defn validate
+  [entity-or-name data]
+  (let [entity (cond-> entity-or-name
+                 (symbol? entity-or-name)
+                 resolve-entity)
+        spec   (:spec entity)]
+    (or (s/valid? spec data)
+        (throw (Exception.
+                (format "Validation of %s entity data failed: %s"
+                        (:name entity)
+                        (s/explain-str spec data)))))))
+
 ;;;; Authorization
 
 (defn authorized?
@@ -69,19 +84,27 @@
         (auth-fn query-result entity-id viewer-id))
       true)))
 
-;;;; Validation
+;;;; Look up entity definitions for entity data
 
-(defn validate
-  [entity-or-name data]
-  (let [entity (cond-> entity-or-name
-                 (symbol? entity-or-name)
-                 resolve-entity)
-        spec   (:spec entity)]
-    (or (s/valid? spec data)
-        (throw (Exception.
-                (format "Validation of %s entity data failed: %s"
-                        (:name entity)
-                        (s/explain-str spec data)))))))
+(defn- entity-attrs [entity]
+  (concat (schema/required-keys entity)
+          (schema/optional-keys entity)))
+
+(def memoized-entity-attrs
+  (memoize entity-attrs))
+
+(defn- entity-with-attr [attr]
+  (some (fn [[_ entity]]
+          (some #{attr} (memoized-entity-attrs entity)))
+        (registered-entities)))
+
+(def memoized-entity-with-attr
+  (memoize entity-with-attr))
+
+(defn entity-for-data [data]
+  (some (fn [[attr _]]
+          (memoized-entity-with-attr attr))
+        data))
 
 ;;;; The defentity macro
 

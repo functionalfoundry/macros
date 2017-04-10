@@ -3,6 +3,7 @@
   (:require [workflo.macros.bind]
             [workflo.macros.config :refer [defconfig]]
             [workflo.macros.entity.refs :as refs]
+            [workflo.macros.entity.schema :as schema]
             [workflo.macros.query :as q]
             [workflo.macros.registry :refer [defregistry]]))
 
@@ -63,3 +64,25 @@
                                    (query-hook)))]
         (auth-fn query-result entity-id viewer-id))
       true)))
+
+;;;; Look up entity definitions for entity data
+
+(defn- entity-attrs [entity]
+  (concat (schema/required-keys entity)
+          (schema/optional-keys entity)))
+
+(def memoized-entity-attrs
+  (memoize entity-attrs))
+
+(defn- entity-with-attr [attr]
+  (some (fn [[_ entity]]
+          (some #{attr} (memoized-entity-attrs entity)))
+        (registered-entities)))
+
+(def memoized-entity-with-attr
+  (memoize entity-with-attr))
+
+(defn entity-for-data [data]
+  (some (fn [[attr _]]
+          (memoized-entity-with-attr attr))
+        data))
