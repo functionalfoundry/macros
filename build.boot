@@ -1,7 +1,7 @@
 #!/usr/bin/env boot
 
 (def +project+ 'workflo/macros)
-(def +version+ "0.2.50")
+(def +version+ "0.2.51")
 
 (set-env!
  :resource-paths #{"resources" "src/main" "src/docs"}

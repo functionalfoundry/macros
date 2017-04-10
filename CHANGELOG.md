@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.51
+
+### Fixed
+
+* Fix `entity-for-data` to return an entity definition instead of
+  an attribute. ALso make `entity-for-attr` public.
+
 ## 0.2.50
 
 ### Added
