@@ -62,8 +62,8 @@
                                    (get :query-result)))
            auth-query        (some-> (:auth-query definition)
                                      (q/bind-query-parameters bind-data))
-           auth-query-result (when query
-                               (-> (process-command-hooks :auth-query {:query query
+           auth-query-result (when auth-query
+                               (-> (process-command-hooks :auth-query {:query auth-query
                                                                        :context context})
                                    (get :query-result)))
            authorized?       (if-let [auth-fn (:auth definition)]
