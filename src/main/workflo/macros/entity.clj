@@ -93,17 +93,18 @@
 (def memoized-entity-attrs
   (memoize entity-attrs))
 
-(defn- entity-with-attr [attr]
+(defn entity-for-attr [attr]
   (some (fn [[_ entity]]
-          (some #{attr} (memoized-entity-attrs entity)))
+          (when (some #{attr} (memoized-entity-attrs entity))
+            entity))
         (registered-entities)))
 
-(def memoized-entity-with-attr
-  (memoize entity-with-attr))
+(def memoized-entity-for-attr
+  (memoize entity-for-attr))
 
 (defn entity-for-data [data]
   (some (fn [[attr _]]
-          (memoized-entity-with-attr attr))
+          (memoized-entity-for-attr attr))
         data))
 
 ;;;; The defentity macro
