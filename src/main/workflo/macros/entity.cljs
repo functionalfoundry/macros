@@ -86,4 +86,4 @@
 (defn entity-for-data [data]
   (some (fn [[attr _]]
           (memoized-entity-with-attr attr))
-        data))
+        (dissoc data :db/id)))
