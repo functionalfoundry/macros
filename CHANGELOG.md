@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.52
+
+### Fixed
+
+* Also fix the ClojureScript implementation of `entity-for-data`.
+* Make sure to exclude `:db/id` in `entity-for-data`, to avoid guessing
+  entities based on common attributes.
+
 ## 0.2.51
 
 ### Fixed
