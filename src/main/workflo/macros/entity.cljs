@@ -76,7 +76,8 @@
 
 (defn- entity-with-attr [attr]
   (some (fn [[_ entity]]
-          (some #{attr} (memoized-entity-attrs entity)))
+          (when (some #{attr} (memoized-entity-attrs entity))
+            entity))
         (registered-entities)))
 
 (def memoized-entity-with-attr
