@@ -1,5 +1,16 @@
 # CHANGELOG workflo/macros
 
+## 0.2.53
+
+### Added
+
+* Add a `(hints [<kw> ...])` form to `defservice`. Just like the hints
+  forms for `defentity` and `defcommand`, this can be used to tag services
+  with arbitrary hints.
+* Add support for a built-in `:async` service hint. Data delivered to
+  async services is delayed by a configurable `:async-delay` time (defaults
+  to 500ms).
+
 ## 0.2.52
 
 ### Fixed
