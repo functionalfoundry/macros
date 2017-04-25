@@ -1,10 +1,20 @@
 (ns workflo.macros.service
-  (:require-macros [workflo.macros.service :refer [defservice]])
-  (:require [clojure.spec :as s]
+  (:require-macros [cljs.core.async.macros :refer [go]]
+                   [workflo.macros.service :refer [defservice]])
+  (:require [clojure.core.async :refer [<! timeout]]
+            [clojure.spec :as s]
             [workflo.macros.bind]
+            [workflo.macros.config :refer [defconfig]]
             [workflo.macros.hooks :refer [defhooks]]
             [workflo.macros.query :as q]
             [workflo.macros.registry :refer [defregistry]]))
+
+;;;; Service configuration
+
+(def ^:private +default-async-delay+ 500)
+
+(defconfig service
+  {:async-delay +default-async-delay+})
 
 ;;;; Service hooks
 
@@ -73,15 +83,33 @@
                                                  :context context})
          (get :output)))))
 
+(defn deliver-now! [service data]
+  (when-let [component (try
+                         (resolve-service-component (:name service))
+                         (catch js/Error error
+                           (js/console.warn (str "Failed to resolve service "
+                                                 "component '" (:name service) "'"))))]
+    (try
+      (deliver-to-service-component! component data)
+      (catch js/Error error
+        (js/console.warn (str "Failed to deliver to service '" (:name service) "'" error))))))
+
+(defn deliver-later! [service data]
+  (go
+    (<! (timeout (let [delay (get-service-config :async-delay)]
+                   (if (pos? delay) delay +default-async-delay+))))
+    (deliver-now! service data)))
+
 (defn deliver-to-services!
   ([data]
    (deliver-to-services! data nil))
   ([data context]
    (doseq [[service-kw service-data] data]
-     (let [service-name (symbol (name service-kw))
-           component    (try
-                          (resolve-service-component service-name)
-                          (catch js/Error error
-                            (js/console.warn "Failed to resolve service component:"
-                                             error)))]
-       (some-> component (deliver-to-service-component! service-data context))))))
+     (let [service-name (symbol (name service-kw))]
+       (try
+         (let [service (resolve-service service-name)]
+           (if (some #{:async} (:hints service))
+             (deliver-later! service service-data)
+             (deliver-now! service service-data)))
+         (catch js/Error error
+           (js/console.warn (str "Failed to resolve service '" service-name "'") error)))))))

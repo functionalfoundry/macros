@@ -1,5 +1,6 @@
 (ns workflo.macros.service
-  (:require [clojure.spec :as s]
+  (:require [clojure.core.async :refer [<! go timeout]]
+            [clojure.spec :as s]
             [clojure.string :as string]
             [workflo.macros.bind :refer [with-query-bindings]]
             [workflo.macros.command.util :as cutil]
@@ -15,6 +16,13 @@
             [workflo.macros.util.form :as f]
             [workflo.macros.util.string :refer [kebab->camel]]
             [workflo.macros.util.symbol :refer [unqualify]]))
+
+;;;; Service configuration
+
+(def ^:private +default-async-delay+ 500)
+
+(defconfig service
+  {:async-delay +default-async-delay+})
 
 ;;;; Service hooks
 
@@ -82,17 +90,36 @@
                                                  :output output})
          (get :output)))))
 
+(defn deliver-now! [service data]
+  (when-let [component (try
+                         (resolve-service-component (:name service))
+                         (catch Exception error
+                           (println (str "Failed to resolve service "
+                                         "component '" (:name service) "'"))))]
+    (try
+      (deliver-to-service-component! component data)
+      (catch Exception error
+        (println (str "Failed to deliver to service '" (:name service) "'" error))))))
+
+(defn deliver-later! [service data]
+  (go
+    (<! (timeout (let [delay (get-service-config :async-delay)]
+                   (if (pos? delay) delay +default-async-delay+))))
+    (deliver-now! service data)))
+
 (defn deliver-to-services!
   ([data]
    (deliver-to-services! data nil))
   ([data context]
    (doseq [[service-kw service-data] data]
-     (let [service-name (symbol (name service-kw))
-           component    (try
-                          (resolve-service-component service-name)
-                          (catch Exception e
-                            (println "WARN:" (.getMessage e))))]
-       (some-> component (deliver-to-service-component! service-data context))))))
+     (let [service-name (symbol (name service-kw))]
+       (try
+         (let [service (resolve-service service-name)]
+           (if (some #{:async} (:hints service))
+             (deliver-later! service service-data)
+             (deliver-now! service service-data)))
+         (catch Exception error
+           (println (str "Failed to resolve service '" service-name "'") error)))))))
 
 ;;;; The defservice macro
 
@@ -140,6 +167,7 @@
        (~ctor-sym
         {:name '~service-name
          :description ~(-> forms :description)
+         :hints ~(-> forms :hints :form-body)
          :dependencies '~(-> forms :dependencies :form-body)
          :replay? ~replay?
          :query '~query

@@ -10,6 +10,13 @@
 (s/def ::service-description
   string?)
 
+(s/def ::service-hints
+  (s/coll-of keyword? :kind vector? :min-count 1))
+
+(s/def ::service-hints-form
+  (s/spec (s/cat :form-name #{'hints}
+                 :form-body ::service-hints)))
+
 (s/def ::service-spec
   (s/with-gen
     any?
@@ -53,6 +60,7 @@
   (s/cat :name ::service-name
          :forms
          (s/spec (s/cat :description (s/? ::service-description)
+                        :hints (s/? ::service-hints-form)
                         :dependencies (s/? ::service-dependencies-form)
                         :replay? (s/? ::service-replay?-form)
                         :query (s/? ::service-query-form)
