@@ -51,20 +51,30 @@
        (assert (s/valid? (:spec definition) data)
                (str "Command data is invalid:"
                     (s/explain-str (:spec definition) data))))
+     (process-command-hooks :before {:command cmd-name
+                                     :data data
+                                     :context context})
      (let [bind-data         (if (map? data)
                                (merge context data)
                                (merge context {:data data}))
            query             (some-> (:query definition)
                                      (q/bind-query-parameters bind-data))
            query-result      (when query
-                               (-> (process-command-hooks :query {:query query
-                                                                  :context context})
+                               (-> (process-command-hooks :query
+                                                          {:command cmd-name
+                                                           :data data
+                                                           :query query
+                                                           :context context})
                                    (get :query-result)))
            auth-query        (some-> (:auth-query definition)
                                      (q/bind-query-parameters bind-data))
            auth-query-result (when auth-query
-                               (-> (process-command-hooks :auth-query {:query auth-query
-                                                                       :context context})
+                               (-> (process-command-hooks :auth-query
+                                                          {:command cmd-name
+                                                           :data data
+                                                           :query-result query-result
+                                                           :query auth-query
+                                                           :context context})
                                    (get :query-result)))
            authorized?       (if-let [auth-fn (:auth definition)]
                                (auth-fn query-result auth-query-result)
@@ -79,8 +89,15 @@
              (-> (process-command-hooks :process-emit {:command cmd-name
                                                        :output output
                                                        :context context})
-                 (get :output))))
-         (throw (ex-info (str "Not authorized to run command: " cmd-name)
-                         {:command cmd-name
-                          :data data
-                          :context context})))))))
+                 (get :output)))
+           (process-command-hooks :after {:command cmd-name
+                                          :data data
+                                          :context context}))
+         (do
+           (process-command-hooks :after {:command cmd-name
+                                          :data data
+                                          :context context})
+           (throw (ex-info (str "Not authorized to run command: " cmd-name)
+                           {:command cmd-name
+                            :data data
+                            :context context}))))))))
