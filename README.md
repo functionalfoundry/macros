@@ -8,7 +8,7 @@ are work in progress and may change substantially until this notice
 has disappeared.**
 
 ```clojure
-[workflo/macros "0.2.53"]
+[workflo/macros "0.2.54"]
 ```
 
 [CHANGELOG](CHANGELOG.md)
@@ -48,5 +48,5 @@ a schema, validation rules and code for authorization.
 
 ## License
 
-Workflo Macros is copyright (C) 2016 Workflo. Licensed under the
+Workflo Macros is copyright (C) 2016-2017 Workflo. Licensed under the
 MIT License. For more information [see the LICENSE file](LICENSE).

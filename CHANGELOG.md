@@ -1,5 +1,16 @@
 # CHANGELOG workflo/macros
 
+## 0.2.54
+
+### Added
+
+* Add `:before` and `:after` hooks to `defcommand`.
+
+### Changed
+
+* Pass more information (such as the command name, context etc.) to
+  command hooks.
+
 ## 0.2.53
 
 ### Added
