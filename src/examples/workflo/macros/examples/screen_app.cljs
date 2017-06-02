@@ -152,28 +152,28 @@
 ;;;; Screens
 
 (defscreen UserSettingsScreen
- (url "users/:user-id/settings")
- (navigation
-  {:title "User Settings"})
- (layout
-  {:title 'UserSettingsTitle
-   :content 'UserSettings}))
+  (url "users/:user-id/settings")
+  (navigation
+    {:title "User Settings"})
+  (sections
+    {:title 'UserSettingsTitle
+     :content 'UserSettings}))
 
 (defscreen UserScreen
   (url "users/:user-id")
   (navigation
-   {:title "User"})
-  (layout
-   {:title 'UserTitle
-    :content 'UserProfile}))
+    {:title "User"})
+  (sections
+    {:title 'UserTitle
+     :content 'UserProfile}))
 
 (defscreen UserListScreen
   (url "users")
   (navigation
     {:title "Users"})
-  (layout
-   {:title 'UserListTitle
-    :content 'UserList}))
+  (sections
+    {:title 'UserListTitle
+     :content 'UserList}))
 
 ;;;; Commands
 
@@ -221,7 +221,10 @@
   (process
    (so/goto @application (:screen data) (:params data))))
 
-(c/configure-commands! {:process-emit service/deliver-to-services!})
+(c/register-command-hook! :process-emit
+                          (fn [{:keys [output]}]
+                            (when (and output (not (empty? output)))
+                              (service/deliver-to-services! output))))
 
 ;;;;;; Example app
 
@@ -239,14 +242,14 @@
 
 (defview App
   (render
-   (let [{:keys [navigation layout]} (om/props this)]
+   (let [{:keys [navigation sections]} (om/props this)]
      (dom/div nil
        (block {:title "Screen"}
          (:title navigation))
        (block {:title "Title"}
-         (:title layout))
+         (:title sections))
        (block {:title "Content"}
-         (:content layout))))))
+         (:content sections))))))
 
 ;;;; Bootstrapping
 
