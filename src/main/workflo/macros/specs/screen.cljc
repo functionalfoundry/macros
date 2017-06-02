@@ -24,8 +24,8 @@
   (s/spec (s/cat :form-name ::screen-form-name
                  :form-body ::screen-form-body)))
 
-(s/def ::layout-form
-  (s/spec (s/cat :form-name #{'layout}
+(s/def ::sections-form
+  (s/spec (s/cat :form-name #{'sections}
                  :form-body (s/map-of keyword? any?))))
 
 (s/def ::defscreen-args
@@ -33,5 +33,5 @@
          :forms (s/spec (s/cat :description (s/? ::screen-description)
                                :url ::url-form
                                :forms (s/* ::screen-form)
-                               :layout ::layout-form))
+                               :sections ::sections-form))
          :env (s/? any?)))
