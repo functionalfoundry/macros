@@ -17,19 +17,19 @@
     (url "users/:user-id")
     (navigation
       {:title "User"})
-    (layout
+    (sections
       {:content user-view}))
   (defscreen user-settings
     (url "users/:user-id/settings")
     (navigation
       {:title "User Settings"})
-    (layout
+    (sections
       {:content user-settings-view}))
   (defscreen users
     (url "users")
     (navigation
       {:title "Users"})
-    (layout
+    (sections
       {:content users-view}))
   (and
    ;; Check routes generation

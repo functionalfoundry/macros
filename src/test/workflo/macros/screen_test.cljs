@@ -10,12 +10,12 @@
                :segments ["screens" "users"]})
             (def users-forms
               {:navigation {:title "Users"}})
-            (def users-layout {:content user})
+            (def users-sections {:content user})
             (def users-definition
               {:name workflo.macros.screen-test/users-name
                :url workflo.macros.screen-test/users-url,
                :forms workflo.macros.screen-test/users-forms,
-               :layout workflo.macros.screen-test/users-layout})
+               :sections workflo.macros.screen-test/users-sections})
             (workflo.macros.screen/register-screen!
              'users workflo.macros.screen-test/users-definition)))
       (macroexpand-1
@@ -23,10 +23,10 @@
           (url "screens/users")
           (navigation
            {:title "Users"})
-          (layout
+          (sections
            {:content user})))))
 
-(deftest defscreen-with-description-forms-and-layout
+(deftest defscreen-with-description-forms-and-sections
   (is (= '(do
             (def users-name 'users)
             (def users-description "Displays all users")
@@ -35,13 +35,13 @@
                :segments ["screens" "users"]})
             (def users-forms
               {:navigation {:title "Users"}})
-            (def users-layout {:content user})
+            (def users-sections {:content user})
             (def users-definition
               {:name workflo.macros.screen-test/users-name
                :description workflo.macros.screen-test/users-description
                :url workflo.macros.screen-test/users-url
                :forms workflo.macros.screen-test/users-forms
-               :layout workflo.macros.screen-test/users-layout})
+               :sections workflo.macros.screen-test/users-sections})
             (workflo.macros.screen/register-screen!
              'users workflo.macros.screen-test/users-definition))
          (macroexpand-1
@@ -50,5 +50,5 @@
              (url "screens/users")
              (navigation
                {:title "Users"})
-             (layout
+             (sections
                {:content user}))))))
