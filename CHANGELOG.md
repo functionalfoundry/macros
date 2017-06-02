@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.55
+
+### Changed
+
+* Replace `layout` form in `defscreen` macro with a form called
+  `sections'.
+
 ## 0.2.54
 
 ### Added
