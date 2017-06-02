@@ -47,16 +47,15 @@
   [_ {:keys [screen]} _ _]
   {:value (:forms screen)})
 
-(defn read-layout
-  "Executes all queries for views in the layout of the
+(defn read-sections
+  "Executes all queries for views in the sections of the
    active screen."
   [_ {:keys [parser query screen] :as env} _ _]
   {:value
-   (reduce (fn [res layout-item]
-             (let [[section query] (first layout-item)]
+   (reduce (fn [res section-item]
+             (let [[section query] (first section-item)]
                (assoc res section
-                      {:view  (-> screen :layout section
-                                  resolve-view :factory)
+                      {:view  (-> screen :sections section resolve-view :factory)
                        :props (parser (dissoc env :path) query nil)})))
            {} query)})
 
@@ -64,12 +63,12 @@
   "Wraps a user-provided parser read function for Om Next by
    special-casing queries for screen-based routing information
    (such as :workflo/screen, :workflo/forms and
-   :workflo/layout.)"
+   :workflo/sections.)"
   [read env key params]
   (case key
-    :workflo/screen (read-screen read env key params)
-    :workflo/forms  (read-forms read env key params)
-    :workflo/layout (read-layout read env key params)
+    :workflo/screen   (read-screen read env key params)
+    :workflo/forms    (read-forms read env key params)
+    :workflo/sections (read-sections read env key params)
     (read env key params)))
 
 (defn parser
@@ -98,15 +97,14 @@
 
 ;;;; Wrapping application
 
-(defn- realize-layout
-  "Realizes the results of a layout query by instantiating
+(defn- realize-sections
+  "Realizes the results of a sections query by instantiating
    all returned views with their props / query results."
-  [layout]
-  (zipmap (keys layout)
+  [sections]
+  (zipmap (keys sections)
           (map (fn [{:keys [view props] :as item}]
-                 (view (vary-meta props assoc :om-path
-                                  (-> item meta :om-path))))
-               (vals layout))))
+                 (view (vary-meta props assoc :om-path (-> item meta :om-path))))
+               (vals sections))))
 
 (defn camel-cased-prop-map
   "Convert a Clojure map with Om Next properties to a map
@@ -120,34 +118,33 @@
         m))
 
 (defview RootWrapper
-  (query [{workflo/screen [workflo [forms layout]]}])
+  (query [{workflo/screen [workflo [forms sections]]}])
   (render
    (let [forms      (:workflo/forms screen)
-         layout     (realize-layout (:workflo/layout screen))
+         sections   (realize-sections (:workflo/sections screen))
          root-info  (root-component)]
      ((:factory root-info)
       (if (:js? root-info)
         (do
-          (clj->js (merge {:layout (camel-cased-prop-map layout)}
+          (clj->js (merge {:sections (camel-cased-prop-map sections)}
                           (camel-cased-prop-map forms))))
-        (merge {:layout layout} forms))))))
+        (merge {:sections sections} forms))))))
 
 ;;;; Routing
 
 (defn mount-screen
   "Mounts a screen with parameters by setting it as the active
    screen and updating the root wrapper's component query
-   according to the screen's layout."
+   according to the screen's sections."
   [app screen params]
   (let [c     (om/app-root (:reconciler (:config app)))
         query [{:workflo/screen
                 [:workflo/forms
-                 {:workflo/layout
+                 {:workflo/sections
                   (mapv (fn [[section view-name]]
-                          {section (or (some-> view-name resolve-view
-                                               :view om/get-query)
+                          {section (or (some-> view-name resolve-view :view om/get-query)
                                        [])})
-                        (:layout screen))}]}]]
+                        (:sections screen))}]}]]
     (set-active-screen! screen params)
     (some-> app :config :screen-mounted
             (apply [app screen params]))
@@ -192,14 +189,14 @@
    or not the root component is a JS component.
 
    The root component is expected to accept the properties
-   defined for screens, so `:layout` and arbitrary other forms.
-   `:layout` is a map of layout keys to instantiated components.
+   defined for screens, so `:sections` and arbitrary other forms.
+   `:sections` is a map of section keys to instantiated components.
    The root component can then decide which of these components
-   to render where based on these layout keys.
+   to render where based on these section keys.
 
    During rendering, the provided root component is wrapped
    in an application component that handles the screen routing
-   logic and generates the `:layout` and other form props
+   logic and generates the `:sections` and other form props
    based on the active screen."
   [{:keys [default-screen reconciler root
            root-js? target screen-mounted]

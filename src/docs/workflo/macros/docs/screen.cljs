@@ -22,21 +22,21 @@
   (url "users")
   (navigation
    {:title "Users"})
-  (layout
+  (sections
    {:content user-list}))
 
 (defscreen user
   (url "users/:user-id")
   (navigation
    {:title "User"})
-  (layout
+  (sections
    {:content user-profile}))
 
 (defscreen user-settings
   (url "users/:user-id/settings")
   (navigation
    {:title "User Settings"})
-  (layout
+  (sections
    {:content user-settings}))
 
 (defcard
@@ -47,21 +47,21 @@
      (url \"users\")
      (navigation
       (title \"Users\"))
-     (layout
+     (sections
       {:content user-list}))
 
    (defscreen user
      (url \"user\")
      (navigation
       (title \"User\"))
-     (layout
+     (sections
       {:content user-profile}))
 
    (defscreen user-settings
      (url \"users/:user-id/settings\")
      (navigation
       (title \"User Settings\"))
-     (layout
+     (sections
       {:content user-settings}))
    ```"
   (screen/registered-screens))

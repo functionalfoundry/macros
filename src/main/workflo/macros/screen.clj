@@ -24,7 +24,7 @@
          description (:description (:forms args))
          name-sym    (unqualify name)
          forms       (-> (:forms args)
-                         (select-keys [:url :layout])
+                         (select-keys [:url :sections])
                          (vals)
                          (cond->
                            true        (conj {:form-name 'name})
@@ -42,8 +42,8 @@
         ~(f/make-def name-sym 'forms
           (zipmap (map (comp keyword :form-name) field-forms)
                   (map :form-body field-forms)))
-        ~(f/make-def name-sym 'layout
-          (:form-body (:layout (:forms args))))
+        ~(f/make-def name-sym 'sections
+          (:form-body (:sections (:forms args))))
         ~(f/make-def name-sym 'definition
           (f/forms-map forms name-sym))
         (register-screen! '~name-sym

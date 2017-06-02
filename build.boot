@@ -29,10 +29,12 @@
                  [inflections "0.13.0"]
                  [org.clojure/clojure "1.9.0-alpha15"]
                  [org.clojure/clojurescript "1.9.495"]
+                 [org.clojure/core.async "0.3.442"]
                  [org.omcljs/om "1.0.0-alpha48"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
+                 [org.clojure/tools.nrepl "0.2.12" :scope "test"]
                  [devcards "0.2.1-6" :scope "test"]
                  [datascript "0.15.5" :scope "test"]])
 
