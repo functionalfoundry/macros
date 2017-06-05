@@ -1,5 +1,5 @@
 (ns workflo.macros.service
-  (:require [clojure.core.async :refer [<! go timeout]]
+  (:require [clojure.core.async :refer [<! >! alts! chan go go-loop put! timeout]]
             [clojure.spec :as s]
             [clojure.string :as string]
             [workflo.macros.bind :refer [with-query-bindings]]
@@ -107,6 +107,45 @@
                    (if (pos? delay) delay +default-async-delay+))))
     (deliver-now! service data)))
 
+;;;; Debounced deliveries
+
+(defn debounced-chan
+  [in ms]
+  (let [out (chan)]
+    (go
+      (loop [last-val nil]
+        (let [val          (if (nil? last-val) (<! in) last-val)
+              timer        (timeout ms)
+              [new-val ch] (alts! [in timer])]
+          (condp = ch
+            timer (do (>! out val)
+                      (recur nil))
+            in    (if new-val
+                    (recur new-val))))))
+    out))
+
+(def +service-data-chans+ (atom {}))
+(def +debounced-service-data-chans+ (atom {}))
+
+(defn setup-debounce-loop [ch service data]
+  (go-loop []
+    (let [_ (<! ch)]
+      (deliver-now! service data)
+      (recur))))
+
+(defn deliver-debounced-by-data! [service data]
+  (let [key [(:name service) data]]
+    ;; Ensure the service/data channels for this service/data combination exists
+    (when-not (get (deref +service-data-chans+) key)
+      (swap! +service-data-chans+ assoc key (chan)))
+    (when-not (get (deref +debounced-service-data-chans+) key)
+      (swap! +debounced-service-data-chans+ assoc key
+             (let [input-ch (get (deref +service-data-chans+) key)]
+               (doto (debounced-chan input-ch 1000)
+                 (setup-debounce-loop service data)))))
+    ;; Queue a trigger event for this service/data combination
+    (put! (get (deref +service-data-chans+) key) :trigger)))
+
 (defn deliver-to-services!
   ([data]
    (deliver-to-services! data nil))
@@ -114,10 +153,16 @@
    (doseq [[service-kw service-data] data]
      (let [service-name (symbol (name service-kw))]
        (try
-         (let [service (resolve-service service-name)]
-           (if (some #{:async} (:hints service))
+         (let [service (resolve-service service-name)
+               hints   (:hints service)]
+           (cond
+             (some #{:async} hints)
              (deliver-later! service service-data)
-             (deliver-now! service service-data)))
+
+             (some #{:debounced-by-data} hints)
+             (deliver-debounced-by-data! service service-data)
+
+             :else (deliver-now! service service-data)))
          (catch Exception error
            (println (str "Failed to resolve service '" service-name "'") error)))))))
 
