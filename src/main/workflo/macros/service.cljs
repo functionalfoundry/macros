@@ -1,7 +1,7 @@
 (ns workflo.macros.service
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [workflo.macros.service :refer [defservice]])
-  (:require [clojure.core.async :refer [<! chan put! timeout]]
+  (:require [clojure.core.async :refer [<! >! alts! chan put! timeout]]
             [clojure.spec :as s]
             [workflo.macros.bind]
             [workflo.macros.config :refer [defconfig]]
