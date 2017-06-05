@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.??
+
+### Added
+
+* Add a `:debounced-by-data` hint for debouncing service deliveries
+  with the same data/payload.
+
 ## 0.2.55
 
 ### Changed
