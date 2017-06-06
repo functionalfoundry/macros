@@ -3,7 +3,9 @@
   (:require [om.next :as om]
             [om.dom]
             [workflo.macros.bind]
+            [workflo.macros.command :as commands]
             [workflo.macros.config :refer [defconfig]]
+            [workflo.macros.hooks :refer [defhooks]]
             [workflo.macros.registry :refer [defregistry]]))
 
 ;;;; Configuration options for the defview macro
@@ -13,8 +15,7 @@
    with a mutation and queries that correspond 1:1 to the
    command, its parameters and the optional reads."
   [cmd-name view params reads]
-  (om/transact! view `[(~cmd-name ~{:cmd-data params})
-                       ~@(or reads [])]))
+  (commands/run-command! cmd-name params))
 
 (defconfig view
   ;; Supports the following options:
@@ -43,26 +44,20 @@
 (defn run-command!
   "Runs a given command using the configured :run-command
    handler, if defined."
-  [cmd-name view params reads]
+  [cmd-name view params]
   (if-not (get-view-config :run-command)
     (js/console.warn "No :run-command handler defined for defview.")
     (some-> (get-view-config :run-command)
-            (apply [cmd-name view params reads]))))
+            (apply [cmd-name view params]))))
 
-(defn factory
-  "A wrapper factory around om.next/factory that makes the nil
-   argument for properties optional."
-  [& args]
-  (let [om-factory (apply om.next/factory args)]
-    (fn [& children]
-      (if (or (map? (first children))
-              (object? (first children))
-              (nil? (first children)))
-        (apply (partial om-factory (first children))
-               (rest children))
-        (apply (partial om-factory {})
-               children)))))
+(defn clojurify-props
+  [props]
+  (js->clj props))
 
 ;;;; View registry
 
 (defregistry view)
+
+;;;; View hooks
+
+(defhooks view)

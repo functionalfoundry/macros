@@ -4,14 +4,13 @@
             [com.stuartsierra.component :as component]
             [datascript.core :as d]
             [goog.dom :as gdom]
-            [om.next :as om]
             [om.dom :as dom]
             [workflo.macros.command :as c :refer [defcommand]]
             [workflo.macros.screen :refer [defscreen]]
             [workflo.macros.screen.bidi :as sb]
-            [workflo.macros.screen.om-next :as so]
+            [workflo.macros.screen.app :as sa]
             [workflo.macros.service :as service :refer [defservice]]
-            [workflo.macros.view :refer [defview]]))
+            [workflo.macros.view :as views :refer [defview]]))
 
 ;;;; Setup
 
@@ -32,39 +31,30 @@
     (d/transact! conn initial-users)
     conn))
 
-(defmulti read om/dispatch)
-(defmulti mutate om/dispatch)
+(defn run-query
+  [& args])
 
-(defmethod read :users
-  [{:keys [query state] :as env} key params]
-  {:value (->> (d/q '[:find [(pull ?u [*]) ...]
-                      :in $
-                      :where [?u :user/name]]
-                    @state)
-               (mapv #(select-keys % query)))})
+(defn run-command
+  [& args])
 
-(defmethod read :user
-  [{:keys [query state]} key params]
-  (let [id (js/parseInt (:db/id params))]
-    {:value (-> (d/pull @state '[*] id)
-                (select-keys query))}))
+;;(defmethod read :users)
+;;  [{:keys [query state] :as env} key params]
+;;  {:value (->> (d/q '[:find [(pull ?u [*]) ...]
+;;                      :in $
+;;                      :where [?u :user/name]]
+;;                    @state)
+;;               (mapv #(select-keys % query)))}
 
-(defmethod read :db/id
-  [{:keys [query query-root state]} key params]
-  {:value (-> (d/pull @state '[*] (second query-root))
-              (select-keys query))})
+;;(defmethod read :user)
+;;  [{:keys [query state]} key params]
+;;  (let [id (js/parseInt (:db/id params))]
+;;    {:value (-> (d/pull @state '[*] id)
+;;                (select-keys query))})
 
-(defmethod mutate :default
-  [env key {:keys [cmd-data]}]
-  {:action #(c/run-command! key cmd-data)})
-
-(def parser
-  (so/parser {:read read :mutate mutate}))
-
-(def reconciler
-  (om/reconciler {:state ds-conn
-                  :pathopt true
-                  :parser parser}))
+;;(defmethod read :db/id)
+;;  [{:keys [query query-root state]} key params]
+;;  {:value (-> (d/pull @state '[*] (second query-root))
+;;              (select-keys query))}
 
 ;;;; Views
 
@@ -214,12 +204,11 @@
 
 (defservice state
   (process
-   (d/transact! (om/app-state reconciler) (vals data))
-   (cljs.pprint/pprint (om/app-state reconciler))))
+    (js/console.warn "State: Process data:" data)))
 
 (defservice location
   (process
-   (so/goto @application (:screen data) (:params data))))
+   (sa/goto @application (:screen data) (:params data))))
 
 (c/register-command-hook! :process-emit
                           (fn [{:keys [output]}]
@@ -238,39 +227,32 @@
                              :marginBottom "1rem"}}
      (dom/p #js {:style #js {:borderBottom "thin solid #ddd"}}
        (dom/strong nil title))
-     (om/children this))))
+     (aget this "props" "children"))))
 
 (defview App
+  (query [navigation sections])
   (render
-   (let [{:keys [navigation sections]} (om/props this)]
-     (dom/div nil
-       (block {:title "Screen"}
-         (:title navigation))
-       (block {:title "Title"}
-         (:title sections))
-       (block {:title "Content"}
-         (:content sections))))))
+    (dom/div nil
+      (block {:title "Screen"}
+        (:title navigation))
+      (block {:title "Title"}
+        (:title sections))
+      (block {:title "Content"}
+        (:content sections)))))
 
 ;;;; Bootstrapping
 
 (defn init []
   (-> 'location service/new-service-component component/start)
   (-> 'state service/new-service-component component/start)
-  (->> (so/application {:reconciler reconciler
-                        :target (gdom/getElement "app")
-                        :root app
-                        :root-js? false
-                        :default-screen 'UserListScreen
-                        :screen-mounted
-                        (fn [app screen params]
-                          (println "Screen mounted:" (:name screen))
-                          (println "Query:")
-                          (cljs.pprint/pprint (-> reconciler
-                                                  om/app-root
-                                                  om/get-query)))})
+  (->> (sa/app {:target (gdom/getElement "app")
+                :root app
+                :root-js? false
+                :default-screen 'UserListScreen
+                :query run-query
+                :command run-command})
        (component/start)
        (reset! application)))
 
-
 (defn reload []
-  (so/reload @application))
+  (sa/reload @application))
