@@ -8,6 +8,7 @@
             [workflo.macros.specs.parsed-query :as parsed-query]
             [workflo.macros.query.bind :refer [path?]]))
 
+
 (s/def ::property-query-from-parsed-property
   (s/and
    (s/or :keyword
@@ -29,11 +30,13 @@
                 #(= (keywordize-keys (-> % :args :prop :parameters))
                     (second (:ret %)))))))
 
+
 (s/fdef property-query
   :args (s/cat :prop ::parsed-query/typed-property
                :gen-type #{:clj :cljs :clj->cljs})
   :ret ::om-query/property
   :fn ::property-query-from-parsed-property)
+
 
 (defn property-query
   "Generates an Om Next query for a parsed property query"
@@ -79,10 +82,12 @@
                             :clj `(om.next/get-query ~target)))}))
         (cond-> params parameterize))))
 
+
 (s/fdef query
   :args (s/cat :parsed-query ::parsed-query/query
                :gen-type (s/? #{:clj :cljs :clj->cljs}))
   :ret ::om-query/query)
+
 
 (defn query
   "Generates an Om Next query from a parsed query."
