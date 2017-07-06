@@ -23,6 +23,11 @@
     [{:foo [{:bar [:baz :baz]}
             {:bar [:baz :baz]}]}]
 
+    ;; Queries of joins with different limited recursions
+    ;; combined so that the higher recursion number wins
+    [[{:foo 10}]]
+    [{:foo 5} {:foo 2} {:foo 10} {:foo 3}]
+
     ;; Identical parameterized queries are merged
     '[[(:foo {:bar :baz})]]
     '[(:foo {:bar :baz})
@@ -50,6 +55,20 @@
     '[[:foo]
       [(:foo {:bar :baz})]]
     '[:foo (:foo {:bar :baz})]
+
+    ;; Recursive and non-recursive joins are split even if
+    ;; their dispatch keys match
+    '[[{:foo ...}]
+      [{:foo [:bar]}]]
+    '[{:foo ...} {:foo [:bar]}]
+
+    ;; Joins with limited recursion and no limited recursion
+    ;; are split even if their dispatch keys match
+    '[[{:foo 1}]
+      [{:foo ...}]
+      [{:foo [:bar]}]]
+    '[{:foo 1} {:foo ...} {:foo [:bar]}]
+
 
     ;; Ident and non-ident queries are split even if their
     ;; dispatch keys match
