@@ -1,5 +1,4 @@
-(ns workflo.macros.query.om-util
-  (:require [clojure.math.combinatorics :refer [combinations]]))
+(ns workflo.macros.query.om-util)
 
 
 (defn ident-expr?
@@ -69,3 +68,14 @@
     (param-expr? expr) (dispatch-key (param-query expr))
     :else (throw (ex-info "Invalid query expression passed to `dispatch-key`"
                           {:expression expr}))))
+
+
+(defn expr-type
+  "Returns the type of the expression as a keyword (e.g.
+   :keyword, :ident, :join, :param)."
+  [expr]
+  (cond
+    (keyword? expr) :keyword
+    (ident-expr? expr) :ident
+    (join-expr? expr) :join
+    (param-expr? expr) :param))
