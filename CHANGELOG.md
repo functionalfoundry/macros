@@ -1,5 +1,19 @@
 # CHANGELOG workflo/macros
 
+## 0.2.57
+
+### Added
+
+* Add a `workflo.macros.query.om-next/disambiguate` function that
+  detects conflicts in queries and splits them up into multiple
+  non-conflicting queries. It also merges queries recursively
+  where possible. The result is a near minimum amount of
+  non-conflicting queries.
+  
+### Changed
+
+* Merge the Clojure and ClojureScript implementations of `defservice`.
+
 ## 0.2.56
 
 ### Added
