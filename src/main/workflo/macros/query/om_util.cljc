@@ -63,6 +63,7 @@
   [expr]
   (cond
     (keyword? expr) expr
+    (number? expr) nil
     (ident-expr? expr) (dispatch-key (ident-name expr))
     (join-expr? expr) (dispatch-key (join-source expr))
     (param-expr? expr) (dispatch-key (param-query expr))
@@ -76,6 +77,8 @@
   [expr]
   (cond
     (keyword? expr) :keyword
+    (number? expr) :limited-recursion
+    (= '... expr) :unlimited-recursion
     (ident-expr? expr) :ident
     (join-expr? expr) :join
     (param-expr? expr) :param))
