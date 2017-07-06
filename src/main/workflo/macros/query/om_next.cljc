@@ -128,6 +128,28 @@
                     {:path path
                      :expressions [expr-1 expr-2]}))
 
+    ;; Join with ... and non-...
+    (and (om-util/join-expr? expr-1)
+         (om-util/join-expr? expr-2)
+         (or (= '... (om-util/join-target expr-1))
+             (= '... (om-util/join-target expr-2)))
+         (not= (om-util/join-target expr-1)
+               (om-util/join-target expr-2)))
+    (throw (ex-info (str "Conflicting recursive and non-recursive "
+                         "join queries at " path)
+                    {:path path
+                     :expressions [expr-1 expr-2]}))
+
+    ;; Join with limited recursion and no limited recursion
+    (and (om-util/join-expr? expr-1)
+         (om-util/join-expr? expr-2)
+         (not= (number? (om-util/join-target expr-1))
+               (number? (om-util/join-target expr-2))))
+    (throw (ex-info (str "Conflicting join queries with limited recursion and "
+                         "no limited recursion at " path)
+                    {:path path
+                     :expressions [expr-1 expr-2]}))
+
     ;; Ident vs. non-ident
     (not= (om-util/ident-expr? expr-1)
           (om-util/ident-expr? expr-2))
@@ -167,6 +189,12 @@
   expr-1)
 
 
+(defmethod merge-query-exprs [:limited-recursion :limited-recursion]
+  [_ expr-1 expr-2]
+  ;; Two limited recursions -> pick the one that recurses deeper
+  (max expr-1 expr-2))
+
+
 (defmethod merge-query-exprs [:keyword :join]
   [_ expr-1 expr-2]
   ;; Keyword vs. join -> pick the join (it returns more information)
@@ -186,11 +214,14 @@
   {(merge-query-exprs (conj path :join-source)
                       (om-util/join-source expr-1)
                       (om-util/join-source expr-2))
-   (first (disambiguate (conj path :join-target)
-                        (into [] cat
-                              [(om-util/join-target expr-1)
-                               (om-util/join-target expr-2)])
-                        {:throw-on-conflicts? true}))})
+   (let [target-1 (om-util/join-target expr-1)
+         target-2 (om-util/join-target expr-2)]
+     (if (and (sequential? target-1) (sequential? target-2))
+       (first (disambiguate (conj path :join-target)
+                            (into [] cat [target-1 target-2])
+                            {:throw-on-conflicts? true}))
+       (merge-query-exprs (conj path :join-target)
+                          target-1 target-2)))})
 
 (defmethod merge-query-exprs [:param :param]
   [path expr-1 expr-2]
@@ -218,9 +249,12 @@
   [path expr]
   (case (om-util/expr-type expr)
     :join  {(om-util/join-source expr)
-            (first (disambiguate (conj path :join-target)
-                                 (om-util/join-target expr)
-                                 {:throw-on-conflicts? true}))}
+            (let [join-target (om-util/join-target expr)]
+              (if (sequential? join-target)
+                (first (disambiguate (conj path :join-target)
+                                     (om-util/join-target expr)
+                                     {:throw-on-conflicts? true}))
+                join-target))}
     :param (list (disambiguate-query-expr (conj path :param-query)
                                     (om-util/param-query expr))
                  (om-util/param-map expr))
