@@ -11,32 +11,32 @@
                  [adzerk/boot-test "1.2.0" :scope "test"]
                  [adzerk/bootlaces "0.1.13" :scope "test"]
                  [boot-codox "0.10.3" :scope "test"]
-                 [pandeiro/boot-http "0.7.6" :scope "test"]
+                 [pandeiro/boot-http "0.8.3" :scope "test"]
                  [crisptrutski/boot-cljs-test "0.3.0" :scope "test"]
-                 [com.cemerick/piggieback "0.2.1"
-                  :exclusions [com.google.guava/guava]
-                  :scope "test"]
+                 [com.cemerick/piggieback "0.2.2" :scope "test"
+                  :exclusions [[com.google.guava/guava]]]
 
                  ;; Testing
-                 [org.clojure/test.check "0.9.0" :scope "test"]
+                 [org.clojure/test.check "0.10.0-alpha2" :scope "test"]
 
                  ;; Library dependencies
-                 [bidi "2.0.16"]
-                 [com.datomic/datomic-free "0.9.5561" :scope "test"
-                  :exclusions [com.google.guava/guava]]
+                 [bidi "2.1.2"]
+                 [com.datomic/datomic-free "0.9.5561.50" :scope "test"
+                  :exclusions [[com.google.guava/guava]]]
                  [com.stuartsierra/component "0.3.2"]
                  [datomic-schema "1.3.0"]
                  [inflections "0.13.0"]
-                 [org.clojure/clojure "1.9.0-alpha15"]
-                 [org.clojure/clojurescript "1.9.495"]
-                 [org.clojure/core.async "0.3.442"]
+                 [org.clojure/clojure "1.9.0-alpha17"]
+                 [org.clojure/clojurescript "1.9.671"]
+                 [org.clojure/core.async "0.3.443"]
+                 [org.clojure/spec.alpha "0.1.123"]
                  [org.omcljs/om "1.0.0-alpha48"]
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Development dependencies
-                 [org.clojure/tools.nrepl "0.2.12" :scope "test"]
-                 [devcards "0.2.1-6" :scope "test"]
-                 [datascript "0.15.5" :scope "test"]])
+                 [org.clojure/tools.nrepl "0.2.13" :scope "test"]
+                 [devcards "0.2.3" :scope "test"]
+                 [datascript "0.16.1" :scope "test"]])
 
 
 (require '[adzerk.boot-cljs :refer [cljs]]

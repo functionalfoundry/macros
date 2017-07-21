@@ -1,5 +1,5 @@
 (ns workflo.macros.hooks
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec.alpha :as s]))
 
 (s/fdef defhooks*
   :args (s/cat :name symbol?)

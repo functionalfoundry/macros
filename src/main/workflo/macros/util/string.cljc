@@ -1,5 +1,5 @@
 (ns workflo.macros.util.string
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.walk :refer [walk]]))
 

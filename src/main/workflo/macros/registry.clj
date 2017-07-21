@@ -1,5 +1,5 @@
 (ns workflo.macros.registry
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [inflections.core :refer [plural]]))
 
 (defn throw-registry-error

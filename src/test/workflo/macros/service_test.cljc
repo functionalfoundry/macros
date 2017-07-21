@@ -1,5 +1,5 @@
 (ns workflo.macros.service-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [deftest is]]
             [com.stuartsierra.component :as component]
             [workflo.macros.service :as service :refer [defservice]]))

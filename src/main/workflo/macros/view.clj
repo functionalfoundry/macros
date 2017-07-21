@@ -1,5 +1,5 @@
 (ns workflo.macros.view
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [workflo.macros.query.util :refer [capitalized-symbol?]]
             [workflo.macros.query :as q]

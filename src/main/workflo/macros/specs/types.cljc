@@ -1,6 +1,6 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
-  (:require [clojure.spec :as s :refer [Spec]]
+  (:require [clojure.spec.alpha :as s :refer [Spec]]
             [workflo.macros.util.misc :refer [val-after]]))
 
 ;;;; Helpers

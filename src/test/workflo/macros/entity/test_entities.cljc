@@ -1,5 +1,5 @@
 (ns workflo.macros.entity.test-entities
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [workflo.macros.entity :refer [defentity]]
             [workflo.macros.specs.types :as types]))
 

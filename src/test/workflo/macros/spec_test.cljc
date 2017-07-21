@@ -1,8 +1,8 @@
 (ns workflo.macros.spec-test
   (:require [clojure.string :as string]
             [clojure.test :refer [deftest is]]
-            [clojure.spec :as s]
-            [clojure.spec.test :as st]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.test.alpha :as st]
             [workflo.macros.entity]
             [workflo.macros.command]
             [workflo.macros.command.util]

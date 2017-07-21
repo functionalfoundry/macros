@@ -1,5 +1,5 @@
 (ns workflo.macros.config
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [inflections.core :refer [plural]]))
 
 (s/def ::defconfig-args

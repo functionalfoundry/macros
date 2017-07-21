@@ -1,9 +1,9 @@
 (ns workflo.macros.bind
-  (:require [clojure.core.specs :as core-specs]
+  (:require [clojure.core.specs.alpha :as core-specs]
             [clojure.test :refer [is]]
-            [clojure.spec :as s]
-            [clojure.spec.gen :as gen]
-            [clojure.spec.test :as st]
+            [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.spec.test.alpha :as st]
             [clojure.string :as string]
             [workflo.macros.query :as q]
             [workflo.macros.query.util :as util]

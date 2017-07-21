@@ -1,7 +1,6 @@
 (ns workflo.macros.util.form
-  (:require [clojure.spec :as s]
-            #?(:cljs [cljs.spec.impl.gen :as gen]
-               :clj  [clojure.spec.gen :as gen])
+  (:require [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
             [workflo.macros.util.symbol]))
 
 (s/fdef prefixed-form-name
@@ -78,11 +77,16 @@
 
 (defn make-defn
   ([name args body]
-   `(~'defn ~name ~args
-     ~@body))
+   `(~'defn ~name
+     ~(cond-> args
+        (not (vector? args)) vec)
+     ~@(cond-> body (not (sequential? body)) vector)))
   ([prefix name args body]
-   `(~'defn ~(prefixed-form-name name prefix) ~args
-     ~@body)))
+   `(~'defn ~(prefixed-form-name name prefix)
+     ~(cond-> args
+        (not (sequential? args)) vector
+        (not (vector? args)) vec)
+     ~@(cond-> body (not (sequential? body)) vector))))
 
 (s/fdef form->defn
   :args (s/cat :form ::conforming-form)

@@ -1,5 +1,5 @@
 (ns workflo.macros.entity
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [workflo.macros.bind]
             [workflo.macros.config :refer [defconfig]]

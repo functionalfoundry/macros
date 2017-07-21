@@ -1,9 +1,9 @@
 (ns workflo.macros.query.om-next
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.walk :refer [keywordize-keys]]
             #?(:cljs [om.next])
-            #?(:cljs [workflo.macros.util.js :refer [resolve]])
+            #?(:cljs [workflo.macros.util.js :refer [js-resolve]])
             [workflo.macros.specs.om-query :as om-query]
             [workflo.macros.specs.parsed-query :as parsed-query]
             [workflo.macros.query.bind :refer [path?]]
@@ -82,7 +82,7 @@
                          :else
                          #?(:cljs (om.next/get-query (cond-> target
                                                        (symbol? target)
-                                                       resolve))
+                                                       js-resolve))
                             :clj `(om.next/get-query ~target)))}))
         (cond-> params parameterize))))
 
