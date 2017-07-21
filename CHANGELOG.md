@@ -1,5 +1,16 @@
 # CHANGELOG workflo/macros
 
+## 0.2.58
+
+### Changed
+
+* Bump dependencies, most importantly Clojure and ClojureScript.
+* Use spec.alpha everywhere instead of clojure.spec.
+
+### Fixed
+
+* Handle irregular form args and bodies in `workflo.macros.util.form/form->defn`.
+
 ## 0.2.57
 
 ### Added

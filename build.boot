@@ -1,7 +1,7 @@
 #!/usr/bin/env boot
 
 (def +project+ 'workflo/macros)
-(def +version+ "0.2.57")
+(def +version+ "0.2.58")
 
 (set-env!
  :resource-paths #{"resources" "src/main" "src/docs"}
@@ -14,7 +14,7 @@
                  [pandeiro/boot-http "0.8.3" :scope "test"]
                  [crisptrutski/boot-cljs-test "0.3.0" :scope "test"]
                  [com.cemerick/piggieback "0.2.2" :scope "test"
-                  :exclusions [[com.google.guava/guava]]]
+                  :exclusions [com.google.guava/guava]]
 
                  ;; Testing
                  [org.clojure/test.check "0.10.0-alpha2" :scope "test"]
@@ -22,7 +22,7 @@
                  ;; Library dependencies
                  [bidi "2.1.2"]
                  [com.datomic/datomic-free "0.9.5561.50" :scope "test"
-                  :exclusions [[com.google.guava/guava]]]
+                  :exclusions [com.google.guava/guava]]
                  [com.stuartsierra/component "0.3.2"]
                  [datomic-schema "1.3.0"]
                  [inflections "0.13.0"]
