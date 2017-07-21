@@ -2,7 +2,7 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                             [workflo.macros.service :refer [defservice]]))
   (:require [clojure.core.async :refer [<! >! alts! chan put! timeout #?@(:clj [go go-loop])]]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             #?(:clj [workflo.macros.bind :refer [with-query-bindings]])
             [workflo.macros.config :refer [defconfig]]
             [workflo.macros.hooks :refer [defhooks]]

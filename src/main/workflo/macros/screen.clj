@@ -1,5 +1,5 @@
 (ns workflo.macros.screen
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [workflo.macros.screen.util :as util]
             [workflo.macros.specs.screen]

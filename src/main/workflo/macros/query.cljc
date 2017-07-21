@@ -1,8 +1,7 @@
 (ns workflo.macros.query
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
-            #?(:cljs [cljs.spec.impl.gen :as gen]
-               :clj  [clojure.spec.gen :as gen])
+            [clojure.spec.gen.alpha :as gen]
             [workflo.macros.query.bind :as bind]
             [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.conforming-query :as conforming-query]

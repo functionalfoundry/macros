@@ -1,5 +1,5 @@
 (ns workflo.macros.entity.schema-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [are deftest is]]
             [workflo.macros.entity :refer [registered-entities resolve-entity]]
             [workflo.macros.entity.schema :as schema]

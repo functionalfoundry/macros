@@ -8,7 +8,7 @@
       (string/replace #"/" ".")
       (string/replace #"-" "_")))
 
-(defn resolve
+(defn js-resolve
   "Resolves a ClojureScript symbol into the value of a JS
    variable or function."
   [sym]

@@ -1,5 +1,5 @@
 (ns workflo.macros.permission-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [deftest is]]
             [workflo.macros.permission :as p :refer [defpermission]]))
 

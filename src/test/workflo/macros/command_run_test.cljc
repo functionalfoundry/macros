@@ -1,5 +1,5 @@
 (ns workflo.macros.command-run-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [deftest is]]
             [workflo.macros.command :as c :refer [defcommand]]))
 

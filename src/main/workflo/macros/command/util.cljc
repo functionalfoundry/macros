@@ -1,5 +1,5 @@
 (ns workflo.macros.command.util
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [workflo.macros.query]
             [workflo.macros.specs.command :as sc]
             [workflo.macros.specs.parsed-query :as spq]

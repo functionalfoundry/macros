@@ -1,7 +1,6 @@
 (ns workflo.macros.util.form
-  (:require [clojure.spec :as s]
-            #?(:cljs [cljs.spec.impl.gen :as gen]
-               :clj  [clojure.spec.gen :as gen])
+  (:require [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
             [workflo.macros.util.symbol]))
 
 (s/fdef prefixed-form-name

@@ -1,7 +1,7 @@
 (ns workflo.macros.entity.schema
   (:refer-clojure :exclude [keys])
   (:require [clojure.set :refer [intersection]]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [workflo.macros.specs.entity]
             [workflo.macros.specs.types :as types]
             [workflo.macros.util.misc :refer [val-after]]))

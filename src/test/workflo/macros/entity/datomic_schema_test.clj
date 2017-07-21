@@ -1,5 +1,5 @@
 (ns workflo.macros.entity.datomic-schema-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [are deftest is]]
             [workflo.macros.entity :refer [resolve-entity defentity]]
             [workflo.macros.entity.datomic :as datomic-schema]

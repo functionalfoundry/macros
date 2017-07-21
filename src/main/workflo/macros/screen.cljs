@@ -2,7 +2,7 @@
   (:require-macros [workflo.macros.screen :refer [defscreen]])
   (:require [workflo.macros.config :refer [defconfig]]
             [workflo.macros.registry :refer [defregistry]]
-            [workflo.macros.util.js :refer [resolve]]))
+            [workflo.macros.util.js :refer [js-resolve]]))
 
 ;;;; Configuration options for the defscreen macro
 

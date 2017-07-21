@@ -1,5 +1,5 @@
 (ns workflo.macros.permission
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [workflo.macros.registry :refer [defregistry]]
             [workflo.macros.specs.permission]
             [workflo.macros.util.macro :refer [definition-symbol]]))

@@ -1,6 +1,6 @@
 (ns workflo.macros.examples.screen-app
   (:require [cljs.pprint]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [com.stuartsierra.component :as component]
             [datascript.core :as d]
             [goog.dom :as gdom]

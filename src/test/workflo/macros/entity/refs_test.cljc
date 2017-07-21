@@ -1,5 +1,5 @@
 (ns workflo.macros.entity.refs-test
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.test :refer [are deftest is use-fixtures]]
             [workflo.macros.entity :as e]
             [workflo.macros.entity.schema :as schema]

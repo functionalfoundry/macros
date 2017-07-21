@@ -1,5 +1,5 @@
 (ns workflo.macros.screen.util
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]))
 
 (s/def ::typed-url-segment
