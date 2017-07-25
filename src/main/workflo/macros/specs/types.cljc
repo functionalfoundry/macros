@@ -57,7 +57,8 @@
 ;;;; Simple reference types
 
 (s/def ::ref ::id)
-(s/def ::ref-many (s/coll-of ::id :kind vector?))
+(s/def ::ref-many (s/or :vector (s/coll-of ::id :kind vector?)
+                        :set (s/coll-of ::id :kind set?)))
 
 ;;;; Entity references
 
