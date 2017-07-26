@@ -18,14 +18,14 @@
     ident                     [:instance (static om.next/Ident) [this props]]
     keyfn                     [:factory nil [props]]
     validator                 [:factory nil [props]]
-    initLocalState            [:facetory nil [this]]
-    componntWillMount         [:instance nil [this]]
-    componntDidMount          [:instance nil [this]]
-    componentWillUnmount      [:instance nil [this]]
-    componentWillReceiveProps [:instance nil [this next-props]]
-    componentWillUpdate       [:instance nil [this next-props next-state]]
-    componentDidUpdate        [:instance nil [this prev-props prev-state]]
-    shouldComponentUpdate     [:instance nil [this next-props next-state]]})
+    initLocalState            [:instance (Object) [this]]
+    componntWillMount         [:instance (Object) [this]]
+    componentDidMount         [:instance (Object) [this]]
+    componentWillUnmount      [:instance (Object) [this]]
+    componentWillReceiveProps [:instance (Object) [this next-props]]
+    componentWillUpdate       [:instance (Object) [this next-props next-state]]
+    componentDidUpdate        [:instance (Object) [this prev-props prev-state]]
+    shouldComponentUpdate     [:instance (Object) [this next-props next-state]]})
 
 (def fn-aliases
   "A few aliases allowing to define view functions with shorter or
