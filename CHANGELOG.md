@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.59
+
+### Fixed
+
+* Fix creating React lifecycle methods under the `Object` protocol
+  in the `defview` macro.
+
 ## 0.2.58
 
 ### Changed
