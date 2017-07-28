@@ -1,6 +1,8 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
   (:require [clojure.spec.alpha :as s :refer [Spec]]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.string :as str]
             [workflo.macros.util.misc :refer [val-after]]))
 
 ;;;; Helpers
@@ -66,7 +68,15 @@
 
 ;;;; Entity IDs
 
-(s/def ::id any?)
+(s/def ::id
+  (s/with-gen
+    (s/and string? #(= (count %) 32))
+    #(gen/fmap (fn [uuid]
+                 (str/replace (str uuid) "-" ""))
+               (gen/uuid))))
+
+(s/def :workflo/id
+  (s/and ::id ::unique-identity))
 
 ;;;; Simple reference types
 
