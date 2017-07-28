@@ -51,6 +51,19 @@
 (s/def ::bytes bytes?)
 (s/def ::enum keyword?)
 
+;;;; Type options
+
+(s/def ::unique-value any?)
+(s/def ::unique-identity any?)
+(s/def ::indexed any?)
+(s/def ::fulltext any?)
+(s/def ::component any?)
+(s/def ::no-history any?)
+
+;;;; Types whose values are not to be persisted
+
+(s/def ::non-persistent any?)
+
 ;;;; Entity IDs
 
 (s/def ::id any?)
@@ -95,16 +108,3 @@
   [spec]
   (merge {:entity (val-after (s/describe spec) 'entity-ref)}
          (entity-ref-opts spec)))
-
-;;;; Type options
-
-(s/def ::unique-value any?)
-(s/def ::unique-identity any?)
-(s/def ::indexed any?)
-(s/def ::fulltext any?)
-(s/def ::component any?)
-(s/def ::no-history any?)
-
-;;;; Types whose values are not to be persisted
-
-(s/def ::non-persistent any?)
