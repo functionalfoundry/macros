@@ -80,9 +80,9 @@
 
 ;;;; Simple reference types
 
-(s/def ::ref ::id)
-(s/def ::ref-many (s/or :vector (s/coll-of ::id :kind vector?)
-                        :set (s/coll-of ::id :kind set?)))
+(s/def ::ref (s/keys :req [:workflo/id]))
+(s/def ::ref-many (s/or :vector (s/coll-of ::ref :kind vector?)
+                        :set (s/coll-of ::ref :kind set?)))
 
 ;;;; Entity references
 
