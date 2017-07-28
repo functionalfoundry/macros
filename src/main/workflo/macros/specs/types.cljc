@@ -1,6 +1,8 @@
 (ns workflo.macros.specs.types
   (:refer-clojure :exclude [bigdec? bytes? double? float? uri?])
   (:require [clojure.spec.alpha :as s :refer [Spec]]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.string :as str]
             [workflo.macros.util.misc :refer [val-after]]))
 
 ;;;; Helpers
@@ -37,6 +39,7 @@
 
 ;;;; Fundamental types
 
+(s/def ::any any?)
 (s/def ::keyword keyword?)
 (s/def ::string string?)
 (s/def ::boolean boolean?)
@@ -50,14 +53,36 @@
 (s/def ::bytes bytes?)
 (s/def ::enum keyword?)
 
+;;;; Type options
+
+(s/def ::unique-value any?)
+(s/def ::unique-identity any?)
+(s/def ::indexed any?)
+(s/def ::fulltext any?)
+(s/def ::component any?)
+(s/def ::no-history any?)
+
+;;;; Types whose values are not to be persisted
+
+(s/def ::non-persistent any?)
+
 ;;;; Entity IDs
 
-(s/def ::id any?)
+(s/def ::id
+  (s/with-gen
+    (s/and string? #(= (count %) 32))
+    #(gen/fmap (fn [uuid]
+                 (str/replace (str uuid) "-" ""))
+               (gen/uuid))))
+
+(s/def :workflo/id
+  (s/and ::id ::unique-identity))
 
 ;;;; Simple reference types
 
-(s/def ::ref ::id)
-(s/def ::ref-many (s/coll-of ::id :kind vector?))
+(s/def ::ref (s/keys :req [:workflo/id]))
+(s/def ::ref-many (s/or :vector (s/coll-of ::ref :kind vector?)
+                        :set (s/coll-of ::ref :kind set?)))
 
 ;;;; Entity references
 
@@ -93,16 +118,3 @@
   [spec]
   (merge {:entity (val-after (s/describe spec) 'entity-ref)}
          (entity-ref-opts spec)))
-
-;;;; Type options
-
-(s/def ::unique-value any?)
-(s/def ::unique-identity any?)
-(s/def ::indexed any?)
-(s/def ::fulltext any?)
-(s/def ::component any?)
-(s/def ::no-history any?)
-
-;;;; Types whose values are not to be persisted
-
-(s/def ::non-persistent any?)

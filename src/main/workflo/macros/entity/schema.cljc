@@ -35,7 +35,7 @@
   [spec]
   (case spec
     ;; Types
-    :workflo.macros.specs.types/id [:long]
+    :workflo.macros.specs.types/any [:bytes]
     :workflo.macros.specs.types/keyword [:keyword]
     :workflo.macros.specs.types/string [:string]
     :workflo.macros.specs.types/boolean [:boolean]
@@ -48,6 +48,8 @@
     :workflo.macros.specs.types/uuid [:uuid]
     :workflo.macros.specs.types/bytes [:bytes]
     :workflo.macros.specs.types/enum [:enum]
+
+    :workflo.macros.specs.types/id [:string]
     :workflo.macros.specs.types/ref [:ref]
     :workflo.macros.specs.types/ref-many [:ref :many]
 
