@@ -37,6 +37,7 @@
 
 ;;;; Fundamental types
 
+(s/def ::any any?)
 (s/def ::keyword keyword?)
 (s/def ::string string?)
 (s/def ::boolean boolean?)
