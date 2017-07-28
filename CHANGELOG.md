@@ -1,5 +1,19 @@
 # CHANGELOG workflo/macros
 
+## 0.2.60
+
+### Added
+
+* Add a `:workflo/id` spec to `workflo.macros.specs.types`.
+* Add a `:workflo.macros.specs.types/any` type that generates a
+  attributes of type `bytes` in Datomic schemas.
+
+### Changed
+
+* Make the `:workflo.macros.specs.types/id` spec more specific.
+* Allow `:workflo.macros.specs.types/ref-many` to be either a
+  vector or a set.
+
 ## 0.2.59
 
 ### Fixed
