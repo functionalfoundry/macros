@@ -76,7 +76,7 @@
                (gen/uuid))))
 
 (s/def :workflo/id
-  (s/and ::id ::unique-identity))
+  (s/and ::id ::unique-identity ::indexed))
 
 ;;;; Simple reference types
 
