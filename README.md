@@ -8,7 +8,7 @@ are work in progress and may change substantially until this notice
 has disappeared.**
 
 ```clojure
-[workflo/macros "0.2.60"]
+[workflo/macros "0.2.61"]
 ```
 
 [CHANGELOG](CHANGELOG.md)

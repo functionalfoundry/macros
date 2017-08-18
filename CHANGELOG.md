@@ -1,5 +1,12 @@
 # CHANGELOG workflo/macros
 
+## 0.2.61
+
+### Changed
+
+* Add the `::indexed` type hint to the `:workflo/id` spec,
+  so `:workflo/id` is always indexed in databases.
+
 ## 0.2.60
 
 ### Added
