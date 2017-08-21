@@ -72,21 +72,24 @@
            (apply intersection)
            (into [])))))
 
-(defn and-spec-schema
-  [spec]
-  (let [type-specs  (filter type-spec? spec)
-        schemas     (->> (map type-spec-schema type-specs)
-                         (apply concat)
-                         (into []))
-        enum-values (when (some enum-spec? type-specs)
-                      (enum-values-from-and-spec spec))]
-    (cond-> schemas
-      enum-values (conj enum-values))))
-
 (defn entity-ref-spec-schema
   [spec]
   (cond-> [:ref]
     (val-after spec :many?) (conj :many)))
+
+(defn and-spec-schema
+  [spec]
+  (let [entity-ref-schemas (into [] (comp (filter entity-ref-spec?)
+                                          (mapcat entity-ref-spec-schema))
+                                 spec)
+        type-specs (filter type-spec? spec)
+        type-spec-schemas (into [] (mapcat type-spec-schema) type-specs)
+        enum-values (when (some enum-spec? type-specs)
+                      (enum-values-from-and-spec spec))]
+    (into [] cat
+          [(when (not (empty? entity-ref-schemas)) entity-ref-schemas)
+           (when (not (empty? type-spec-schemas)) type-spec-schemas)
+           (when (not (empty? enum-values)) [enum-values])])))
 
 (defn value-spec-schema
   [spec]
@@ -115,8 +118,7 @@
   ([entity type-specs enum-values]
    {(keyword (:name entity))
     (cond-> (->> type-specs
-                 (map type-spec-schema)
-                 (apply concat)
+                 (mapcat type-spec-schema)
                  (into []))
       enum-values (conj enum-values))}))
 

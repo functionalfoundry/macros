@@ -1,0 +1,18 @@
+sudo: false
+env:
+  - BOOT_JVM_OPTIONS="-Xmx1024m -Xms256m -Xss1m"
+language: java
+script: boot test-once
+install:
+  - mkdir -p ~/bin
+  - export PATH=~/bin:$PATH
+  - curl -L https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh -o ~/bin/boot
+  - chmod +x ~/bin/boot
+jdk:
+  - oraclejdk8
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.boot/cache/bin
+  - $HOME/.boot/cache/lib
+  - $HOME/bin
