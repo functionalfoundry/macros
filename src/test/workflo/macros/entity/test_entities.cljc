@@ -37,7 +37,7 @@
 
 ;;;; Entities with refs between them
 
-(s/def :post/author (types/entity-ref 'author))
+(s/def :post/author (s/and (types/entity-ref 'author) ::types/indexed))
 (s/def :post/text ::types/string)
 (s/def :post/comments (types/entity-ref 'comment :many? true))
 
