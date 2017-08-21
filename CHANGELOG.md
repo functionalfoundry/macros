@@ -1,5 +1,16 @@
 # CHANGELOG workflo/macros
 
+## 0.2.62
+
+### Added
+
+* Add a Travis CI configuration.
+
+### Fixed
+
+* Allow `workflo.macros.specs.types/entity-ref` to be used inside
+  `s/and` specs by improving the spec parser.
+
 ## 0.2.61
 
 ### Changed
