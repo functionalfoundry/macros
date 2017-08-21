@@ -9,7 +9,7 @@
 (deftest entity-with-value-spec-type-id
   (let [entity (resolve-entity 'url/selected-user)]
     (and (is (not (nil? entity)))
-         (is (= {:url/selected-user [:long]}
+         (is (= {:url/selected-user [:string]}
                 (schema/entity-schema entity))))))
 
 (deftest entity-with-value-spec-type-string
@@ -53,7 +53,7 @@
 ;;;; Matching schemas
 
 (deftest matching-entity-schemas
-  (is (= {:url/selected-user [:long]
+  (is (= {:url/selected-user [:string]
           :ui/search-text [:string]
           :ui/search-text-with-extended-spec [:string]}
          (schema/matching-entity-schemas (registered-entities)
