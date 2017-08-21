@@ -128,7 +128,7 @@
 (deftest entity-with-entity-refs
   (let [entity (resolve-entity 'post)]
     (and (is (not (nil? entity)))
-         (is (= {:post/author [:ref]
+         (is (= {:post/author [:ref :indexed]
                  :post/text [:string]
                  :post/comments [:ref :many]}
                 (schema/entity-schema entity))))))
