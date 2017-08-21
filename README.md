@@ -1,15 +1,16 @@
 # Workflo Macros
 
+[![Clojars Project](https://img.shields.io/clojars/v/workflo/macros.svg)](https://clojars.org/workflo/macros)
+[![Build Status](https://travis-ci.org/workfloapp/macros.svg?branch=master)](https://travis-ci.org/workfloapp/macros)
+
+[API docs](https://workfloapp.github.io/macros/)
+
 A collection of Clojure and ClojureScript macros for web and mobile
 development.
 
 **Note: These are currently under heavy development. All interfaces
 are work in progress and may change substantially until this notice
 has disappeared.**
-
-```clojure
-[workflo/macros "0.2.61"]
-```
 
 [CHANGELOG](CHANGELOG.md)
 
