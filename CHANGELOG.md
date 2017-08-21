@@ -8,6 +8,11 @@
   function to recreate `entity-ref` specs from descriptions
   created using `s/describe`.
 
+### Fixed
+
+* Fix `entity-refs` when dealing with `entity-ref` specs that are
+  combined with other specs in an `s/and`.
+
 ## 0.2.62
 
 ### Added

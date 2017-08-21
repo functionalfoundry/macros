@@ -239,6 +239,22 @@
 
 ;;;; Entity ref(erences)
 
+
+(defn entity-ref-spec-from-and-spec
+  [spec]
+  (when-some [ref-spec-desc (first (filter entity-ref-spec? spec))]
+    (types/entity-ref-from-description ref-spec-desc)))
+
+(defn entity-ref-spec-from-key-spec
+  [spec]
+  (let [desc (cond-> spec
+               (not (type-spec? spec))
+               s/describe)]
+    (cond
+      (and-spec? desc) (entity-ref-spec-from-and-spec desc)
+      (entity-ref-spec? desc) spec
+      :else nil)))
+
 (defn entity-refs
   [entity]
   (if (simple-entity? entity)
@@ -247,8 +263,10 @@
     (letfn [(key-specs [entity]
               (let [keys (mapcat second (keys entity))]
                 (zipmap keys (map s/get-spec keys))))]
-      (let [ref-specs (filter (comp entity-ref-spec? s/describe second)
-                              (key-specs entity))]
+      (let [ref-specs (keep (fn [[key key-spec]]
+                              (when-some [ref-spec (entity-ref-spec-from-key-spec key-spec)]
+                                [key ref-spec]))
+                            (key-specs entity))]
         (zipmap (map first ref-specs)
                 (map (comp types/entity-ref-info second)
                      ref-specs))))))
