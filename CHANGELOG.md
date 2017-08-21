@@ -1,5 +1,13 @@
 # CHANGELOG workflo/macros
 
+## 0.2.??
+
+### Added
+
+* Add a `workflo.macros.specs.types/entity-ref-from-description`
+  function to recreate `entity-ref` specs from descriptions
+  created using `s/describe`.
+
 ## 0.2.62
 
 ### Added

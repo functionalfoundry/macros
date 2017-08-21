@@ -118,3 +118,15 @@
   [spec]
   (merge {:entity (val-after (s/describe spec) 'entity-ref)}
          (entity-ref-opts spec)))
+
+(defn entity-ref-from-description
+  "Takes an `(entity-ref <name> & <args>)` description and returns
+   an instance of the corresponding spec."
+  [[_ entity-name & args]]
+  (let [;; "Unquote" the entity name (if it is quoted)
+        entity-name (cond-> entity-name
+                      (and (seq? entity-name)
+                           (= 'quote (first entity-name))
+                           (symbol? (second entity-name)))
+                      second)]
+    (apply entity-ref (cons entity-name args))))
