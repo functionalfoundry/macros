@@ -1,0 +1,122 @@
+/* Header */
+
+#header {
+  background: white;
+  color: black;
+  box-shadow: none;
+  box-sizing: border-box;
+  border-bottom: thin solid #e9edde;
+  height: 2.5em;
+  padding: 0 13px 0 13px;
+  box-sizing: border-box;
+}
+
+#header h1 {
+  text-shadow: none;
+  height: 2.5rem;
+  box-sizing: border-box;
+  padding-top: 0.5em;
+}
+
+#header h2 {
+  padding-top: 0.5em;
+  color: black;
+}
+
+#header a {
+  color: #ff3366;
+  font-weight: 500;
+}
+
+/* Sidebar */
+
+.sidebar {
+  top: 2.5em;
+  background: transparent !important;
+}
+
+.sidebar.primary {
+  border-right: none;
+}
+
+.sidebar.secondary {
+  border-right: none;
+}
+
+.sidebar a {
+  color: black !important;
+}
+
+.sidebar h3 {
+  padding-top: 1em;
+}
+.sidebar.primary li.current a {
+  border-left: 3px solid #ff3366;
+  color: #ff3366 !important;
+}
+
+.sidebar.secondary li.current a {
+  border-left: 3px solid #4d5061;
+  color: #4d5061 !important;
+}
+
+/* Content */
+
+#content {
+  top: 2.5em;
+}
+
+#content h1 {
+  padding-top: 0.25em;
+}
+
+#content a,
+#content a:link,
+#content a:visited {
+  text-decoration: none;
+  border-bottom: thin solid #eee;
+}
+
+.index {
+  font-size: 100%;
+  line-height: 1.5em;
+}
+
+/* General */
+
+body {
+  font-family: 'Avenir Next', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 150%;
+}
+
+pre,
+code {
+  font-size: 13px;
+  color: #5c80bc;
+  background: transparent !important;
+}
+
+pre {
+  background: #fafafa !important;
+  border: #e9edde !important;
+}
+
+h1 {
+  color: #ff3366;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #011627;
+}
+
+a,
+a:visited,
+a:link {
+  color: black;
+}

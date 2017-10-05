@@ -125,7 +125,8 @@
           :source-paths #{"src/main"}
           :output-path "api-docs"
           :doc-paths #{"docs/"}
-          :metadata {:doc/format :markdown})
+          :metadata {:doc/format :markdown}
+          :themes [:default :macros])
    (target)))
 
 (deftask test-once
