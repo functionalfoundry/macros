@@ -112,12 +112,19 @@
   (merge-env! :source-paths #{"src/test"})
   identity)
 
+(deftask building-docs
+  []
+  (merge-env! :source-paths #{"docs"})
+  identity)
+
 (deftask docs
   []
   (comp
+   (building-docs)
    (codox :name "workflo/macros"
           :source-paths #{"src/main"}
           :output-path "api-docs"
+          :doc-paths #{"docs/"}
           :metadata {:doc/format :markdown})
    (target)))
 
