@@ -5,9 +5,10 @@ set -x
 TMPDIR=$(mktemp -d)
 
 boot docs \
-  && cp -R target/api-docs "$TMPDIR" \
+  && scp -r target/api-docs/ "$TMPDIR" \
   && git checkout gh-pages \
-  && cp -R "$TMPDIR/" . \
+  && rm -rf target/ \
+  && scp -r "$TMPDIR/" . \
   && rm -rf "$TMPDIR" \
   && git add --all \
   && git commit -m "Update API documentation" \
