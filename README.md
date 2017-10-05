@@ -1,10 +1,9 @@
-# workfloapp/macros
+# workflo/macros
 
 [![Clojars Project](https://img.shields.io/clojars/v/workflo/macros.svg)](https://clojars.org/workflo/macros)
-[![Build Status](https://travis-ci.org/workfloapp/macros.svg?branch=master)](https://travis-ci.org/workfloapp/macros)
+[![Build Status](https://travis-ci.org/functionalfoundry/macros.svg?branch=master)](https://travis-ci.org/functionalfoundry/macros)
 
-[Examples](https://github.com/workfloapp/macros/tree/master/examples) |
-[API documentation](https://workfloapp.github.io/macros/) |
+[API documentation](https://functionalfoundry.github.io/macros/) |
 [Changes](CHANGELOG.md)
 
 A collection of Clojure and ClojureScript macros (and related utilities)
@@ -24,5 +23,8 @@ this as easy as possible.
 
 ## License
 
-`workfloapp/macros` is copyright (C) 2016-2017 Workflo. Licensed under
-the MIT License. For more information [see the LICENSE file](LICENSE).
+`workflo/macros` is copyright (C) 2016-2017 Workflo, Inc.
+
+Licensed under the MIT License.
+
+For more information [see the LICENSE file](LICENSE).

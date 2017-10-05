@@ -63,8 +63,8 @@
  pom       {:project +project+
             :version +version+
             :description "Clojure macros for web and mobile development"
-            :url "https://github.com/workfloapp/macros"
-            :scm {:url "https://github.com/workfloapp/macros"}
+            :url "https://github.com/functionalfoundry/macros"
+            :scm {:url "https://github.com/functionalfoundry/macros"}
             :license {"MIT License"
                       "https://opensource.org/licenses/MIT"}}
  repl      {:middleware '[cemerick.piggieback/wrap-cljs-repl]})

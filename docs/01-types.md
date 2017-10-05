@@ -1,6 +1,6 @@
 # Type specs
 
-`workfloapp/macros` comes with specs—as in `clojure.spec` specs—for
+`workflo/macros` comes with specs—as in `clojure.spec` specs—for
 various fundamental types. We've decided to focus on those supported
 by [Datomic](http://www.datomic.com/), plus special types for relationships
 between what we call [entities](04-defentity.md).
