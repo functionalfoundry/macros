@@ -1,0 +1,4 @@
+{:resources ["macros.css"]
+ :transforms [[:head] [:append [:link {:rel "stylesheet"
+                                       :type "text/css"
+                                       :href "macros.css"}]]]}

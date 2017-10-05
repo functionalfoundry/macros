@@ -1,4 +1,6 @@
-## `defview` - Defining Om Next components in a compact way
+# Views (defview)
+
+*Defining Om Next components in a compact way.*
 
 Om Next views are a combination of an Om Next component defined
 with `om.next/defui` and a component factory created with
