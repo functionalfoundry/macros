@@ -122,11 +122,13 @@
   (comp
    (building-docs)
    (codox :name "workflo/macros"
+          :version +version+
           :source-paths #{"src/main"}
           :output-path "api-docs"
           :doc-paths #{"docs/"}
           :metadata {:doc/format :markdown}
-          :themes [:default :macros])
+          :themes [:default :macros]
+          :source-uri "https://github.com/functionalfoundry/macros/blob/{version}/{filepath}#L{line}")
    (target)))
 
 (deftask test-once
