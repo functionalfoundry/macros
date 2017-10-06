@@ -1,4 +1,5 @@
 {:resources ["macros.css"]
  :transforms [[:head] [:append [:link {:rel "stylesheet"
                                        :type "text/css"
-                                       :href "macros.css"}]]]}
+                                       :href "macros.css"}]
+                               [:script {:src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/elm.min.js"}]]]}
