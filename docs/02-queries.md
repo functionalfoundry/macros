@@ -40,12 +40,12 @@ And since queries are Clojure data structures, they can include comments anywher
 ### Example queries
 
 A query for the name and email address of a user with a specific `:workflo/id`:
-```
+```clojure
 [({user [workflo [id] user [name email]]}
   {workflo/id "some-id"})]
 ```
 This query is identical to the following Om Next query:
-```
+```clojure
 [({:user [:workflo/id :user/name :user/email]}
   {:workflo/id "some-id"})]
 ```
@@ -53,7 +53,7 @@ This query is identical to the following Om Next query:
 A query for all users that have the first name `Linda`, including all posts
 they have written, sorted by their last names, plus the post with the
 ID with the value `"foo"`:
-```
+```clojure
 [(;; The subquery for the users
   {users [workflo [id]
           user [first-name
@@ -72,7 +72,7 @@ ID with the value `"foo"`:
 ```
 This query is equivalent to the following Om Next query, only adding
 some meta data for the alias:
-```
+```clojure
 [({:users [:workflo/id
            :user/first-name
            :user/last-name
