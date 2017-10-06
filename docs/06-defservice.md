@@ -98,7 +98,7 @@ Some key features of services include:
       (case op
         :create (swap! (get this :store) assoc id op-data)
         :update (swap! (get this :store) update id merge op-data)
-        :delete (swap! (get this  :store) dissoc id))))))
+        :delete (swap! (get this :store) dissoc id))))))
 
 
 ;; Create and start a DB service component
