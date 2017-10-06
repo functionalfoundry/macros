@@ -5,7 +5,7 @@ users, accounts, articles). The following list sums up the key features of
 entities:
 
 * **Specs** — entities are fully specified using `clojure.spec`
-* **Relationships** — relationships between entities can easily be defined
+* **Relationships** — relationships between entities can easily be defined.
   This includes one-to-one, one-to-many and many-to-many relations
 * **Entity registry** — entities defined with `defentity` are stored
   in a global registry, from where they can be looked up at any time
@@ -98,3 +98,5 @@ entities:
 * [workflo.macros.entity.schema](workflo.macros.entity.schema.html)
     - Intermediate schema representation for entities (from which
       schemas for any database can be derived)
+* [workflo.macros.specs.entity](workflo.macros.specs.entity.html)
+    - Specs for `defentity` arguments
