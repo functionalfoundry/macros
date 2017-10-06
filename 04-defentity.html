@@ -4,7 +4,7 @@
 <p>Entities in <code>workflo/macros</code> define the types of data in your system (e.g. users, accounts, articles). The following list sums up the key features of entities:</p>
 <ul>
   <li><strong>Specs</strong> — entities are fully specified using <code>clojure.spec</code></li>
-  <li><strong>Relationships</strong> — relationships between entities can easily be defined  This includes one-to-one, one-to-many and many-to-many relations</li>
+  <li><strong>Relationships</strong> — relationships between entities can easily be defined.  This includes one-to-one, one-to-many and many-to-many relations</li>
   <li><strong>Entity registry</strong> — entities defined with <code>defentity</code> are stored  in a global registry, from where they can be looked up at any time</li>
   <li><strong>Schema generation</strong> — schemas for popular Clojure(Script) databases  such as Datomic and DataScript can be derived from entities easily</li>
   <li><strong>Authorization</strong> — <code>defentity</code> comes with built-in support for  authorization to control access to entities in your system</li>
@@ -94,6 +94,11 @@
   <li><a href="workflo.macros.entity.schema.html">workflo.macros.entity.schema</a>
     <ul>
       <li>Intermediate schema representation for entities (from which  schemas for any database can be derived)</li>
+    </ul>
+  </li>
+  <li><a href="workflo.macros.specs.entity.html">workflo.macros.specs.entity</a>
+    <ul>
+      <li>Specs for <code>defentity</code> arguments</li>
     </ul>
   </li>
 </ul></div></div></div></body></html>
