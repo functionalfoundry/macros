@@ -17,28 +17,32 @@
   :ret ::sb/paths)
 
 (defn property-binding-paths
-  "Takes a property and an optional path of parents. Returns
+  "Takes a `property` and an optional `path` of parents. Returns
    a flat vector of all paths inside the property and its
    parents. Each path is again a sequence of properties,
    starting from the leaf (e.g. a regular property) and
    ending at the root of the query.
 
-   As an example, the query [{user [user [name email]]]}]
+   As an example, the query `[{user [user [name email]]]}]`
    would result in the query AST
 
-       [{:name user :type :join
-         :join-source {:name user :type :property}
-         :join-target [{:name user/name :type :property}
-                       {:name user/email :type :property}]}].
+   ```clojure
+   [{:name user :type :join
+     :join-source {:name user :type :property}
+     :join-target [{:name user/name :type :property}
+                   {:name user/email :type :property}]}].
+   ```
 
-   Calling property-binding-paths with the join property
-   would result in two paths, one for user -> user/name and
-   one for user -> user/email:
+   Calling `property-binding-paths` with the join property
+   would result in two paths, one for `user -> user/name` and
+   one for `user -> user/email`:
 
-     [({:name user/name :type :property}
-       {:name user :type :join :join-source ... :join-target ...})
-      ({:name user/email :type :property}
-       {:name user :type :join :join-source ... :join-target ...})]."
+   ```clojure
+   [({:name user/name :type :property}
+     {:name user :type :join :join-source ... :join-target ...})
+    ({:name user/email :type :property}
+     {:name user :type :join :join-source ... :join-target ...})].
+   ```"
   ([property]
    (property-binding-paths property nil))
   ([property path]
@@ -59,7 +63,7 @@
   :ret ::sb/paths)
 
 (defn binding-paths
-  "Returns a vector of all property binding paths for a query
+  "Returns a vector of all property binding paths for a `query`
    or parsed query."
   [query]
   (transduce (map property-binding-paths) concat []
@@ -85,13 +89,13 @@
    value of the corresponding property from a query result
    and bind it to the name of the property.
 
-   E.g. for a property path (a b/c d) (simplified notation with
-   only the property names), it would return {{{a :a} :b/c} :d},
-   allowing to destructure a map like {:d {:b/c {:a <val>}}}
-   and bind a to <val>.
+   E.g. for a property path `(a b/c d)` (simplified notation with
+   only the property names), it would return `{{{a :a} :b/c} :d}`,
+   allowing to destructure a map like `{:d {:b/c {:a <val>}}}`
+   and bind a to `<val>`.
 
-   It treats backref properties like _b/c in joins special by
-   binding to b instead of c (the regular case) or _b."
+   It treats backref properties like `_b/c` in joins special by
+   binding to `b` instead of `c` (the regular case) or `_b`."
   [[leaf & path]]
   (loop [form {(or (some-> leaf :alias simplified-name symbol)
                    (if (util/backref-attr? (:name leaf))
@@ -110,13 +114,13 @@
   :ret ::core-specs/map-bindings)
 
 (defn query-bindings
-  "Takes a query or parsed query and returns map bindings to
+  "Takes a `query` or parsed query and returns map bindings to
    be applied to the corresponding query result in order to
    destructure and bind all possible properties in the query
    result to their names.
 
-   E.g. for a query [a :as b c [d e {f [g :as h]}]] it
-   would return {b :a, d :c/d, e :c/e, f :f, {{h :g} :f}}."
+   E.g. for a query `[a :as b c [d e {f [g :as h]}]]` it
+   would return `{b :a, d :c/d, e :c/e, f :f, {{h :g} :f}}`."
   [query]
   (let [paths    (binding-paths query)
         bindings (mapv path-bindings paths)
@@ -141,7 +145,7 @@
        ~@body)))
 
 (defmacro with-query-bindings
-  "Takes a query, a query result and an arbitrary code block.
+  "Takes a `query`, a query `result` and an arbitrary code `body`.
    Wraps the code block so that all possible bindings derived
    from the query are bound to the values in the query result."
   [query result & body]
