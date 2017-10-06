@@ -25,11 +25,11 @@ entities:
 (require '[workflo.macros.entity :refer [defentity]])
 
 (defentity <name>
-  <description> ; Optional
-  <hints>       ; Optional
-  <spec>        ; Required
-  <auth-query>  ; Optional
-  <auth>        ; Optional
+  "description"    ; Optional
+  (hints [...])    ; Optional
+  (spec ...)       ; Required
+  (auth-query ...) ; Optional
+  (auth ...)       ; Optional
   )
 ```
 
@@ -37,15 +37,15 @@ entities:
 
 ```clojure
 (require '[clojure.spec.alpha :as s])
-(require '[workflo.macros.specs.types :as t])
+(require '[workflo.macros.specs.types :as types])
 (require '[workflo.macros.entity :refer [defentity]])
 
 ;;;; Specs for user attributes
 
-(s/def :user/name ::t/string)
-(s/def :user/email ::t/string)
-(s/def :user/friends (t/entity-ref 'user :many? true))
-(s/def :user/todos (t/entity-ref 'todo :many? true))
+(s/def :user/name ::types/string)
+(s/def :user/email ::types/string)
+(s/def :user/friends (types/entity-ref 'user :many? true))
+(s/def :user/todos (types/entity-ref 'todo :many? true))
 
 ;;;; User entity
 
@@ -60,9 +60,9 @@ entities:
 
 ;;;; Specs for todo attributes
 
-(s/def :todo/text ::t/string)
-(s/def :todo/done? ::t/boolean)
-(s/def :todo/complexity (s/and ::t/enum
+(s/def :todo/text ::types/string)
+(s/def :todo/done? ::types/boolean)
+(s/def :todo/complexity (s/and ::types/enum
                                {:todo.complexity/easy
                                 :todo.complexity/medium
                                 :todo.complexity/hard}))
@@ -86,6 +86,7 @@ entities:
 * [workflo.macros.entity](workflo.macros.entity.html)
     - The `defentity` macro
     - Entity registry
+    - Entity hooks
     - Entity references lookup
     - Entity validation
     - Entity authorization

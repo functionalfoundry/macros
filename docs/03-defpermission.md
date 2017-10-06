@@ -14,8 +14,8 @@ to restrict access to e.g. entities, commands or user-facing features.
 (require '[workflo.macros.permission :refer [defpermission]])
 
 (defpermission <name>
-  (title <string>)       ; Required
-  (description <string>) ; Optional
+  (title "...")       ; Required
+  (description "...") ; Optional
   )
 ```
 
