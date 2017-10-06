@@ -96,6 +96,7 @@ code {
   font-size: 13px;
   color: #5c80bc;
   background: transparent !important;
+  font-family: 'Fira Mono', 'Monaco', 'DejaVu Sans Mono', Consolas, monospace;
 }
 
 pre {
